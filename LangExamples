@@ -1,0 +1,89 @@
+-----------------
+mut var a;
+a = 10;
+
+var b = "123";
+
+var c = a + b;	# c == 133 prioritizing numbers over strings
+-----------------
+var a = 10;
+
+var b = a * a;
+
+print(b);		# b automatically converted to string and printed
+-----------------
+var b = false;
+
+if(b)
+{
+	# do sth
+}
+else
+{
+	# do sth else
+}
+-----------------
+mut var a = 0;
+while(a < 10)
+{
+	# do stuff
+
+	a++;
+}
+-----------------
+func Fizz(a, b)
+{
+	print(a, b);
+	if(a > b)
+	{
+		Fizz(a - b, b);
+	}
+}
+-----------------
+func Add(a, b)
+{
+	return a + b;
+}
+-----------------
+func main()
+{
+}
+-----------------
+func compose(f, g)
+{
+    return func(x){ return f(g(x));}
+}
+
+func square(x)
+{
+    return x * x;
+}
+
+func increment(x)
+{
+    return x + 1;
+}
+
+var composed_function = compose(square, increment);
+var result = composed_function(3);
+print(result);
+-----------------
+func log_decorator(func)
+{
+    return func(args...)
+    {
+        print("Called function: " + func.name);
+        print("Arguments: " + args);
+        var result = func(args...);
+        print("Result: " + result);
+        return result;
+    }
+}
+func Add(a, b)
+{
+    return a + b;
+}
+
+var decorated_add = log_decorator(Add);
+var result = decorated_add(3, 4);
+-----------------
