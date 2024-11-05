@@ -12,7 +12,7 @@ project("Interpreter")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(Interpreter "Main.cpp")
+add_executable(Interpreter "Main.cpp" "Lexer.cpp" "Lexer.h")
 
 # Include FetchContent module for GoogleTest
 include(FetchContent)
