@@ -11,16 +11,16 @@ static void PrintToken(const Lexer::Token& token)
 {
 	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
-		{Lexer::TokenType::Identifier, "Identifier"},
-		{Lexer::TokenType::Keyword, "Keyword"},
-		{Lexer::TokenType::Number, "Number"},
-		{Lexer::TokenType::String, "String"},
-		{Lexer::TokenType::Operator, "Operator"},
-		{Lexer::TokenType::Delimiter, "Delimiter"},
-		{Lexer::TokenType::Comment, "Comment"},
-		{Lexer::TokenType::EndOfFile, "EndOfFile"},
-		{Lexer::TokenType::Error, "Error"},
-		{Lexer::TokenType::Test, "Test"}
+		{Lexer::TokenType::Identifier, L"Identifier"},
+		{Lexer::TokenType::Keyword, L"Keyword"},
+		{Lexer::TokenType::Number, L"Number"},
+		{Lexer::TokenType::String, L"String"},
+		{Lexer::TokenType::Boolean, L"Boolean"},
+		{Lexer::TokenType::Operator, L"Operator"},
+		{Lexer::TokenType::Delimiter, L"Delimiter"},
+		{Lexer::TokenType::Comment, L"Comment"},
+		{Lexer::TokenType::EndOfFile, L"EndOfFile"},
+		{Lexer::TokenType::Unrecognized, L"Unrecognized"},
 	}; // just for testing purposes
 
 	std::wcout << "Type: " << tokenNames[token.type] << " value: ";

@@ -10,14 +10,15 @@ public:
 	{
 		Identifier,
 		Keyword,
-		Number,
+		Integer,
+		Float,
 		String,
+		Boolean,
 		Operator,
 		Delimiter,
 		Comment,
 		EndOfFile,
-		Error,
-		Test
+		Unrecognized,
 	};
 
 	struct Token
@@ -32,4 +33,6 @@ public:
 
 	std::vector<Token> Tokenize(std::wistream& source) const;
 private:
+	static constexpr unsigned int maxCommentLength = 300;
+	static constexpr unsigned int maxIntegerLength = 10;
 };
