@@ -9,7 +9,7 @@
 
 static void PrintToken(const Lexer::Token& token)
 {
-	static std::unordered_map<Lexer::TokenType, std::string> tokenNames =
+	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
 		{Lexer::TokenType::Identifier, "Identifier"},
 		{Lexer::TokenType::Keyword, "Keyword"},
@@ -23,11 +23,11 @@ static void PrintToken(const Lexer::Token& token)
 		{Lexer::TokenType::Test, "Test"}
 	}; // just for testing purposes
 
-	std::cout << "Type: " << tokenNames[token.type] << " value: ";
+	std::wcout << "Type: " << tokenNames[token.type] << " value: ";
 
-	std::visit([](const auto& value) { std::cout << value; }, token.value);
+	std::visit([](const auto& value) { std::wcout << value; }, token.value);
 
-	std::cout << " line: " << token.line << " column: " << token.column << std::endl;
+	std::wcout << " line: " << token.line << " column: " << token.column << std::endl;
 }
 
 int main()
@@ -46,7 +46,7 @@ int main()
 	std::istringstream codeStream(codeExample);
 	const auto tokens = lexer.Tokenize(codeStream*/
 
-	std::ifstream codeFile(CodesPath::exampleCodesPath + "TestCode.txt");
+	std::wifstream codeFile(CodesPath::exampleCodesPath + "TestCode.txt");
 	if (!codeFile.is_open()) {
 		std::cerr << "Error opening file!" << std::endl;
 		return 1;

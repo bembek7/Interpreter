@@ -22,14 +22,14 @@ public:
 
 	struct Token
 	{
-		Token(const TokenType type, const std::variant<std::string, int, float, bool>& value, const int line, const int column) :
+		Token(const TokenType type, const std::variant<std::wstring, int, float, bool>& value, const int line, const int column) :
 			type(type), value(value), line(line), column(column) {}
 		TokenType type;
-		std::variant<std::string, int, float, bool> value;
+		std::variant<std::wstring, int, float, bool> value;
 		int line;
 		int column;
 	};
 
-	std::vector<Token> Tokenize(std::istream& source) const;
+	std::vector<Token> Tokenize(std::wistream& source) const;
 private:
 };

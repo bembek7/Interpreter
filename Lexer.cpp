@@ -1,15 +1,18 @@
 #include "Lexer.h"
 #include <istream>
+#include <cwctype>
 
 std::vector<Lexer::Token> Lexer::Tokenize(std::istream& source) const
+std::vector<Lexer::Token> Lexer::Tokenize(std::wistream& source) const
 {
 	std::vector<Token> resolvedTokens;
 
 	int line = 1;
 	int column = 1;
 
-	char ch;
-	while (source.get(ch))
+	wchar_t currentChar;
+
+	while (source.get(currentChar))
 	{
 		resolvedTokens.push_back(Token(TokenType::Test, std::string{ ch }, line, column));
 
