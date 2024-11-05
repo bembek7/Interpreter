@@ -1,0 +1,6 @@
+mut var a;
+a = 10;
+
+var b = "123";
+
+var c = a + b;	# c == 133 prioritizing numbers over strings

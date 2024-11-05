@@ -12,6 +12,17 @@ project("Interpreter")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set the data path (adjust as needed)
+set(EXAMPLE_CODES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ExampleCodes/")
+
+# Configure the header file
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/PathConfig.h.in"
+    "${CMAKE_BINARY_DIR}/PathConfig.h"
+)
+
+include_directories("${CMAKE_BINARY_DIR}")
+
 add_executable(Interpreter "Main.cpp" "Lexer.cpp" "Lexer.h")
 
 # Include FetchContent module for GoogleTest

@@ -4,10 +4,12 @@
 #include <sstream>
 #include "Lexer.h"
 #include <unordered_map>
+#include <fstream>
+#include "PathConfig.h"
 
-int main()
+static void PrintToken(const Lexer::Token& token)
 {
-	std::unordered_map<Lexer::TokenType, std::string> tokenNames =
+	static std::unordered_map<Lexer::TokenType, std::string> tokenNames =
 	{
 		{Lexer::TokenType::Identifier, "Identifier"},
 		{Lexer::TokenType::Keyword, "Keyword"},
@@ -21,28 +23,43 @@ int main()
 		{Lexer::TokenType::Test, "Test"}
 	}; // just for testing purposes
 
-	std::string codeExample = R"(
-        mut var a;
-        a = 10;
+	std::cout << "Type: " << tokenNames[token.type] << " value: ";
 
-        var b = "123";
+	std::visit([](const auto& value) { std::cout << value; }, token.value);
 
-        var c = a + b;    # c == 133 prioritizing numbers over strings
-    )";
+	std::cout << " line: " << token.line << " column: " << token.column << std::endl;
+}
 
+int main()
+{
 	Lexer lexer;
 
+	/*std::string codeExample = R"(
+		mut var a;
+		a = 10;
+
+		var b = "123";
+
+		var c = a + b;    # c == 133 prioritizing numbers over strings
+	)";
+
 	std::istringstream codeStream(codeExample);
-	const auto tokens = lexer.Tokenize(codeStream);
+	const auto tokens = lexer.Tokenize(codeStream*/
+
+	std::ifstream codeFile(CodesPath::exampleCodesPath + "TestCode.txt");
+	if (!codeFile.is_open()) {
+		std::cerr << "Error opening file!" << std::endl;
+		return 1;
+	}
+
+	const auto tokens = lexer.Tokenize(codeFile);
 
 	for (const auto& token : tokens)
 	{
-		std::cout << tokenNames[token.type] << ": ";
-
-		std::visit([](const auto& value) { std::cout << value; }, token.value);
-
-		std::cout << std::endl;
+		PrintToken(token);
 	}
+
+	codeFile.close();
 
 	return 0;
 }
