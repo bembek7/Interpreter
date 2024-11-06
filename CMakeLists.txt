@@ -23,13 +23,21 @@ configure_file(
 
 include_directories("${CMAKE_BINARY_DIR}")
 
-add_executable(Interpreter "Main.cpp" "Lexer.cpp" "Lexer.h")
+# Add a library target for sharing with the test executable
+add_library(InterpreterLib "Lexer.cpp" "Lexer.h")
+
+# Add the executable for running the program
+add_executable(Interpreter "Main.cpp")
+
+# Link the executable to the library
+target_link_libraries(Interpreter PRIVATE InterpreterLib)
 
 # Include FetchContent module for GoogleTest
 include(FetchContent)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

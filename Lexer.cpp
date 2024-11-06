@@ -148,6 +148,18 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(wchar_t currentChar,
 	return std::nullopt;
 }
 
+std::optional<Lexer::Token> Lexer::TryBuildOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+{
+	if (std::optional<Token> token = TryBuildTwoCharsOperator(currentChar, source, line, column))
+	{
+		return token.value();
+	}
+	else
+	{
+		return TryBuildSingleCharOperator(currentChar, source, line, column);
+	}
+}
+
 std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (currentChar == L'"')
@@ -214,11 +226,7 @@ Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsig
 	{
 		return token.value();
 	}
-	if (token = TryBuildSingleCharOperator(currentChar, source, line, column))
-	{
-		return token.value();
-	}
-	if (token = TryBuildTwoCharsOperator(currentChar, source, line, column))
+	if (token = TryBuildOperator(currentChar, source, line, column))
 	{
 		return token.value();
 	}
@@ -227,7 +235,7 @@ Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsig
 		return token.value();
 	}
 
-	token = Token(TokenType::Unrecognized, { currentChar }, line, column);
+	token = Token(TokenType::Unrecognized, std::wstring{ currentChar }, line, column);
 	column++;
 	return token.value();
 }

@@ -44,6 +44,7 @@ private:
 	std::optional<Token> TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 	std::optional<Token> TryBuildTwoCharsOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 	std::optional<Token> TryBuildStringLiteral(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 
 private:
 	static constexpr unsigned int maxCommentLength = 300;
