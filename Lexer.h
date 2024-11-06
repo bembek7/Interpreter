@@ -41,15 +41,20 @@ private:
 	std::optional<Token> TryBuildInteger(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 	std::optional<Token> TryBuildKeywordOrIdentifier(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const; // violates the one purpose rule, but saves code repetition
 	std::optional<Token> TryBuildDelimiter(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildTwoCharsOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 
 private:
 	static constexpr unsigned int maxCommentLength = 300;
 	static constexpr unsigned int maxIntegerLength = 10;
 
 	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return" };
-	const std::vector<std::wstring> operators =
+	const std::vector<std::wstring> singleCharOperators =
 	{
-		L"=",  L"+",  L"-",  L"*",  L"/",  L"!",  L"&&", L"||", L"<",  L">",
-		L"==", L"+=", L"-=", L"*=", L"/=", L"!=", L"&=", L"|=", L"<=", L">="
+		L"=",  L"+",  L"-",  L"*",  L"/",  L"!", L"<",  L">",
+	};
+	const std::vector<std::wstring> twoCharsOperators =
+	{
+		L"&&", L"||", L"==", L"+=", L"-=", L"*=", L"/=", L"!=", L"&=", L"|=", L"<=", L">="
 	};
 };

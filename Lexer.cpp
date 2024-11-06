@@ -120,6 +120,34 @@ std::optional<Lexer::Token> Lexer::TryBuildDelimiter(wchar_t currentChar, std::w
 	return std::nullopt;
 }
 
+std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+{
+	if (std::find(singleCharOperators.begin(), singleCharOperators.end(), std::wstring(1, currentChar)) != singleCharOperators.end())
+	{
+		const auto token = Token(TokenType::Operator, std::wstring{ currentChar }, line, column);
+		column++;
+		return token;
+	}
+	return std::nullopt;
+}
+
+std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+{
+	wchar_t nextChar;
+	if (source.get(nextChar))
+	{
+		std::wstring opStr{ currentChar, nextChar };
+		if (std::find(twoCharsOperators.begin(), twoCharsOperators.end(), opStr) != twoCharsOperators.end())
+		{
+			const auto token = Token(TokenType::Operator, opStr, line, column);
+			column += 2;
+			return token;
+		}
+	}
+	source.unget();
+	return std::nullopt;
+}
+
 Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	std::optional<Token> token;
@@ -137,6 +165,14 @@ Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsig
 		return token.value();
 	}
 	if (token = TryBuildDelimiter(currentChar, source, line, column))
+	{
+		return token.value();
+	}
+	if (token = TryBuildSingleCharOperator(currentChar, source, line, column))
+	{
+		return token.value();
+	}
+	if (token = TryBuildTwoCharsOperator(currentChar, source, line, column))
 	{
 		return token.value();
 	}
