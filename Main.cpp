@@ -13,7 +13,8 @@ static void PrintToken(const Lexer::Token& token)
 	{
 		{Lexer::TokenType::Identifier, L"Identifier"},
 		{Lexer::TokenType::Keyword, L"Keyword"},
-		{Lexer::TokenType::Number, L"Number"},
+		{Lexer::TokenType::Integer, L"Integer"},
+		{Lexer::TokenType::Float, L"Float"},
 		{Lexer::TokenType::String, L"String"},
 		{Lexer::TokenType::Boolean, L"Boolean"},
 		{Lexer::TokenType::Operator, L"Operator"},
