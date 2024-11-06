@@ -340,9 +340,20 @@ Lekser przekształca kod źródłowy na tokeny zgodne z gramatyką języka. Każ
 - przekroczenie maksymalnej długości liczby (15 znaków) lub identyfikatora (50 znaków).
 - overflow liczb.
 
-Tokeny generowane przez lekser:
+Tokeny generowane przez lekser (aktualnie, na pewno będzie ich więcej):
+- Identifier,
+- Keyword,
+- Integer,
+- Float,
+- String,
+- Boolean,
+- Operator,
+- Delimiter,
+- Comment,
+- EndOfFile,
+- Unrecognized,
 
-Jeżeli lekser napotka sekwencję znaków, której nie może zdekodować, wygeneruje specjalny token.
+Jeżeli lekser napotka sekwencję znaków, której nie może zdekodować, wygeneruje specjalny token `Unrecognized`.
 
 ### Analizator składniowy
 
