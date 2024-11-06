@@ -148,6 +148,52 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(wchar_t currentChar,
 	return std::nullopt;
 }
 
+std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+{
+	if (currentChar == L'"')
+	{
+		std::wstring builtString;
+		builtString += currentChar;
+
+		wchar_t nextChar;
+		while (source.get(nextChar))
+		{
+			if (nextChar == L'"')
+			{
+				builtString += nextChar;
+				const auto token = Token(TokenType::String, builtString, line, column);
+				column += (unsigned int)builtString.length();
+				return token;
+			}
+			if (nextChar == L'\\')
+			{
+				builtString += nextChar;
+				if (source.get(nextChar))
+				{
+					if (nextChar == L'"' || nextChar == L'\\' || nextChar == L'n' || nextChar == L't')
+					{
+						builtString += nextChar;
+					}
+					else
+					{
+						// Error: Invalid escape sequence
+					}
+				}
+				else
+				{
+					// Error: incomplete escape sequence
+				}
+			}
+			else
+			{
+				builtString += nextChar;
+			}
+		}
+	}
+
+	return std::nullopt;
+}
+
 Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	std::optional<Token> token;
@@ -173,6 +219,10 @@ Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsig
 		return token.value();
 	}
 	if (token = TryBuildTwoCharsOperator(currentChar, source, line, column))
+	{
+		return token.value();
+	}
+	if (token = TryBuildStringLiteral(currentChar, source, line, column))
 	{
 		return token.value();
 	}
