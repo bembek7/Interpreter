@@ -50,7 +50,7 @@ private:
 	static constexpr unsigned int maxCommentLength = 300;
 	static constexpr unsigned int maxIntegerLength = 10;
 
-	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return" };
+	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func" };
 	const std::vector<std::wstring> singleCharOperators =
 	{
 		L"=",  L"+",  L"-",  L"*",  L"/",  L"!", L"<",  L">",

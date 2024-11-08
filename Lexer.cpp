@@ -38,7 +38,7 @@ std::vector<Lexer::Token> Lexer::Tokenize(std::wistream& source) const
 	}
 
 	resolvedTokens.push_back(Token(TokenType::EndOfFile, L"", line, column));
-
+	
 	return resolvedTokens;
 }
 
@@ -111,7 +111,7 @@ std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(wchar_t currentCh
 
 std::optional<Lexer::Token> Lexer::TryBuildDelimiter(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
-	if (std::wcschr(L";", currentChar))
+	if (std::wcschr(L";(){},", currentChar))
 	{
 		const auto token = Token(TokenType::Delimiter, std::wstring{ currentChar }, line, column);
 		column++;
@@ -174,7 +174,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(wchar_t currentChar, st
 			{
 				builtString += nextChar;
 				const auto token = Token(TokenType::String, builtString, line, column);
-				column += (unsigned int)builtString.length();
+				column += (unsigned int)builtString.length() + 2;
 				return token;
 			}
 			if (nextChar == L'\\')
