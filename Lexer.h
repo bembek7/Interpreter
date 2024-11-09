@@ -38,7 +38,7 @@ private:
 	Token BuildToken(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 
 	std::optional<Token> TryBuildComment(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildInteger(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildNumber(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 	std::optional<Token> TryBuildKeywordOrIdentifier(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const; // violates the one purpose rule, but saves code repetition
 	std::optional<Token> TryBuildDelimiter(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 	std::optional<Token> TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
@@ -50,7 +50,7 @@ private:
 	static constexpr unsigned int maxCommentLength = 300;
 	static constexpr unsigned int maxIntegerLength = 10;
 
-	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func" };
+	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func", L"true", L"false" };
 	const std::vector<std::wstring> singleCharOperators =
 	{
 		L"=",  L"+",  L"-",  L"*",  L"/",  L"!", L"<",  L">",

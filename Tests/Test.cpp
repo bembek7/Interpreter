@@ -14,7 +14,7 @@ static void CompareTokens(const std::vector<Lexer::Token>& tokens, const std::ve
 {
 	ASSERT_EQ(tokens.size(), expectedTokens.size());
 
-	for (size_t i = 0; i < tokens.size(); ++i) 
+	for (size_t i = 0; i < tokens.size(); ++i)
 	{
 		EXPECT_EQ(tokens[i].type, expectedTokens[i].type);
 		EXPECT_EQ(tokens[i].value, expectedTokens[i].value);
@@ -28,7 +28,7 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 	std::wstringstream input(L"= + - * / !");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Operator, L"=", 1, 1},
 		{Lexer::TokenType::Operator, L"+", 1, 3},
@@ -47,7 +47,7 @@ TEST_F(LexerTest, TwoCharOperatorRecognition)
 	std::wstringstream input(L"&& || == !=");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Operator, L"&&", 1, 1},
 		{Lexer::TokenType::Operator, L"||", 1, 4},
@@ -64,7 +64,7 @@ TEST_F(LexerTest, StringLiteralRecognition)
 	std::wstringstream input(L"\"Hello, World!\"");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::String, L"\"Hello, World!\"", 1, 1},
 		{Lexer::TokenType::EndOfFile, L"", 1, 18}
@@ -78,7 +78,7 @@ TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 	std::wstringstream input(L"var myVariable while");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"myVariable", 1, 5},
@@ -94,7 +94,7 @@ TEST_F(LexerTest, IntegerRecognition)
 	std::wstringstream input(L"12345");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Integer, 12345, 1, 1},
 		{Lexer::TokenType::EndOfFile, L"", 1, 6}
@@ -108,7 +108,7 @@ TEST_F(LexerTest, CommentRecognition)
 	std::wstringstream input(L"# This is a comment\nvar");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Comment, L"", 1, 1},
 		{Lexer::TokenType::Keyword, L"var", 2, 1},
@@ -123,7 +123,7 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 	std::wstringstream input(L"@");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Unrecognized, L"@", 1, 1},
 		{Lexer::TokenType::EndOfFile, L"", 1, 2}
@@ -137,7 +137,7 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 	std::wstringstream input(L"var count = 123 + myVar * 4;");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"count", 1, 5},
@@ -267,7 +267,7 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 	std::wstringstream input(L"var a = 10;\n\nvar b = a * a;\n\n # b automatically converted to string and printed");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"a", 1, 5},
@@ -292,7 +292,7 @@ TEST_F(LexerTest, IfElseBlock)
 	std::wstringstream input(L"var b = false;\n\nif(b)\n{\n\t# do sth\n}\nelse\n{\n\t# do sth else\n}");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"b", 1, 5},
@@ -320,7 +320,7 @@ TEST_F(LexerTest, WhileLoop)
 	std::wstringstream input(L"while(a < 10)\n{\n\t# do stuff\n}");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"while", 1, 1},
 		{Lexer::TokenType::Delimiter, L"(", 1, 6},
@@ -372,7 +372,7 @@ TEST_F(LexerTest, FunctionWithReturn)
 	std::wstringstream input(L"func Add(a, b)\n{\n\treturn a + b;\n}");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"func", 1, 1},
 		{Lexer::TokenType::Identifier, L"Add", 1, 6},
@@ -398,7 +398,7 @@ TEST_F(LexerTest, SimpleMainFunction)
 	std::wstringstream input(L"func main()\n{\n}");
 	auto tokens = lexer.Tokenize(input);
 
-	std::vector<Lexer::Token> expectedTokens = 
+	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Keyword, L"func", 1, 1},
 		{Lexer::TokenType::Identifier, L"main", 1, 6},
@@ -448,3 +448,18 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 	CompareTokens(tokens, expectedTokens);
 }
 
+TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
+	std::wstringstream input(L"3.14 2.718 42 0.5");
+	auto tokens = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Float, 3.14f, 1, 1},
+		{Lexer::TokenType::Float, 2.718f, 1, 6},
+		{Lexer::TokenType::Integer, 42, 1, 12},
+		{Lexer::TokenType::Float, 0.5f, 1, 15},
+		{Lexer::TokenType::EndOfFile, L"", 1, 18}
+	};
+
+	CompareTokens(tokens, expectedTokens);
+}

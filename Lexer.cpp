@@ -38,7 +38,7 @@ std::vector<Lexer::Token> Lexer::Tokenize(std::wistream& source) const
 	}
 
 	resolvedTokens.push_back(Token(TokenType::EndOfFile, L"", line, column));
-	
+
 	return resolvedTokens;
 }
 
@@ -63,28 +63,54 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(wchar_t currentChar, std::wis
 	return std::nullopt;
 }
 
-std::optional< Lexer::Token> Lexer::TryBuildInteger(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildNumber(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
-	if (std::iswdigit(currentChar)) // build integer
+	if (std::iswdigit(currentChar))
 	{
-		std::wstring builtNumber{ currentChar };
-		while (source.get(currentChar) && std::iswdigit(currentChar))
+		std::wstring numberStr{ currentChar };
+		bool isFloat = false;
+
+		// Read the following characters to build a full number (integer or float)
+		while (source.get(currentChar))
 		{
-			if (*builtNumber.begin() == L'0')
+			if (std::iswdigit(currentChar))
 			{
-				// error invalid integer def, cannot be '0123' or '0000123', has to be '123'
+				numberStr += currentChar;
 			}
-			builtNumber += currentChar;
-			if (builtNumber.length() > maxIntegerLength)
+			else if (currentChar == L'.' && !isFloat) // only allow one decimal point
 			{
-				// error too long integer def
+				isFloat = true;
+				numberStr += currentChar;
+			}
+			else
+			{
+				source.unget();
+				break;
 			}
 		}
-		source.unget();
-		// needs overflow check
-		const auto token = Token(TokenType::Integer, std::stoi(builtNumber), line, column);
-		column += (unsigned int)builtNumber.length();
-		return token;
+
+		// Check for overflow or invalid leading zeros for integer
+		if (!isFloat && numberStr[0] == L'0' && numberStr.length() > 1)
+		{
+			// Error: Invalid integer format (e.g., leading zeros)
+			// Handle this error appropriately
+			return std::nullopt;
+		}
+
+		if (isFloat)
+		{
+			float floatValue = std::stof(numberStr);
+			const auto token = Token(TokenType::Float, floatValue, line, column);
+			column += (unsigned int)numberStr.length();
+			return token;
+		}
+		else
+		{
+			int intValue = std::stoi(numberStr);
+			const auto token = Token(TokenType::Integer, intValue, line, column);
+			column += (unsigned int)numberStr.length();
+			return token;
+		}
 	}
 	return std::nullopt;
 }
@@ -102,7 +128,13 @@ std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(wchar_t currentCh
 
 		const bool isKeyword = (std::find(keywords.begin(), keywords.end(), identifier) != keywords.end());
 		TokenType type = isKeyword ? TokenType::Keyword : TokenType::Identifier;
-		const auto token = Token(type, identifier, line, column);
+		std::variant<std::wstring, int, float, bool> value = identifier;
+		if (isKeyword && (identifier == L"true" || identifier == L"false"))
+		{
+			type = TokenType::Boolean;
+			value = (identifier == L"true") ? true : false;
+		}
+		const auto token = Token(type, value, line, column);
 		column += (unsigned int)identifier.length();
 		return token;
 	}
@@ -214,7 +246,7 @@ Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsig
 	{
 		return token.value();
 	}
-	if (token = TryBuildInteger(currentChar, source, line, column))
+	if (token = TryBuildNumber(currentChar, source, line, column))
 	{
 		return token.value();
 	}

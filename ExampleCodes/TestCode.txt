@@ -1,6 +1,12 @@
 mut var a;
-a = 10;
-
+a = false;
+true;
+falsed;
+0.35;
+213;
+"123";
+"0.32";
+00123;
 var d = 20;
 var c = 033;
 var e = 123;
