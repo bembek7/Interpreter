@@ -23,12 +23,33 @@ Jest to dokumentacja wstępna, więc będzie zmieniana i uzupełniana, nie wszys
 - Typowanie dynamiczne, słabe
 - Funkcja jako typ danych, tzn. funkcja może być argumentem lub wartością zwracaną przez inną funkcję.
 
-Kompozycja łączy dwie funkcje w jedną, gdzie wynik pierwszej funkcji jest argumentem drugiej.
+### Operatory działające na funkcjach
+
+- "+" - kompozycja, łączy dwie funkcje w jedną, gdzie wynik pierwszej funkcji jest argumentem drugiej.
+
+```plaintext
+func Square(x)
+{
+    return x * x;
+}
+
+func Increment(x)
+{
+    return x + 1;
+}
+
+func main()
+{
+    var composedFunction = square + increment;
+}
+```
+
+równe temu:
 
 ```plaintext
 func Compose(f, g)
 {
-    return func(x){ return f(g(x));}
+    return func(x){ return g(f(x));}
 }
 
 func Square(x)
@@ -49,30 +70,18 @@ func main()
 }
 ```
 
-LogDecorator zwraca nową funkcję, która rozszerza zachowanie przekazanej funkcji, dodając logowanie. Nie wiem jeszcze w jaki sposób przekazane zostana argumenty dekorowanej funkcji.
+- "*" - pozwala na wielokrotne zastosowanie funkcji w jednej operacji, podobnie jak potęgowanie w matematyce.
 
 ```plaintext
-func LogDecorator(func)
+func Double(x)
 {
-    return func(args...)
-    {
-        print("Called function: " + func.name);
-        print("Arguments: " + args);
-        var result = func(args...);
-        print("Result: " + result);
-        return result;
-    }
-}
-
-func Add(a, b)
-{
-    return a + b;
+    return x * 2;
 }
 
 func main()
 {
-    var decoratedAdd = LogDecorator(Add);
-    var result = decoratedAdd(3, 4);
+    var doubledTwice = Double * 2; // Oczekiwany efekt: Double(Double(x)) = x * 4
+    var doubledThrice = Double * 3; // Oczekiwany efekt: Double(Double(Double(x))) = x * 8
 }
 ```
 
@@ -149,6 +158,33 @@ Main
 ```plaintext
 func main()
 {
+}
+```
+
+Funkcje jako zmienne
+
+```plaintext
+func LogDecorator(func)
+{
+    return func(args...)
+    {
+        print("Called function: " + func.name);
+        print("Arguments: " + args);
+        var result = func(args...);
+        print("Result: " + result);
+        return result;
+    }
+}
+
+func Add(a, b)
+{
+    return a + b;
+}
+
+func main()
+{
+    var decoratedAdd = LogDecorator(Add);
+    var result = decoratedAdd(3, 4);
 }
 ```
 
@@ -327,6 +363,7 @@ Przykład: `.\Interpreter sourceFile.xxx`
 Nie znam szczegółów na tym etapie projektu.
 
 Interpreter będzie zbudowany z czterech kluczowych modułów:
+
 - analizator leksykalny,
 - analizator składniowy,
 - analizator semantyczny,
@@ -341,6 +378,7 @@ Lekser przekształca kod źródłowy na tokeny zgodne z gramatyką języka. Każ
 - overflow liczb.
 
 Tokeny generowane przez lekser (aktualnie, na pewno będzie ich więcej):
+
 - Identifier,
 - Keyword,
 - Integer,
@@ -376,4 +414,4 @@ Testy jednostkowe dla wszystkich modułów jeśli tylko będzie to możliwe oraz
 - **Analizator leksykalny**: Sprawdzenie, czy dla danego wejściowego ciągu znaków zwróci oczekiwany ciąg tokenów.
 - **Analizator składniowy**: Sprawdzenie, czy podany kod źródłowy lub ciąg tokenów generuje oczekiwaną hierarchię obiektów.
 - **Analizator semantyczny**: Sprawdzenie, czy przygotowany niepoprawny kod zwraca odpowiednie komunikaty o błędach – testowany program musi zawierać wyjątek z oczekiwanym komunikatem.
-- **Interpreter hierarchi obiektów**: Sprawdzenie, czy interpreter generuje oczekiwane wyniki.
+- **Interpreter hierarchi obiektów**: Sprawdzenie, czy interpreter generuje oczekiwane wyniki
