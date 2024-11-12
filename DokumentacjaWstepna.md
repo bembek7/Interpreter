@@ -189,7 +189,7 @@ conjunction           = relation_term, { "&&", relation_term };
 relation_term         = additive_term, [ relation_operator, additive_term ];
 additive_term         = multiplicative_term, { ("+" | "-"), multiplicative_term };
 multiplicative_term   = factor, { ("*" | "/"), factor };
-factor                = [ "!" ], (literal | "(", expression, ")" | identifier);
+factor                = [ "!" ], (literal | "(", expression, ")" | identifier | function_call);
 
 literal               = number | string | boolean;
 number                = integer | float;
