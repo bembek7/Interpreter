@@ -7,7 +7,7 @@
 #include <fstream>
 #include "PathConfig.h"
 
-static void PrintToken(const Lexer::Token& token)
+static void PrintToken(const Lexer::Token& token) noexcept
 {
 	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
@@ -29,6 +29,11 @@ static void PrintToken(const Lexer::Token& token)
 	std::visit([](const auto& value) { std::wcout << value; }, token.value);
 
 	std::wcout << " line: " << token.line << " column: " << token.column << std::endl;
+}
+
+static void PrintError(const Lexer::LexicalError& error) noexcept
+{
+	std::cout << "Error[line: " << error.line << ", column : " << error.column << "] " << error.message << std::endl;
 }
 
 int main()
@@ -53,9 +58,14 @@ int main()
 		return 1;
 	}
 
-	const auto tokens = lexer.Tokenize(codeFile);
+	const auto lexerOut = lexer.Tokenize(codeFile);
 
-	for (const auto& token : tokens)
+	for (const auto& error : lexerOut.second)
+	{
+		PrintError(error);
+	}
+
+	for (const auto& token : lexerOut.first)
 	{
 		PrintToken(token);
 	}

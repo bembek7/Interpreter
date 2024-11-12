@@ -3,15 +3,15 @@
 #include <cwctype>
 
 // TODO (not obvious stuff, well obvious too)
-// warp building sections into functions returning optionals
 // overflow checking
 // minuses before numbers
 
 // cannot use peek with wide chars
 
-std::vector<Lexer::Token> Lexer::Tokenize(std::wistream& source) const
+std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::Tokenize(std::wistream& source) const
 {
 	std::vector<Token> resolvedTokens;
+	std::vector<LexicalError> foundErrors;
 
 	unsigned int line = 1;
 	unsigned int column = 1;
@@ -34,15 +34,22 @@ std::vector<Lexer::Token> Lexer::Tokenize(std::wistream& source) const
 			continue;
 		}
 
-		resolvedTokens.push_back(BuildToken(currentChar, source, line, column));
+		resolvedTokens.push_back(BuildToken(foundErrors, currentChar, source, line, column));
+		if (const auto& last = foundErrors.end(); last != foundErrors.end())
+		{
+			if (last->terminating)
+			{
+				return { resolvedTokens, foundErrors };
+			}
+		}
 	}
 
 	resolvedTokens.push_back(Token(TokenType::EndOfFile, L"", line, column));
 
-	return resolvedTokens;
+	return { resolvedTokens, foundErrors };
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildComment(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildComment(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (currentChar == L'#')
 	{
@@ -52,7 +59,7 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(wchar_t currentChar, std::wis
 			commentLength++;
 			if (commentLength > maxCommentLength)
 			{
-				// error: comment too long
+				// error
 			}
 		};
 		const auto token = Token(TokenType::Comment, std::wstring(), line, column);
@@ -63,7 +70,7 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(wchar_t currentChar, std::wis
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildNumber(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildNumber(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (std::iswdigit(currentChar))
 	{
@@ -115,7 +122,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(wchar_t currentChar, std::wist
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (std::iswalpha(currentChar) || currentChar == L'_')
 	{
@@ -141,7 +148,7 @@ std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(wchar_t currentCh
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildDelimiter(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildDelimiter(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (std::wcschr(L";(){},", currentChar))
 	{
@@ -152,7 +159,7 @@ std::optional<Lexer::Token> Lexer::TryBuildDelimiter(wchar_t currentChar, std::w
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (std::find(singleCharOperators.begin(), singleCharOperators.end(), std::wstring(1, currentChar)) != singleCharOperators.end())
 	{
@@ -163,7 +170,7 @@ std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(wchar_t currentCha
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	wchar_t nextChar;
 	if (source.get(nextChar))
@@ -180,19 +187,19 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(wchar_t currentChar,
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
-	if (std::optional<Token> token = TryBuildTwoCharsOperator(currentChar, source, line, column))
+	if (std::optional<Token> token = TryBuildTwoCharsOperator(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
 	else
 	{
-		return TryBuildSingleCharOperator(currentChar, source, line, column);
+		return TryBuildSingleCharOperator(errors, currentChar, source, line, column);
 	}
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	if (currentChar == L'"')
 	{
@@ -238,31 +245,31 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(wchar_t currentChar, st
 	return std::nullopt;
 }
 
-Lexer::Token Lexer::BuildToken(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
+Lexer::Token Lexer::BuildToken(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const
 {
 	std::optional<Token> token;
 	// could use some function table ???
-	if (token = TryBuildComment(currentChar, source, line, column))
+	if (token = TryBuildComment(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
-	if (token = TryBuildNumber(currentChar, source, line, column))
+	if (token = TryBuildNumber(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
-	if (token = TryBuildKeywordOrIdentifier(currentChar, source, line, column))
+	if (token = TryBuildKeywordOrIdentifier(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
-	if (token = TryBuildDelimiter(currentChar, source, line, column))
+	if (token = TryBuildDelimiter(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
-	if (token = TryBuildOperator(currentChar, source, line, column))
+	if (token = TryBuildOperator(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}
-	if (token = TryBuildStringLiteral(currentChar, source, line, column))
+	if (token = TryBuildStringLiteral(errors, currentChar, source, line, column))
 	{
 		return token.value();
 	}

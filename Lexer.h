@@ -32,19 +32,36 @@ public:
 		unsigned int column;
 	};
 
-	std::vector<Token> Tokenize(std::wistream& source) const;
+	enum class ErrorType
+	{
+		Overflow,
+		InvalidConversion,
+		TooLong,
+		InvalidNumber,
+	};
+
+	struct LexicalError
+	{
+		ErrorType type;
+		std::string message;
+		unsigned int line;
+		unsigned int column;
+		bool terminating = false;
+	};
+
+	std::pair<std::vector<Token>, std::vector<LexicalError>> Tokenize(std::wistream& source) const;
 
 private:
-	Token BuildToken(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	Token BuildToken(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 
-	std::optional<Token> TryBuildComment(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildNumber(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildKeywordOrIdentifier(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const; // violates the one purpose rule, but saves code repetition
-	std::optional<Token> TryBuildDelimiter(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildSingleCharOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildTwoCharsOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildStringLiteral(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
-	std::optional<Token> TryBuildOperator(wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildComment(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildNumber(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildKeywordOrIdentifier(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const; // violates the one purpose rule, but saves code repetition
+	std::optional<Token> TryBuildDelimiter(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildSingleCharOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildTwoCharsOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildStringLiteral(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
+	std::optional<Token> TryBuildOperator(std::vector<LexicalError>& errors, wchar_t currentChar, std::wistream& source, unsigned int& line, unsigned int& column) const;
 
 private:
 	static constexpr unsigned int maxCommentLength = 300;
