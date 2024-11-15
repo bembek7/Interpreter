@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <unordered_map>
 
 class Lexer
 {
@@ -16,7 +17,12 @@ public:
 		String,
 		Boolean,
 		Operator,
-		Delimiter,
+		Semicolon,
+		LParenth,
+		RParenth,
+		LBracket,
+		RBracket,
+		Comma,
 		Comment,
 		EndOfFile,
 		Unrecognized,
@@ -61,7 +67,7 @@ private:
 	std::optional<Token> TryBuildComment(std::wistream& source);
 	std::optional<Token> TryBuildNumber(std::wistream& source);
 	std::optional<Token> TryBuildKeywordOrIdentifier(std::wistream& source); // violates the one purpose rule, but saves code repetition
-	std::optional<Token> TryBuildDelimiter(std::wistream& source);
+	std::optional<Token> TryBuildSymbol();
 	std::optional<Token> TryBuildSingleCharOperator(std::wistream& source);
 	std::optional<Token> TryBuildTwoCharsOperator(std::wistream& source);
 	std::optional<Token> TryBuildStringLiteral(std::wistream& source);
@@ -70,15 +76,26 @@ private:
 private:
 	// For code tidyness the tokenization needed variables are stored as class member values
 	std::vector<LexicalError> foundErrors;
-	wchar_t currentChar;
-	size_t currentLine;
-	size_t currentColumn;
+	wchar_t currentChar = {};
+	size_t currentLine = 1;
+	size_t currentColumn = 1;
 
 	static constexpr unsigned int maxCommentLength = 500;
 	static constexpr unsigned int maxStringLiteralLength = 300;
 	static constexpr unsigned int maxIntegerLength = 10;
 
 	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func", L"true", L"false" };
+
+	const std::unordered_map<std::wstring, TokenType> symbolsTokensMap =
+	{
+		{ L";", TokenType::Semicolon },
+		{ L",", TokenType::Comma },
+		{ L"{", TokenType::LBracket },
+		{ L"}", TokenType::RBracket },
+		{ L"(", TokenType::LParenth },
+		{ L")", TokenType::RParenth },
+	};
+
 	const std::vector<std::wstring> singleCharOperators =
 	{
 		L"=",  L"+",  L"-",  L"*",  L"/",  L"!", L"<",  L">",

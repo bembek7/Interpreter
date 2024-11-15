@@ -18,7 +18,7 @@ static void PrintToken(const Lexer::Token& token) noexcept
 		{Lexer::TokenType::String, L"String"},
 		{Lexer::TokenType::Boolean, L"Boolean"},
 		{Lexer::TokenType::Operator, L"Operator"},
-		{Lexer::TokenType::Delimiter, L"Delimiter"},
+		{Lexer::TokenType::Semicolon, L"Semicolon"},
 		{Lexer::TokenType::Comment, L"Comment"},
 		{Lexer::TokenType::EndOfFile, L"EndOfFile"},
 		{Lexer::TokenType::Unrecognized, L"Unrecognized"},

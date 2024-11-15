@@ -153,16 +153,17 @@ std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(std::wistream& so
 	return token;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildDelimiter(std::wistream& source)
+std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 {
-	if (!std::wcschr(L";(){},", currentChar))
+	const auto symbol = std::wstring{ currentChar };
+	if (const auto it = symbolsTokensMap.find(symbol); it != symbolsTokensMap.end())
 	{
-		return std::nullopt;
+		const auto token = Token(it->second, std::move(symbol), currentLine, currentColumn);
+		currentColumn++;
+		return token;
 	}
 
-	const auto token = Token(TokenType::Delimiter, std::wstring{ currentChar }, currentLine, currentColumn);
-	currentColumn++;
-	return token;
+	return std::nullopt;
 }
 
 std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(std::wistream& source)
@@ -283,7 +284,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	{
 		return token.value();
 	}
-	if (token = TryBuildDelimiter(source))
+	if (token = TryBuildSymbol())
 	{
 		return token.value();
 	}
