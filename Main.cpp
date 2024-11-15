@@ -33,7 +33,7 @@ static void PrintToken(const Lexer::Token& token) noexcept
 
 static void PrintError(const Lexer::LexicalError& error) noexcept
 {
-	std::cout << "Error[line: " << error.line << ", column : " << error.column << "] " << error.message << std::endl;
+	std::cout << "Error [line: " << error.line << ", column : " << error.column << "] " << error.message << std::endl;
 }
 
 int main()
