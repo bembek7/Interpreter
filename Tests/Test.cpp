@@ -30,12 +30,12 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Operator, L"=", 1, 1},
-		{Lexer::TokenType::Operator, L"+", 1, 3},
-		{Lexer::TokenType::Operator, L"-", 1, 5},
-		{Lexer::TokenType::Operator, L"*", 1, 7},
-		{Lexer::TokenType::Operator, L"/", 1, 9},
-		{Lexer::TokenType::Operator, L"!", 1, 11},
+		{Lexer::TokenType::Assign, L"=", 1, 1},
+		{Lexer::TokenType::Plus, L"+", 1, 3},
+		{Lexer::TokenType::Minus, L"-", 1, 5},
+		{Lexer::TokenType::Asterisk, L"*", 1, 7},
+		{Lexer::TokenType::Slash, L"/", 1, 9},
+		{Lexer::TokenType::LogicalNot, L"!", 1, 11},
 		{Lexer::TokenType::EndOfFile, L"", 1, 12}
 	};
 
@@ -49,10 +49,10 @@ TEST_F(LexerTest, TwoCharOperatorRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Operator, L"&&", 1, 1},
-		{Lexer::TokenType::Operator, L"||", 1, 4},
-		{Lexer::TokenType::Operator, L"==", 1, 7},
-		{Lexer::TokenType::Operator, L"!=", 1, 10},
+		{Lexer::TokenType::LogicalAnd, L"&&", 1, 1},
+		{Lexer::TokenType::LogicalOr, L"||", 1, 4},
+		{Lexer::TokenType::Equal, L"==", 1, 7},
+		{Lexer::TokenType::NotEqual, L"!=", 1, 10},
 		{Lexer::TokenType::EndOfFile, L"", 1, 12}
 	};
 
@@ -141,11 +141,11 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"count", 1, 5},
-		{Lexer::TokenType::Operator, L"=", 1, 11},
+		{Lexer::TokenType::Assign, L"=", 1, 11},
 		{Lexer::TokenType::Integer, 123, 1, 13},
-		{Lexer::TokenType::Operator, L"+", 1, 17},
+		{Lexer::TokenType::Plus, L"+", 1, 17},
 		{Lexer::TokenType::Identifier, L"myVar", 1, 19},
-		{Lexer::TokenType::Operator, L"*", 1, 25},
+		{Lexer::TokenType::Asterisk, L"*", 1, 25},
 		{Lexer::TokenType::Integer, 4, 1, 27},
 		{Lexer::TokenType::Semicolon, L";", 1, 28},
 		{Lexer::TokenType::EndOfFile, L"", 1, 29}
@@ -174,13 +174,13 @@ TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Operator, L">=", 1, 1},
-		{Lexer::TokenType::Operator, L"<=", 1, 4},
-		{Lexer::TokenType::Operator, L"!=", 1, 7},
-		{Lexer::TokenType::Operator, L"&&", 1, 10},
-		{Lexer::TokenType::Operator, L"||", 1, 13},
-		{Lexer::TokenType::Operator, L"=", 1, 16},
-		{Lexer::TokenType::Operator, L"!", 1, 18},
+		{Lexer::TokenType::GreaterEqual, L">=", 1, 1},
+		{Lexer::TokenType::LessEqual, L"<=", 1, 4},
+		{Lexer::TokenType::NotEqual, L"!=", 1, 7},
+		{Lexer::TokenType::LogicalAnd, L"&&", 1, 10},
+		{Lexer::TokenType::LogicalOr, L"||", 1, 13},
+		{Lexer::TokenType::Assign, L"=", 1, 16},
+		{Lexer::TokenType::LogicalNot, L"!", 1, 18},
 		{Lexer::TokenType::EndOfFile, L"", 1, 19}
 	};
 	CompareTokens(tokens, expectedTokens);
@@ -213,7 +213,7 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 		{Lexer::TokenType::Comment, L"", 1, 1},
 		{Lexer::TokenType::Keyword, L"var", 2, 1},
 		{Lexer::TokenType::Identifier, L"x", 2, 5},
-		{Lexer::TokenType::Operator, L"+=", 2, 7},
+		{Lexer::TokenType::PlusAssign, L"+=", 2, 7},
 		{Lexer::TokenType::Integer, 10, 2, 10},
 		{Lexer::TokenType::Comment, L"", 2, 13},
 		{Lexer::TokenType::EndOfFile, L"", 3, 1}
@@ -243,17 +243,17 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 	{
 		{Lexer::TokenType::Keyword, L"var", 3, 3},
 		{Lexer::TokenType::Identifier, L"a", 3, 7},
-		{Lexer::TokenType::Operator, L"=", 3, 9},
+		{Lexer::TokenType::Assign, L"=", 3, 9},
 		{Lexer::TokenType::Integer, 5, 3, 11},
 		{Lexer::TokenType::Keyword, L"while", 4, 1},
 		{Lexer::TokenType::LParenth, L"(", 4, 7},
 		{Lexer::TokenType::Identifier, L"a", 4, 8},
-		{Lexer::TokenType::Operator, L"<", 4, 10},
+		{Lexer::TokenType::Less, L"<", 4, 10},
 		{Lexer::TokenType::Integer, 10, 4, 12},
 		{Lexer::TokenType::RParenth, L")", 4, 14},
 		{Lexer::TokenType::LBracket, L"{", 4, 16},
 		{Lexer::TokenType::Identifier, L"a", 4, 18},
-		{Lexer::TokenType::Operator, L"+=", 4, 20},
+		{Lexer::TokenType::PlusAssign, L"+=", 4, 20},
 		{Lexer::TokenType::Integer, 1, 4, 23},
 		{Lexer::TokenType::Semicolon, L";", 4, 24},
 		{Lexer::TokenType::RBracket, L"}", 4, 26},
@@ -271,14 +271,14 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"a", 1, 5},
-		{Lexer::TokenType::Operator, L"=", 1, 7},
+		{Lexer::TokenType::Assign, L"=", 1, 7},
 		{Lexer::TokenType::Integer, 10, 1, 9},
 		{Lexer::TokenType::Semicolon, L";", 1, 11},
 		{Lexer::TokenType::Keyword, L"var", 3, 1},
 		{Lexer::TokenType::Identifier, L"b", 3, 5},
-		{Lexer::TokenType::Operator, L"=", 3, 7},
+		{Lexer::TokenType::Assign, L"=", 3, 7},
 		{Lexer::TokenType::Identifier, L"a", 3, 9},
-		{Lexer::TokenType::Operator, L"*", 3, 11},
+		{Lexer::TokenType::Asterisk, L"*", 3, 11},
 		{Lexer::TokenType::Identifier, L"a", 3, 13},
 		{Lexer::TokenType::Semicolon, L";", 3, 14},
 		{Lexer::TokenType::Comment, L"", 5, 2},
@@ -296,7 +296,7 @@ TEST_F(LexerTest, IfElseBlock)
 	{
 		{Lexer::TokenType::Keyword, L"var", 1, 1},
 		{Lexer::TokenType::Identifier, L"b", 1, 5},
-		{Lexer::TokenType::Operator, L"=", 1, 7},
+		{Lexer::TokenType::Assign, L"=", 1, 7},
 		{Lexer::TokenType::Boolean, false, 1, 9},
 		{Lexer::TokenType::Semicolon, L";", 1, 14},
 		{Lexer::TokenType::Keyword, L"if", 3, 1},
@@ -325,7 +325,7 @@ TEST_F(LexerTest, WhileLoop)
 		{Lexer::TokenType::Keyword, L"while", 1, 1},
 		{Lexer::TokenType::LParenth, L"(", 1, 6},
 		{Lexer::TokenType::Identifier, L"a", 1, 7},
-		{Lexer::TokenType::Operator, L"<", 1, 9},
+		{Lexer::TokenType::Less, L"<", 1, 9},
 		{Lexer::TokenType::Integer, 10, 1, 11},
 		{Lexer::TokenType::RParenth, L")", 1, 13},
 		{Lexer::TokenType::LBracket, L"{", 2, 1},
@@ -355,7 +355,7 @@ TEST_F(LexerTest, RecursiveFunction)
 		{Lexer::TokenType::Identifier, L"Fizz", 3, 9},
 		{Lexer::TokenType::LParenth, L"(", 3, 13},
 		{Lexer::TokenType::Identifier, L"a", 3, 14},
-		{Lexer::TokenType::Operator, L"-", 3, 16},
+		{Lexer::TokenType::Minus, L"-", 3, 16},
 		{Lexer::TokenType::Integer, 1, 3, 18},
 		{Lexer::TokenType::Comma, L",", 3, 19},
 		{Lexer::TokenType::Identifier, L"b", 3, 21},
@@ -384,7 +384,7 @@ TEST_F(LexerTest, FunctionWithReturn)
 		{Lexer::TokenType::LBracket, L"{", 2, 1},
 		{Lexer::TokenType::Keyword, L"return", 3, 2},
 		{Lexer::TokenType::Identifier, L"a", 3, 9},
-		{Lexer::TokenType::Operator, L"+", 3, 11},
+		{Lexer::TokenType::Plus, L"+", 3, 11},
 		{Lexer::TokenType::Identifier, L"b", 3, 13},
 		{Lexer::TokenType::Semicolon, L";", 3, 14},
 		{Lexer::TokenType::RBracket, L"}", 4, 1},

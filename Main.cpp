@@ -9,7 +9,7 @@
 
 static void PrintToken(const Lexer::Token& token) noexcept
 {
-	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
+	static const std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
 		{Lexer::TokenType::Identifier, L"Identifier"},
 		{Lexer::TokenType::Keyword, L"Keyword"},
@@ -17,11 +17,30 @@ static void PrintToken(const Lexer::Token& token) noexcept
 		{Lexer::TokenType::Float, L"Float"},
 		{Lexer::TokenType::String, L"String"},
 		{Lexer::TokenType::Boolean, L"Boolean"},
-		{Lexer::TokenType::Operator, L"Operator"},
 		{Lexer::TokenType::Semicolon, L"Semicolon"},
 		{Lexer::TokenType::Comment, L"Comment"},
 		{Lexer::TokenType::EndOfFile, L"EndOfFile"},
 		{Lexer::TokenType::Unrecognized, L"Unrecognized"},
+		{Lexer::TokenType::Assign, L"Assign"},
+		{Lexer::TokenType::Plus, L"Plus"},
+		{Lexer::TokenType::Minus, L"Minus"},
+		{Lexer::TokenType::Asterisk, L"Asterisk"},
+		{Lexer::TokenType::Slash, L"Slash"},
+		{Lexer::TokenType::LogicalNot, L"LogicalNot"},
+		{Lexer::TokenType::Less, L"Less"},
+		{Lexer::TokenType::Greater, L"Greater"},
+		{Lexer::TokenType::LogicalAnd, L"LogicalAnd"},
+		{Lexer::TokenType::LogicalOr, L"LogicalOr"},
+		{Lexer::TokenType::Equal, L"Equal"},
+		{Lexer::TokenType::LessEqual, L"LessEqual"},
+		{Lexer::TokenType::GreaterEqual, L"GreaterEqual"}
+		{Lexer::TokenType::NotEqual, L"NotEqual"},
+		{Lexer::TokenType::PlusAssign, L"PlusAssign"},
+		{Lexer::TokenType::MinusAssign, L"MinusAssign"},
+		{Lexer::TokenType::AsteriskAssign, L"AsteriskAssign"},
+		{Lexer::TokenType::SlashAssign, L"SlashAssign"},
+		{Lexer::TokenType::AndAssign, L"AndAssign"},
+		{Lexer::TokenType::OrAssign, L"OrAssign"}
 	}; // just for testing purposes
 
 	std::wcout << "Type: " << tokenNames[token.type] << " value: ";

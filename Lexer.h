@@ -16,7 +16,6 @@ public:
 		Float,
 		String,
 		Boolean,
-		Operator,
 		Semicolon,
 		LParenth,
 		RParenth,
@@ -26,6 +25,26 @@ public:
 		Comment,
 		EndOfFile,
 		Unrecognized,
+		Assign,    
+		Plus,     
+		Minus,      
+		Asterisk,   
+		Slash,        
+		LogicalNot,
+		Less,          
+		Greater,       
+		LogicalAnd,    
+		LogicalOr,     
+		Equal,         
+		LessEqual,     
+		GreaterEqual,
+		NotEqual,
+		PlusAssign,
+		MinusAssign,
+		AsteriskAssign,
+		SlashAssign,
+		AndAssign,
+		OrAssign
 	};
 
 	struct Token
@@ -86,7 +105,7 @@ private:
 
 	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func", L"true", L"false" };
 
-	const std::unordered_map<std::wstring, TokenType> symbolsTokensMap =
+	const std::unordered_map<std::wstring, TokenType> symbols =
 	{
 		{ L";", TokenType::Semicolon },
 		{ L",", TokenType::Comma },
@@ -96,12 +115,31 @@ private:
 		{ L")", TokenType::RParenth },
 	};
 
-	const std::vector<std::wstring> singleCharOperators =
+	const std::unordered_map<std::wstring, TokenType> singleCharOperators =
 	{
-		L"=",  L"+",  L"-",  L"*",  L"/",  L"!", L"<",  L">",
+		{ L"=", TokenType::Assign },
+		{ L"+", TokenType::Plus },
+		{ L"-", TokenType::Minus },
+		{ L"*", TokenType::Asterisk },
+		{ L"/", TokenType::Slash },
+		{ L"!", TokenType::LogicalNot },
+		{ L"<", TokenType::Less },
+		{ L">", TokenType::Greater },
 	};
-	const std::vector<std::wstring> twoCharsOperators =
+
+	const std::unordered_map<std::wstring, TokenType> twoCharsOperators =
 	{
-		L"&&", L"||", L"==", L"+=", L"-=", L"*=", L"/=", L"!=", L"&=", L"|=", L"<=", L">="
+		{ L"&&", TokenType::LogicalAnd },
+		{ L"||", TokenType::LogicalOr },
+		{ L"==", TokenType::Equal },
+		{ L"!=", TokenType::NotEqual },
+		{ L"<=", TokenType::LessEqual },
+		{ L">=", TokenType::GreaterEqual },
+		{ L"+=", TokenType::PlusAssign },
+		{ L"-=", TokenType::MinusAssign },
+		{ L"*=", TokenType::AsteriskAssign },
+		{ L"/=", TokenType::SlashAssign },
+		{ L"&=", TokenType::AndAssign },
+		{ L"|=", TokenType::OrAssign },		
 	};
 };

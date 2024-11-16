@@ -155,8 +155,8 @@ std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(std::wistream& so
 
 std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 {
-	const auto symbol = std::wstring{ currentChar };
-	if (const auto it = symbolsTokensMap.find(symbol); it != symbolsTokensMap.end())
+	auto symbol = std::wstring{ currentChar };
+	if (const auto it = symbols.find(symbol); it != symbols.end())
 	{
 		const auto token = Token(it->second, std::move(symbol), currentLine, currentColumn);
 		currentColumn++;
@@ -168,14 +168,14 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 
 std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(std::wistream& source)
 {
-	if (std::find(singleCharOperators.begin(), singleCharOperators.end(), std::wstring(1, currentChar)) == singleCharOperators.end())
+	auto operatorSymbol = std::wstring{ currentChar };
+	if (const auto it = singleCharOperators.find(operatorSymbol); it != singleCharOperators.end())
 	{
-		return std::nullopt;
+		const auto token = Token(it->second, std::move(operatorSymbol), currentLine, currentColumn);
+		currentColumn++;
+		return token;
 	}
-
-	const auto token = Token(TokenType::Operator, std::wstring{ currentChar }, currentLine, currentColumn);
-	currentColumn++;
-	return token;
+	return std::nullopt;
 }
 
 std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::wistream& source)
@@ -183,10 +183,10 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::wistream& sourc
 	wchar_t nextChar;
 	if (source.get(nextChar))
 	{
-		std::wstring opStr{ currentChar, nextChar };
-		if (std::find(twoCharsOperators.begin(), twoCharsOperators.end(), opStr) != twoCharsOperators.end())
+		std::wstring operatorStr{ currentChar, nextChar };
+		if (const auto it = twoCharsOperators.find(operatorStr); it != twoCharsOperators.end())
 		{
-			const auto token = Token(TokenType::Operator, opStr, currentLine, currentColumn);
+			const auto token = Token(it->second, operatorStr, currentLine, currentColumn);
 			currentColumn += 2;
 			return token;
 		}
