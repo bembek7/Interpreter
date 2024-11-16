@@ -30,13 +30,13 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Assign, L"=", 1, 1},
-		{Lexer::TokenType::Plus, L"+", 1, 3},
-		{Lexer::TokenType::Minus, L"-", 1, 5},
-		{Lexer::TokenType::Asterisk, L"*", 1, 7},
-		{Lexer::TokenType::Slash, L"/", 1, 9},
-		{Lexer::TokenType::LogicalNot, L"!", 1, 11},
-		{Lexer::TokenType::EndOfFile, L"", 1, 12}
+		{Lexer::TokenType::Assign, 1, 1},
+		{Lexer::TokenType::Plus, 1, 3},
+		{Lexer::TokenType::Minus, 1, 5},
+		{Lexer::TokenType::Asterisk, 1, 7},
+		{Lexer::TokenType::Slash, 1, 9},
+		{Lexer::TokenType::LogicalNot, 1, 11},
+		{Lexer::TokenType::EndOfFile, 1, 12}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -49,11 +49,11 @@ TEST_F(LexerTest, TwoCharOperatorRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::LogicalAnd, L"&&", 1, 1},
-		{Lexer::TokenType::LogicalOr, L"||", 1, 4},
-		{Lexer::TokenType::Equal, L"==", 1, 7},
-		{Lexer::TokenType::NotEqual, L"!=", 1, 10},
-		{Lexer::TokenType::EndOfFile, L"", 1, 12}
+		{Lexer::TokenType::LogicalAnd, 1, 1},
+		{Lexer::TokenType::LogicalOr, 1, 4},
+		{Lexer::TokenType::Equal, 1, 7},
+		{Lexer::TokenType::NotEqual, 1, 10},
+		{Lexer::TokenType::EndOfFile, 1, 12}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -66,8 +66,8 @@ TEST_F(LexerTest, StringLiteralRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::String, L"\"Hello, World!\"", 1, 1},
-		{Lexer::TokenType::EndOfFile, L"", 1, 18}
+		{Lexer::TokenType::String, 1, 1, L"\"Hello, World!\""},
+		{Lexer::TokenType::EndOfFile, 1, 18}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -80,10 +80,10 @@ TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"var", 1, 1},
-		{Lexer::TokenType::Identifier, L"myVariable", 1, 5},
-		{Lexer::TokenType::Keyword, L"while", 1, 16},
-		{Lexer::TokenType::EndOfFile, L"", 1, 21}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 5, L"myVariable"},
+		{Lexer::TokenType::Keyword, 1, 16},
+		{Lexer::TokenType::EndOfFile, 1, 21}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -96,8 +96,8 @@ TEST_F(LexerTest, IntegerRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Integer, 12345, 1, 1},
-		{Lexer::TokenType::EndOfFile, L"", 1, 6}
+		{Lexer::TokenType::Integer, 1, 1, 12345},
+		{Lexer::TokenType::EndOfFile, 1, 6}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -110,9 +110,9 @@ TEST_F(LexerTest, CommentRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Comment, L"", 1, 1},
-		{Lexer::TokenType::Keyword, L"var", 2, 1},
-		{Lexer::TokenType::EndOfFile, L"", 2, 4}
+		{Lexer::TokenType::Comment, 1, 1},
+		{Lexer::TokenType::Keyword, 2, 1},
+		{Lexer::TokenType::EndOfFile, 2, 4}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -125,8 +125,8 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, L"@", 1, 1},
-		{Lexer::TokenType::EndOfFile, L"", 1, 2}
+		{Lexer::TokenType::Unrecognized, 1, 1, L"@"},
+		{Lexer::TokenType::EndOfFile, 1, 2}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -139,16 +139,16 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"var", 1, 1},
-		{Lexer::TokenType::Identifier, L"count", 1, 5},
-		{Lexer::TokenType::Assign, L"=", 1, 11},
-		{Lexer::TokenType::Integer, 123, 1, 13},
-		{Lexer::TokenType::Plus, L"+", 1, 17},
-		{Lexer::TokenType::Identifier, L"myVar", 1, 19},
-		{Lexer::TokenType::Asterisk, L"*", 1, 25},
-		{Lexer::TokenType::Integer, 4, 1, 27},
-		{Lexer::TokenType::Semicolon, L";", 1, 28},
-		{Lexer::TokenType::EndOfFile, L"", 1, 29}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 5, L"count"},
+		{Lexer::TokenType::Assign, 1, 11},
+		{Lexer::TokenType::Integer, 1, 13, 123},
+		{Lexer::TokenType::Plus, 1, 17},
+		{Lexer::TokenType::Identifier, 1, 19, L"myVar"},
+		{Lexer::TokenType::Asterisk, 1, 25},
+		{Lexer::TokenType::Integer, 1, 27, 4},
+		{Lexer::TokenType::Semicolon, 1, 28},
+		{Lexer::TokenType::EndOfFile, 1, 29}
 	};
 
 	CompareTokens(tokens, expectedTokens);
@@ -161,8 +161,8 @@ TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::String, L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\"", 1, 1},
-		{Lexer::TokenType::EndOfFile, L"", 1, 65}
+		{Lexer::TokenType::String, 1, 1, L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\""},
+		{Lexer::TokenType::EndOfFile, 1, 65}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -174,14 +174,14 @@ TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::GreaterEqual, L">=", 1, 1},
-		{Lexer::TokenType::LessEqual, L"<=", 1, 4},
-		{Lexer::TokenType::NotEqual, L"!=", 1, 7},
-		{Lexer::TokenType::LogicalAnd, L"&&", 1, 10},
-		{Lexer::TokenType::LogicalOr, L"||", 1, 13},
-		{Lexer::TokenType::Assign, L"=", 1, 16},
-		{Lexer::TokenType::LogicalNot, L"!", 1, 18},
-		{Lexer::TokenType::EndOfFile, L"", 1, 19}
+		{Lexer::TokenType::GreaterEqual, 1, 1},
+		{Lexer::TokenType::LessEqual, 1, 4},
+		{Lexer::TokenType::NotEqual, 1, 7},
+		{Lexer::TokenType::LogicalAnd, 1, 10},
+		{Lexer::TokenType::LogicalOr, 1, 13},
+		{Lexer::TokenType::Assign, 1, 16},
+		{Lexer::TokenType::LogicalNot, 1, 18},
+		{Lexer::TokenType::EndOfFile, 1, 19}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -210,13 +210,13 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Comment, L"", 1, 1},
-		{Lexer::TokenType::Keyword, L"var", 2, 1},
-		{Lexer::TokenType::Identifier, L"x", 2, 5},
-		{Lexer::TokenType::PlusAssign, L"+=", 2, 7},
-		{Lexer::TokenType::Integer, 10, 2, 10},
-		{Lexer::TokenType::Comment, L"", 2, 13},
-		{Lexer::TokenType::EndOfFile, L"", 3, 1}
+		{Lexer::TokenType::Comment, 1, 1},
+		{Lexer::TokenType::Keyword, 2, 1},
+		{Lexer::TokenType::Identifier, 2, 5, L"x"},
+		{Lexer::TokenType::PlusAssign, 2, 7},
+		{Lexer::TokenType::Integer, 2, 10, 10},
+		{Lexer::TokenType::Comment, 2, 13},
+		{Lexer::TokenType::EndOfFile, 3, 1}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -228,8 +228,8 @@ TEST_F(LexerTest, KeytwordInIdentifier)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Identifier, L"while123", 1, 1},
-		{Lexer::TokenType::EndOfFile, L"", 1, 9}
+		{Lexer::TokenType::Identifier, 1, 1, L"while123"},
+		{Lexer::TokenType::EndOfFile, 1, 9}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -241,23 +241,23 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"var", 3, 3},
-		{Lexer::TokenType::Identifier, L"a", 3, 7},
-		{Lexer::TokenType::Assign, L"=", 3, 9},
-		{Lexer::TokenType::Integer, 5, 3, 11},
-		{Lexer::TokenType::Keyword, L"while", 4, 1},
-		{Lexer::TokenType::LParenth, L"(", 4, 7},
-		{Lexer::TokenType::Identifier, L"a", 4, 8},
-		{Lexer::TokenType::Less, L"<", 4, 10},
-		{Lexer::TokenType::Integer, 10, 4, 12},
-		{Lexer::TokenType::RParenth, L")", 4, 14},
-		{Lexer::TokenType::LBracket, L"{", 4, 16},
-		{Lexer::TokenType::Identifier, L"a", 4, 18},
-		{Lexer::TokenType::PlusAssign, L"+=", 4, 20},
-		{Lexer::TokenType::Integer, 1, 4, 23},
-		{Lexer::TokenType::Semicolon, L";", 4, 24},
-		{Lexer::TokenType::RBracket, L"}", 4, 26},
-		{Lexer::TokenType::EndOfFile, L"", 5, 1}
+		{Lexer::TokenType::Keyword, 3, 3},
+		{Lexer::TokenType::Identifier, 3, 7, L"a"},
+		{Lexer::TokenType::Assign, 3, 9},
+		{Lexer::TokenType::Integer, 3, 11, 5},
+		{Lexer::TokenType::Keyword, 4, 1},
+		{Lexer::TokenType::LParenth, 4, 7},
+		{Lexer::TokenType::Identifier, 4, 8, L"a"},
+		{Lexer::TokenType::Less, 4, 10},
+		{Lexer::TokenType::Integer, 4, 12, 10},
+		{Lexer::TokenType::RParenth, 4, 14},
+		{Lexer::TokenType::LBracket, 4, 16},
+		{Lexer::TokenType::Identifier, 4, 18, L"a"},
+		{Lexer::TokenType::PlusAssign, 4, 20},
+		{Lexer::TokenType::Integer, 4, 23, 1},
+		{Lexer::TokenType::Semicolon, 4, 24},
+		{Lexer::TokenType::RBracket, 4, 26},
+		{Lexer::TokenType::EndOfFile, 5, 1}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -269,21 +269,22 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"var", 1, 1},
-		{Lexer::TokenType::Identifier, L"a", 1, 5},
-		{Lexer::TokenType::Assign, L"=", 1, 7},
-		{Lexer::TokenType::Integer, 10, 1, 9},
-		{Lexer::TokenType::Semicolon, L";", 1, 11},
-		{Lexer::TokenType::Keyword, L"var", 3, 1},
-		{Lexer::TokenType::Identifier, L"b", 3, 5},
-		{Lexer::TokenType::Assign, L"=", 3, 7},
-		{Lexer::TokenType::Identifier, L"a", 3, 9},
-		{Lexer::TokenType::Asterisk, L"*", 3, 11},
-		{Lexer::TokenType::Identifier, L"a", 3, 13},
-		{Lexer::TokenType::Semicolon, L";", 3, 14},
-		{Lexer::TokenType::Comment, L"", 5, 2},
-		{Lexer::TokenType::EndOfFile, L"", 6, 1}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 5, L"a"},
+		{Lexer::TokenType::Assign, 1, 7},
+		{Lexer::TokenType::Integer, 1, 9, 10},
+		{Lexer::TokenType::Semicolon, 1, 11},
+		{Lexer::TokenType::Keyword, 3, 1},
+		{Lexer::TokenType::Identifier, 3, 5, L"b"},
+		{Lexer::TokenType::Assign, 3, 7},
+		{Lexer::TokenType::Identifier, 3, 9, L"a"},
+		{Lexer::TokenType::Asterisk, 3, 11},
+		{Lexer::TokenType::Identifier, 3, 13, L"a"},
+		{Lexer::TokenType::Semicolon, 3, 14},
+		{Lexer::TokenType::Comment, 5, 2},
+		{Lexer::TokenType::EndOfFile, 6, 1}
 	};
+
 	CompareTokens(tokens, expectedTokens);
 }
 
@@ -294,24 +295,25 @@ TEST_F(LexerTest, IfElseBlock)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"var", 1, 1},
-		{Lexer::TokenType::Identifier, L"b", 1, 5},
-		{Lexer::TokenType::Assign, L"=", 1, 7},
-		{Lexer::TokenType::Boolean, false, 1, 9},
-		{Lexer::TokenType::Semicolon, L";", 1, 14},
-		{Lexer::TokenType::Keyword, L"if", 3, 1},
-		{Lexer::TokenType::LParenth, L"(", 3, 3},
-		{Lexer::TokenType::Identifier, L"b", 3, 4},
-		{Lexer::TokenType::RParenth, L")", 3, 5},
-		{Lexer::TokenType::LBracket, L"{", 4, 1},
-		{Lexer::TokenType::Comment, L"", 5, 2},
-		{Lexer::TokenType::RBracket, L"}", 6, 1},
-		{Lexer::TokenType::Keyword, L"else", 7, 1},
-		{Lexer::TokenType::LBracket, L"{", 8, 1},
-		{Lexer::TokenType::Comment, L"", 9, 2},
-		{Lexer::TokenType::RBracket, L"}", 10, 1},
-		{Lexer::TokenType::EndOfFile, L"", 10, 2}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 5, L"b"},
+		{Lexer::TokenType::Assign, 1, 7},
+		{Lexer::TokenType::Boolean, 1, 9, false},
+		{Lexer::TokenType::Semicolon, 1, 14},
+		{Lexer::TokenType::Keyword, 3, 1},
+		{Lexer::TokenType::LParenth, 3, 3},
+		{Lexer::TokenType::Identifier, 3, 4, L"b"},
+		{Lexer::TokenType::RParenth, 3, 5},
+		{Lexer::TokenType::LBracket, 4, 1},
+		{Lexer::TokenType::Comment, 5, 2},
+		{Lexer::TokenType::RBracket, 6, 1},
+		{Lexer::TokenType::Keyword, 7, 1},
+		{Lexer::TokenType::LBracket, 8, 1},
+		{Lexer::TokenType::Comment, 9, 2},
+		{Lexer::TokenType::RBracket, 10, 1},
+		{Lexer::TokenType::EndOfFile, 10, 2}
 	};
+
 	CompareTokens(tokens, expectedTokens);
 }
 
@@ -322,17 +324,18 @@ TEST_F(LexerTest, WhileLoop)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"while", 1, 1},
-		{Lexer::TokenType::LParenth, L"(", 1, 6},
-		{Lexer::TokenType::Identifier, L"a", 1, 7},
-		{Lexer::TokenType::Less, L"<", 1, 9},
-		{Lexer::TokenType::Integer, 10, 1, 11},
-		{Lexer::TokenType::RParenth, L")", 1, 13},
-		{Lexer::TokenType::LBracket, L"{", 2, 1},
-		{Lexer::TokenType::Comment, L"", 3, 2},
-		{Lexer::TokenType::RBracket, L"}", 4, 1},
-		{Lexer::TokenType::EndOfFile, L"", 4, 2}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::LParenth, 1, 6},
+		{Lexer::TokenType::Identifier, 1, 7, L"a"},
+		{Lexer::TokenType::Less, 1, 9},
+		{Lexer::TokenType::Integer, 1, 11, 10},
+		{Lexer::TokenType::RParenth, 1, 13},
+		{Lexer::TokenType::LBracket, 2, 1},
+		{Lexer::TokenType::Comment, 3, 2},
+		{Lexer::TokenType::RBracket, 4, 1},
+		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
+
 	CompareTokens(tokens, expectedTokens);
 }
 
@@ -343,27 +346,28 @@ TEST_F(LexerTest, RecursiveFunction)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"func", 1, 1},
-		{Lexer::TokenType::Identifier, L"Fizz", 1, 6},
-		{Lexer::TokenType::LParenth, L"(", 1, 10},
-		{Lexer::TokenType::Identifier, L"a", 1, 11},
-		{Lexer::TokenType::Comma, L",", 1, 12},
-		{Lexer::TokenType::Identifier, L"b", 1, 14},
-		{Lexer::TokenType::RParenth, L")", 1, 15},
-		{Lexer::TokenType::LBracket, L"{", 2, 1},
-		{Lexer::TokenType::Keyword, L"return", 3, 2},
-		{Lexer::TokenType::Identifier, L"Fizz", 3, 9},
-		{Lexer::TokenType::LParenth, L"(", 3, 13},
-		{Lexer::TokenType::Identifier, L"a", 3, 14},
-		{Lexer::TokenType::Minus, L"-", 3, 16},
-		{Lexer::TokenType::Integer, 1, 3, 18},
-		{Lexer::TokenType::Comma, L",", 3, 19},
-		{Lexer::TokenType::Identifier, L"b", 3, 21},
-		{Lexer::TokenType::RParenth, L")", 3, 22},
-		{Lexer::TokenType::Semicolon, L";", 3, 23},
-		{Lexer::TokenType::RBracket, L"}", 4, 1},
-		{Lexer::TokenType::EndOfFile, L"", 4, 2},
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 6, L"Fizz"},
+		{Lexer::TokenType::LParenth, 1, 10},
+		{Lexer::TokenType::Identifier, 1, 11, L"a"},
+		{Lexer::TokenType::Comma, 1, 12},
+		{Lexer::TokenType::Identifier, 1, 14, L"b"},
+		{Lexer::TokenType::RParenth, 1, 15},
+		{Lexer::TokenType::LBracket, 2, 1},
+		{Lexer::TokenType::Keyword, 3, 2},
+		{Lexer::TokenType::Identifier, 3, 9, L"Fizz"},
+		{Lexer::TokenType::LParenth, 3, 13},
+		{Lexer::TokenType::Identifier, 3, 14, L"a"},
+		{Lexer::TokenType::Minus, 3, 16},
+		{Lexer::TokenType::Integer, 3, 18, 1},
+		{Lexer::TokenType::Comma, 3, 19},
+		{Lexer::TokenType::Identifier, 3, 21, L"b"},
+		{Lexer::TokenType::RParenth, 3, 22},
+		{Lexer::TokenType::Semicolon, 3, 23},
+		{Lexer::TokenType::RBracket, 4, 1},
+		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
+
 	CompareTokens(tokens, expectedTokens);
 }
 
@@ -374,22 +378,23 @@ TEST_F(LexerTest, FunctionWithReturn)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"func", 1, 1},
-		{Lexer::TokenType::Identifier, L"Add", 1, 6},
-		{Lexer::TokenType::LParenth, L"(", 1, 9},
-		{Lexer::TokenType::Identifier, L"a", 1, 10},
-		{Lexer::TokenType::Comma, L",", 1, 11},
-		{Lexer::TokenType::Identifier, L"b", 1, 13},
-		{Lexer::TokenType::RParenth, L")", 1, 14},
-		{Lexer::TokenType::LBracket, L"{", 2, 1},
-		{Lexer::TokenType::Keyword, L"return", 3, 2},
-		{Lexer::TokenType::Identifier, L"a", 3, 9},
-		{Lexer::TokenType::Plus, L"+", 3, 11},
-		{Lexer::TokenType::Identifier, L"b", 3, 13},
-		{Lexer::TokenType::Semicolon, L";", 3, 14},
-		{Lexer::TokenType::RBracket, L"}", 4, 1},
-		{Lexer::TokenType::EndOfFile, L"", 4, 2}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 6, L"Add"},
+		{Lexer::TokenType::LParenth, 1, 9},
+		{Lexer::TokenType::Identifier, 1, 10, L"a"},
+		{Lexer::TokenType::Comma, 1, 11},
+		{Lexer::TokenType::Identifier, 1, 13, L"b"},
+		{Lexer::TokenType::RParenth, 1, 14},
+		{Lexer::TokenType::LBracket, 2, 1},
+		{Lexer::TokenType::Keyword, 3, 2},
+		{Lexer::TokenType::Identifier, 3, 9, L"a"},
+		{Lexer::TokenType::Plus, 3, 11},
+		{Lexer::TokenType::Identifier, 3, 13, L"b"},
+		{Lexer::TokenType::Semicolon, 3, 14},
+		{Lexer::TokenType::RBracket, 4, 1},
+		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
+
 	CompareTokens(tokens, expectedTokens);
 }
 
@@ -400,13 +405,13 @@ TEST_F(LexerTest, SimpleMainFunction)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"func", 1, 1},
-		{Lexer::TokenType::Identifier, L"main", 1, 6},
-		{Lexer::TokenType::LParenth, L"(", 1, 10},
-		{Lexer::TokenType::RParenth, L")", 1, 11},
-		{Lexer::TokenType::LBracket, L"{", 2, 1},
-		{Lexer::TokenType::RBracket, L"}", 3, 1},
-		{Lexer::TokenType::EndOfFile, L"", 3, 2}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 6, L"main"},
+		{Lexer::TokenType::LParenth, 1, 10},
+		{Lexer::TokenType::RParenth, 1, 11},
+		{Lexer::TokenType::LBracket, 2, 1},
+		{Lexer::TokenType::RBracket, 3, 1},
+		{Lexer::TokenType::EndOfFile, 3, 2}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -418,32 +423,32 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, L"func", 1, 1},
-		{Lexer::TokenType::Identifier, L"compose", 1, 6},
-		{Lexer::TokenType::LParenth, L"(", 1, 13},
-		{Lexer::TokenType::Identifier, L"f", 1, 14},
-		{Lexer::TokenType::Comma, L",", 1, 15},
-		{Lexer::TokenType::Identifier, L"g", 1, 17},
-		{Lexer::TokenType::RParenth, L")", 1, 18},
-		{Lexer::TokenType::LBracket, L"{", 2, 1},
-		{Lexer::TokenType::Keyword, L"return", 3, 2},
-		{Lexer::TokenType::Keyword, L"func", 3, 9},            // Inner "func"
-		{Lexer::TokenType::LParenth, L"(", 3, 13},               // "(" for inner "func"
-		{Lexer::TokenType::Identifier, L"x", 3, 14},              // "x" in inner "func"
-		{Lexer::TokenType::RParenth, L")", 3, 15},               // ")" for inner "func"
-		{Lexer::TokenType::LBracket, L"{", 3, 17},               // "{" after "func"
-		{Lexer::TokenType::Keyword, L"return", 3, 19},
-		{Lexer::TokenType::Identifier, L"f", 3, 26},               // "f" in "f(g(x))"
-		{Lexer::TokenType::LParenth, L"(", 3, 27},               // "(" in "f(g(x))"
-		{Lexer::TokenType::Identifier, L"g", 3, 28},               // "g" in "f(g(x))"
-		{Lexer::TokenType::LParenth, L"(", 3, 29},               // "(" in "f(g(x))"
-		{Lexer::TokenType::Identifier, L"x", 3, 30},               // "x" in "f(g(x))"
-		{Lexer::TokenType::RParenth, L")", 3, 31},               // ")" in "f(g(x))"
-		{Lexer::TokenType::RParenth, L")", 3, 32},               // ")" in "f(g(x))"
-		{Lexer::TokenType::Semicolon, L";", 3, 33},               // ";" after "f(g(x))"
-		{Lexer::TokenType::RBracket, L"}", 3, 35},                // Closing "}"
-		{Lexer::TokenType::RBracket, L"}", 4, 1},                // Closing outer "}"
-		{Lexer::TokenType::EndOfFile, L"", 4, 2}
+		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Identifier, 1, 6, L"compose"},
+		{Lexer::TokenType::LParenth, 1, 13},
+		{Lexer::TokenType::Identifier, 1, 14, L"f"},
+		{Lexer::TokenType::Comma, 1, 15},
+		{Lexer::TokenType::Identifier, 1, 17, L"g"},
+		{Lexer::TokenType::RParenth, 1, 18},
+		{Lexer::TokenType::LBracket, 2, 1},
+		{Lexer::TokenType::Keyword, 3, 2},
+		{Lexer::TokenType::Keyword, 3, 9},
+		{Lexer::TokenType::LParenth, 3, 13},
+		{Lexer::TokenType::Identifier, 3, 14, L"x"},
+		{Lexer::TokenType::RParenth, 3, 15},
+		{Lexer::TokenType::LBracket, 3, 17},
+		{Lexer::TokenType::Keyword, 3, 19},
+		{Lexer::TokenType::Identifier, 3, 26, L"f"},
+		{Lexer::TokenType::LParenth, 3, 27},
+		{Lexer::TokenType::Identifier, 3, 28, L"g"},
+		{Lexer::TokenType::LParenth, 3, 29},
+		{Lexer::TokenType::Identifier, 3, 30, L"x"},
+		{Lexer::TokenType::RParenth, 3, 31},
+		{Lexer::TokenType::RParenth, 3, 32},
+		{Lexer::TokenType::Semicolon, 3, 33},
+		{Lexer::TokenType::RBracket, 3, 35},
+		{Lexer::TokenType::RBracket, 4, 1},
+		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
 	CompareTokens(tokens, expectedTokens);
 }
@@ -454,11 +459,11 @@ TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Float, 3.14f, 1, 1},
-		{Lexer::TokenType::Float, 2.718f, 1, 6},
-		{Lexer::TokenType::Integer, 42, 1, 12},
-		{Lexer::TokenType::Float, 0.5f, 1, 15},
-		{Lexer::TokenType::EndOfFile, L"", 1, 18}
+		{Lexer::TokenType::Float, 1, 1, 3.14f},
+		{Lexer::TokenType::Float, 1, 6, 2.718f},
+		{Lexer::TokenType::Integer, 1, 12, 42},
+		{Lexer::TokenType::Float, 1, 15, 0.5f},
+		{Lexer::TokenType::EndOfFile, 1, 18}
 	};
 
 	CompareTokens(tokens, expectedTokens);

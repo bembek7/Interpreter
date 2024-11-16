@@ -43,7 +43,7 @@ std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::To
 		}
 	}
 
-	resolvedTokens.push_back(Token(TokenType::EndOfFile, L"", currentLine, currentColumn));
+	resolvedTokens.push_back(Token(TokenType::EndOfFile, currentLine, currentColumn));
 
 	return { resolvedTokens, foundErrors };
 }
@@ -64,10 +64,10 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(std::wistream& source)
 			std::stringstream message{};
 			message << "Comment too long. Max comment length: " << maxCommentLength << ".";
 			foundErrors.push_back(LexicalError(ErrorType::TooLong, message.str(), currentLine, currentColumn, true));
-			return Token(TokenType::Comment, std::wstring{}, currentLine, currentColumn);
+			return Token(TokenType::Comment, currentLine, currentColumn);
 		}
 	};
-	const auto token = Token(TokenType::Comment, std::wstring(), currentLine, currentColumn);
+	const auto token = Token(TokenType::Comment, currentLine, currentColumn);
 	currentLine++;
 	currentColumn = 1;
 	return token;
@@ -105,20 +105,20 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 	{
 		std::string message = "Invalid integer format - leading zeros.";
 		foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn, true));
-		return Token(TokenType::Unrecognized, numberStr, currentLine, currentColumn);
+		return Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 	}
 
 	if (isFloat)
 	{
 		float floatValue = std::stof(numberStr);
-		const auto token = Token(TokenType::Float, floatValue, currentLine, currentColumn);
+		const auto token = Token(TokenType::Float, currentLine, currentColumn, floatValue);
 		currentColumn += numberStr.length();
 		return token;
 	}
 	else
 	{
 		int intValue = std::stoi(numberStr);
-		const auto token = Token(TokenType::Integer, intValue, currentLine, currentColumn);
+		const auto token = Token(TokenType::Integer, currentLine, currentColumn, intValue);
 		currentColumn += numberStr.length();
 		return token;
 	}
@@ -126,30 +126,42 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 	// error too long number
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildKeywordOrIdentifier(std::wistream& source)
+std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 {
 	if (!std::iswalpha(currentChar) && currentChar != L'_')
 	{
 		return std::nullopt;
 	}
 
-	std::wstring identifier{ currentChar };
+	std::wstring word{ currentChar };
 	while (source.get(currentChar) && (std::iswalnum(currentChar) || currentChar == L'_'))
 	{
-		identifier += currentChar;
+		word += currentChar;
+		// too long idntifer check
 	}
 	source.unget();
 
-	const bool isKeyword = (std::find(keywords.begin(), keywords.end(), identifier) != keywords.end());
-	TokenType type = isKeyword ? TokenType::Keyword : TokenType::Identifier;
-	std::variant<std::wstring, int, float, bool> value = identifier;
-	if (isKeyword && (identifier == L"true" || identifier == L"false"))
+	TokenType tokenType;
+	std::variant<std::wstring, int, float, bool> tokenValue = false;
+	if (std::find(keywords.begin(), keywords.end(), word) != keywords.end())
 	{
-		type = TokenType::Boolean;
-		value = (identifier == L"true") ? true : false;
+		if (word == L"true" || word == L"false")
+		{
+			tokenType = TokenType::Boolean;
+			tokenValue = (word == L"true") ? true : false;
+		}
+		else
+		{
+			tokenType = TokenType::Keyword;
+		}
 	}
-	const auto token = Token(type, value, currentLine, currentColumn);
-	currentColumn += identifier.length();
+	else
+	{
+		tokenType = TokenType::Identifier;
+		tokenValue = word;
+	}
+	const auto token = Token(tokenType, currentLine, currentColumn, tokenValue);
+	currentColumn += word.length();
 	return token;
 }
 
@@ -158,7 +170,7 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 	auto symbol = std::wstring{ currentChar };
 	if (const auto it = symbols.find(symbol); it != symbols.end())
 	{
-		const auto token = Token(it->second, std::move(symbol), currentLine, currentColumn);
+		const auto token = Token(it->second, currentLine, currentColumn);
 		currentColumn++;
 		return token;
 	}
@@ -166,12 +178,12 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator(std::wistream& source)
+std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator()
 {
 	auto operatorSymbol = std::wstring{ currentChar };
 	if (const auto it = singleCharOperators.find(operatorSymbol); it != singleCharOperators.end())
 	{
-		const auto token = Token(it->second, std::move(operatorSymbol), currentLine, currentColumn);
+		const auto token = Token(it->second, currentLine, currentColumn);
 		currentColumn++;
 		return token;
 	}
@@ -186,7 +198,7 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::wistream& sourc
 		std::wstring operatorStr{ currentChar, nextChar };
 		if (const auto it = twoCharsOperators.find(operatorStr); it != twoCharsOperators.end())
 		{
-			const auto token = Token(it->second, operatorStr, currentLine, currentColumn);
+			const auto token = Token(it->second, currentLine, currentColumn);
 			currentColumn += 2;
 			return token;
 		}
@@ -203,7 +215,7 @@ std::optional<Lexer::Token> Lexer::TryBuildOperator(std::wistream& source)
 	}
 	else
 	{
-		return TryBuildSingleCharOperator(source);
+		return TryBuildSingleCharOperator();
 	}
 }
 
@@ -223,7 +235,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 		if (nextChar == L'"')
 		{
 			builtString += nextChar;
-			const auto token = Token(TokenType::String, builtString, currentLine, currentColumn);
+			const auto token = Token(TokenType::String, currentLine, currentColumn, builtString);
 			currentColumn += builtString.length() + 2;
 			return token;
 		}
@@ -246,7 +258,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 			{
 				std::string message = "Incomplete escape sequence.";
 				foundErrors.push_back(LexicalError(ErrorType::InvalidEscapeSequence, std::move(message), currentLine, currentColumn + builtString.length()));
-				return Token(TokenType::Unrecognized, builtString, currentLine, currentColumn);
+				return Token(TokenType::Unrecognized, currentLine, currentColumn, builtString);
 			}
 		}
 		else
@@ -257,13 +269,13 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 				std::stringstream message{};
 				message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
 				foundErrors.push_back(LexicalError(ErrorType::TooLong, message.str(), currentLine, currentColumn, true));
-				return Token(TokenType::Unrecognized, std::wstring{}, currentLine, currentColumn);
+				return Token(TokenType::Unrecognized, currentLine, currentColumn);
 			}
 		}
 	}
 	std::string message = "Incomplete string literal.";
 	foundErrors.push_back(LexicalError(ErrorType::IncompleteStringLiteral, std::move(message), currentLine, currentColumn));
-	const auto token = Token(TokenType::Unrecognized, builtString, currentLine, currentColumn);
+	const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, builtString);
 	currentColumn += builtString.length() + 1;
 	return token;
 }
@@ -280,7 +292,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	{
 		return token.value();
 	}
-	if (token = TryBuildKeywordOrIdentifier(source))
+	if (token = TryBuildWord(source))
 	{
 		return token.value();
 	}
@@ -297,7 +309,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 		return token.value();
 	}
 
-	token = Token(TokenType::Unrecognized, std::wstring{ currentChar }, currentLine, currentColumn);
+	token = Token(TokenType::Unrecognized, currentLine, currentColumn, std::wstring{ currentChar });
 	currentColumn++;
 	return token.value();
 }

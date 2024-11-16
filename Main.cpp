@@ -9,7 +9,7 @@
 
 static void PrintToken(const Lexer::Token& token) noexcept
 {
-	static const std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
+	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
 		{Lexer::TokenType::Identifier, L"Identifier"},
 		{Lexer::TokenType::Keyword, L"Keyword"},
@@ -33,7 +33,7 @@ static void PrintToken(const Lexer::Token& token) noexcept
 		{Lexer::TokenType::LogicalOr, L"LogicalOr"},
 		{Lexer::TokenType::Equal, L"Equal"},
 		{Lexer::TokenType::LessEqual, L"LessEqual"},
-		{Lexer::TokenType::GreaterEqual, L"GreaterEqual"}
+		{Lexer::TokenType::GreaterEqual, L"GreaterEqual"},
 		{Lexer::TokenType::NotEqual, L"NotEqual"},
 		{Lexer::TokenType::PlusAssign, L"PlusAssign"},
 		{Lexer::TokenType::MinusAssign, L"MinusAssign"},

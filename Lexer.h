@@ -25,18 +25,18 @@ public:
 		Comment,
 		EndOfFile,
 		Unrecognized,
-		Assign,    
-		Plus,     
-		Minus,      
-		Asterisk,   
-		Slash,        
+		Assign,
+		Plus,
+		Minus,
+		Asterisk,
+		Slash,
 		LogicalNot,
-		Less,          
-		Greater,       
-		LogicalAnd,    
-		LogicalOr,     
-		Equal,         
-		LessEqual,     
+		Less,
+		Greater,
+		LogicalAnd,
+		LogicalOr,
+		Equal,
+		LessEqual,
 		GreaterEqual,
 		NotEqual,
 		PlusAssign,
@@ -49,12 +49,12 @@ public:
 
 	struct Token
 	{
-		Token(const TokenType type, const std::variant<std::wstring, int, float, bool>& value, const size_t line, const size_t column) :
-			type(type), value(value), line(line), column(column) {}
+		Token(const TokenType type, const size_t line, const size_t column, const std::variant<std::wstring, int, float, bool>& value = false) :
+			type(type), line(line), column(column), value(value) {}
 		TokenType type;
-		std::variant<std::wstring, int, float, bool> value;
 		size_t line;
 		size_t column;
+		std::variant<std::wstring, int, float, bool> value;
 	};
 
 	enum class ErrorType
@@ -85,9 +85,9 @@ private:
 
 	std::optional<Token> TryBuildComment(std::wistream& source);
 	std::optional<Token> TryBuildNumber(std::wistream& source);
-	std::optional<Token> TryBuildKeywordOrIdentifier(std::wistream& source); // violates the one purpose rule, but saves code repetition
+	std::optional<Token> TryBuildWord(std::wistream& source); // violates the one purpose rule, but saves code repetition
 	std::optional<Token> TryBuildSymbol();
-	std::optional<Token> TryBuildSingleCharOperator(std::wistream& source);
+	std::optional<Token> TryBuildSingleCharOperator();
 	std::optional<Token> TryBuildTwoCharsOperator(std::wistream& source);
 	std::optional<Token> TryBuildStringLiteral(std::wistream& source);
 	std::optional<Token> TryBuildOperator(std::wistream& source);
@@ -140,6 +140,6 @@ private:
 		{ L"*=", TokenType::AsteriskAssign },
 		{ L"/=", TokenType::SlashAssign },
 		{ L"&=", TokenType::AndAssign },
-		{ L"|=", TokenType::OrAssign },		
+		{ L"|=", TokenType::OrAssign },
 	};
 };
