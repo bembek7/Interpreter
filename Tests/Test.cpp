@@ -80,9 +80,9 @@ TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Var, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 5, L"myVariable"},
-		{Lexer::TokenType::Keyword, 1, 16},
+		{Lexer::TokenType::While, 1, 16},
 		{Lexer::TokenType::EndOfFile, 1, 21}
 	};
 
@@ -111,7 +111,7 @@ TEST_F(LexerTest, CommentRecognition)
 	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Comment, 1, 1},
-		{Lexer::TokenType::Keyword, 2, 1},
+		{Lexer::TokenType::Var, 2, 1},
 		{Lexer::TokenType::EndOfFile, 2, 4}
 	};
 
@@ -139,7 +139,7 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Var, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 5, L"count"},
 		{Lexer::TokenType::Assign, 1, 11},
 		{Lexer::TokenType::Integer, 1, 13, 123},
@@ -211,7 +211,7 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Comment, 1, 1},
-		{Lexer::TokenType::Keyword, 2, 1},
+		{Lexer::TokenType::Var, 2, 1},
 		{Lexer::TokenType::Identifier, 2, 5, L"x"},
 		{Lexer::TokenType::PlusAssign, 2, 7},
 		{Lexer::TokenType::Integer, 2, 10, 10},
@@ -241,11 +241,11 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 3, 3},
+		{Lexer::TokenType::Var, 3, 3},
 		{Lexer::TokenType::Identifier, 3, 7, L"a"},
 		{Lexer::TokenType::Assign, 3, 9},
 		{Lexer::TokenType::Integer, 3, 11, 5},
-		{Lexer::TokenType::Keyword, 4, 1},
+		{Lexer::TokenType::While, 4, 1},
 		{Lexer::TokenType::LParenth, 4, 7},
 		{Lexer::TokenType::Identifier, 4, 8, L"a"},
 		{Lexer::TokenType::Less, 4, 10},
@@ -269,12 +269,12 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Var, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 5, L"a"},
 		{Lexer::TokenType::Assign, 1, 7},
 		{Lexer::TokenType::Integer, 1, 9, 10},
 		{Lexer::TokenType::Semicolon, 1, 11},
-		{Lexer::TokenType::Keyword, 3, 1},
+		{Lexer::TokenType::Var, 3, 1},
 		{Lexer::TokenType::Identifier, 3, 5, L"b"},
 		{Lexer::TokenType::Assign, 3, 7},
 		{Lexer::TokenType::Identifier, 3, 9, L"a"},
@@ -295,19 +295,19 @@ TEST_F(LexerTest, IfElseBlock)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Var, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 5, L"b"},
 		{Lexer::TokenType::Assign, 1, 7},
 		{Lexer::TokenType::Boolean, 1, 9, false},
 		{Lexer::TokenType::Semicolon, 1, 14},
-		{Lexer::TokenType::Keyword, 3, 1},
+		{Lexer::TokenType::If, 3, 1},
 		{Lexer::TokenType::LParenth, 3, 3},
 		{Lexer::TokenType::Identifier, 3, 4, L"b"},
 		{Lexer::TokenType::RParenth, 3, 5},
 		{Lexer::TokenType::LBracket, 4, 1},
 		{Lexer::TokenType::Comment, 5, 2},
 		{Lexer::TokenType::RBracket, 6, 1},
-		{Lexer::TokenType::Keyword, 7, 1},
+		{Lexer::TokenType::Else, 7, 1},
 		{Lexer::TokenType::LBracket, 8, 1},
 		{Lexer::TokenType::Comment, 9, 2},
 		{Lexer::TokenType::RBracket, 10, 1},
@@ -324,7 +324,7 @@ TEST_F(LexerTest, WhileLoop)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::While, 1, 1},
 		{Lexer::TokenType::LParenth, 1, 6},
 		{Lexer::TokenType::Identifier, 1, 7, L"a"},
 		{Lexer::TokenType::Less, 1, 9},
@@ -346,7 +346,7 @@ TEST_F(LexerTest, RecursiveFunction)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Func, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 6, L"Fizz"},
 		{Lexer::TokenType::LParenth, 1, 10},
 		{Lexer::TokenType::Identifier, 1, 11, L"a"},
@@ -354,7 +354,7 @@ TEST_F(LexerTest, RecursiveFunction)
 		{Lexer::TokenType::Identifier, 1, 14, L"b"},
 		{Lexer::TokenType::RParenth, 1, 15},
 		{Lexer::TokenType::LBracket, 2, 1},
-		{Lexer::TokenType::Keyword, 3, 2},
+		{Lexer::TokenType::Return, 3, 2},
 		{Lexer::TokenType::Identifier, 3, 9, L"Fizz"},
 		{Lexer::TokenType::LParenth, 3, 13},
 		{Lexer::TokenType::Identifier, 3, 14, L"a"},
@@ -378,7 +378,7 @@ TEST_F(LexerTest, FunctionWithReturn)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Func, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 6, L"Add"},
 		{Lexer::TokenType::LParenth, 1, 9},
 		{Lexer::TokenType::Identifier, 1, 10, L"a"},
@@ -386,7 +386,7 @@ TEST_F(LexerTest, FunctionWithReturn)
 		{Lexer::TokenType::Identifier, 1, 13, L"b"},
 		{Lexer::TokenType::RParenth, 1, 14},
 		{Lexer::TokenType::LBracket, 2, 1},
-		{Lexer::TokenType::Keyword, 3, 2},
+		{Lexer::TokenType::Return, 3, 2},
 		{Lexer::TokenType::Identifier, 3, 9, L"a"},
 		{Lexer::TokenType::Plus, 3, 11},
 		{Lexer::TokenType::Identifier, 3, 13, L"b"},
@@ -405,7 +405,7 @@ TEST_F(LexerTest, SimpleMainFunction)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Func, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 6, L"main"},
 		{Lexer::TokenType::LParenth, 1, 10},
 		{Lexer::TokenType::RParenth, 1, 11},
@@ -423,7 +423,7 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
-		{Lexer::TokenType::Keyword, 1, 1},
+		{Lexer::TokenType::Func, 1, 1},
 		{Lexer::TokenType::Identifier, 1, 6, L"compose"},
 		{Lexer::TokenType::LParenth, 1, 13},
 		{Lexer::TokenType::Identifier, 1, 14, L"f"},
@@ -431,13 +431,13 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 		{Lexer::TokenType::Identifier, 1, 17, L"g"},
 		{Lexer::TokenType::RParenth, 1, 18},
 		{Lexer::TokenType::LBracket, 2, 1},
-		{Lexer::TokenType::Keyword, 3, 2},
-		{Lexer::TokenType::Keyword, 3, 9},
+		{Lexer::TokenType::Return, 3, 2},
+		{Lexer::TokenType::Func, 3, 9},
 		{Lexer::TokenType::LParenth, 3, 13},
 		{Lexer::TokenType::Identifier, 3, 14, L"x"},
 		{Lexer::TokenType::RParenth, 3, 15},
 		{Lexer::TokenType::LBracket, 3, 17},
-		{Lexer::TokenType::Keyword, 3, 19},
+		{Lexer::TokenType::Return, 3, 19},
 		{Lexer::TokenType::Identifier, 3, 26, L"f"},
 		{Lexer::TokenType::LParenth, 3, 27},
 		{Lexer::TokenType::Identifier, 3, 28, L"g"},

@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "Lexer.h"
 #include <istream>
 #include <cwctype>
 #include <sstream>
@@ -8,6 +9,8 @@
 // minuses before numbers
 // too long number, too long identifier
 // mroe tokens
+// clean string building func
+//
 // cannot use peek with wide chars
 
 std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::Tokenize(std::wistream& source)
@@ -101,13 +104,6 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		}
 	}
 
-	if (!isFloat && numberStr[0] == L'0' && numberStr.length() > 1)
-	{
-		std::string message = "Invalid integer format - leading zeros.";
-		foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn, true));
-		return Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
-	}
-
 	if (isFloat)
 	{
 		float floatValue = std::stof(numberStr);
@@ -117,6 +113,12 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 	}
 	else
 	{
+		if (numberStr[0] == L'0' && numberStr.length() > 1)
+		{
+			std::string message = "Invalid integer format - leading zeros.";
+			foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn, true));
+			return Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
+		}
 		int intValue = std::stoi(numberStr);
 		const auto token = Token(TokenType::Integer, currentLine, currentColumn, intValue);
 		currentColumn += numberStr.length();
@@ -143,16 +145,12 @@ std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 
 	TokenType tokenType;
 	std::variant<std::wstring, int, float, bool> tokenValue = false;
-	if (std::find(keywords.begin(), keywords.end(), word) != keywords.end())
+	if (const auto tokenTypeOpt = FindTokenInMap(word, keywords))
 	{
-		if (word == L"true" || word == L"false")
+		tokenType = tokenTypeOpt.value();
+		if (tokenType == TokenType::Boolean)
 		{
-			tokenType = TokenType::Boolean;
 			tokenValue = (word == L"true") ? true : false;
-		}
-		else
-		{
-			tokenType = TokenType::Keyword;
 		}
 	}
 	else
@@ -168,9 +166,9 @@ std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 {
 	auto symbol = std::wstring{ currentChar };
-	if (const auto it = symbols.find(symbol); it != symbols.end())
+	if (const auto tokenType = FindTokenInMap({ currentChar }, symbols))
 	{
-		const auto token = Token(it->second, currentLine, currentColumn);
+		const auto token = Token(tokenType.value(), currentLine, currentColumn);
 		currentColumn++;
 		return token;
 	}
@@ -180,10 +178,9 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 
 std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator()
 {
-	auto operatorSymbol = std::wstring{ currentChar };
-	if (const auto it = singleCharOperators.find(operatorSymbol); it != singleCharOperators.end())
+	if (const auto tokenType = FindTokenInMap({ currentChar }, singleCharOperators))
 	{
-		const auto token = Token(it->second, currentLine, currentColumn);
+		const auto token = Token(tokenType.value(), currentLine, currentColumn);
 		currentColumn++;
 		return token;
 	}
@@ -195,10 +192,9 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::wistream& sourc
 	wchar_t nextChar;
 	if (source.get(nextChar))
 	{
-		std::wstring operatorStr{ currentChar, nextChar };
-		if (const auto it = twoCharsOperators.find(operatorStr); it != twoCharsOperators.end())
+		if (const auto tokenType = FindTokenInMap({ currentChar, nextChar }, twoCharsOperators))
 		{
-			const auto token = Token(it->second, currentLine, currentColumn);
+			const auto token = Token(tokenType.value(), currentLine, currentColumn);
 			currentColumn += 2;
 			return token;
 		}
@@ -312,4 +308,13 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	token = Token(TokenType::Unrecognized, currentLine, currentColumn, std::wstring{ currentChar });
 	currentColumn++;
 	return token.value();
+}
+
+std::optional<Lexer::TokenType> Lexer::FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, TokenType>& map) noexcept
+{
+	if (const auto it = map.find(key); it != map.end())
+	{
+		return it->second;
+	}
+	return std::nullopt;
 }

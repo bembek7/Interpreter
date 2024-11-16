@@ -12,7 +12,6 @@ static void PrintToken(const Lexer::Token& token) noexcept
 	static std::unordered_map<Lexer::TokenType, std::wstring> tokenNames =
 	{
 		{Lexer::TokenType::Identifier, L"Identifier"},
-		{Lexer::TokenType::Keyword, L"Keyword"},
 		{Lexer::TokenType::Integer, L"Integer"},
 		{Lexer::TokenType::Float, L"Float"},
 		{Lexer::TokenType::String, L"String"},
@@ -40,7 +39,14 @@ static void PrintToken(const Lexer::Token& token) noexcept
 		{Lexer::TokenType::AsteriskAssign, L"AsteriskAssign"},
 		{Lexer::TokenType::SlashAssign, L"SlashAssign"},
 		{Lexer::TokenType::AndAssign, L"AndAssign"},
-		{Lexer::TokenType::OrAssign, L"OrAssign"}
+		{Lexer::TokenType::OrAssign, L"OrAssign"},
+		{Lexer::TokenType::Mut, L"Mut"},
+		{Lexer::TokenType::Var, L"Var"},
+		{Lexer::TokenType::While, L"While"},
+		{Lexer::TokenType::If, L"If"},
+		{Lexer::TokenType::Else, L"Else"},
+		{Lexer::TokenType::Return, L"Return"},
+		{Lexer::TokenType::Func, L"Func"}
 	}; // just for testing purposes
 
 	std::wcout << "Type: " << tokenNames[token.type] << " value: ";

@@ -5,13 +5,12 @@
 #include <optional>
 #include <unordered_map>
 
-class Lexer
+class Lexer // maybe make it a singleton???
 {
 public:
 	enum class TokenType
 	{
 		Identifier,
-		Keyword,
 		Integer,
 		Float,
 		String,
@@ -44,12 +43,19 @@ public:
 		AsteriskAssign,
 		SlashAssign,
 		AndAssign,
-		OrAssign
+		OrAssign,
+		Mut,
+		Var,
+		While,
+		If,
+		Else,
+		Return,
+		Func,
 	};
 
 	struct Token
 	{
-		Token(const TokenType type, const size_t line, const size_t column, const std::variant<std::wstring, int, float, bool>& value = false) :
+		Token(const TokenType type, const size_t line, const size_t column, const std::variant<std::wstring, int, float, bool>& value = false) noexcept :
 			type(type), line(line), column(column), value(value) {}
 		TokenType type;
 		size_t line;
@@ -69,7 +75,7 @@ public:
 	struct LexicalError
 	{
 		LexicalError(const ErrorType type, const std::string& message,
-			const size_t line, const size_t column, bool terminating = false) :
+			const size_t line, const size_t column, bool terminating = false) noexcept :
 			type(type), message(message), line(line), column(column), terminating(terminating) {}
 		ErrorType type;
 		std::string message;
@@ -92,6 +98,8 @@ private:
 	std::optional<Token> TryBuildStringLiteral(std::wistream& source);
 	std::optional<Token> TryBuildOperator(std::wistream& source);
 
+	static std::optional<TokenType> FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, TokenType>& map) noexcept;
+
 private:
 	// For code tidyness the tokenization needed variables are stored as class member values
 	std::vector<LexicalError> foundErrors;
@@ -103,7 +111,18 @@ private:
 	static constexpr unsigned int maxStringLiteralLength = 300;
 	static constexpr unsigned int maxIntegerLength = 10;
 
-	const std::vector<std::wstring> keywords = { L"mut", L"var", L"while", L"if", L"else", L"return", L"func", L"true", L"false" };
+	const std::unordered_map<std::wstring, TokenType> keywords =
+	{
+		{ L"mut",		TokenType::Mut },
+		{ L"var",		TokenType::Var },
+		{ L"while",		TokenType::While },
+		{ L"if",		TokenType::If },
+		{ L"else",		TokenType::Else },
+		{ L"return",	TokenType::Return },
+		{ L"func",		TokenType::Func },
+		{ L"true",		TokenType::Boolean },
+		{ L"false",		TokenType::Boolean }
+	};
 
 	const std::unordered_map<std::wstring, TokenType> symbols =
 	{
