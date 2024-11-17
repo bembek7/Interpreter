@@ -5,9 +5,6 @@
 #include <sstream>
 #include <array>
 
-// TODO (not obvious stuff, well obvious too)
-// overflow checking
-
 // cannot use peek with wide chars
 
 const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::keywords =
@@ -141,12 +138,14 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		if (std::iswdigit(currentChar))
 		{
 			numberStr += currentChar;
-			if (numberStr.length() > maxCommentLength)
+			if (numberStr.length() > maxNumberLength)
 			{
 				std::stringstream message{};
 				message << "Number too long. Max number length: " << maxNumberLength << ".";
-				foundErrors.push_back(LexicalError(ErrorType::NumberTooLong, message.str(), currentLine, currentColumn, true));
-				return Token(TokenType::Unrecognized, currentLine, currentColumn);
+				foundErrors.push_back(LexicalError(ErrorType::FloatTooLong, message.str(), currentLine, currentColumn, true));
+				const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
+				currentColumn += numberStr.length();
+				return token;
 			}
 		}
 		else
@@ -164,23 +163,48 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		}
 	}
 
+	if (numberStr.length() > 1 && numberStr[0] == L'0' && numberStr[1] != L'.')
+	{
+		std::string message = "Invalid number format - leading zeros.";
+		foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn));
+		const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
+		currentColumn += numberStr.length();
+		return token;
+	}
+
 	TokenType tokenType;
 	std::variant<std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
 		tokenType = TokenType::Float;
-		tokenValue = std::stof(numberStr);
+		try // I don't think using exceptions here is the perfect solution, but seems to be the simplest one
+		{
+			tokenValue = std::stof(numberStr);
+		}
+		catch (std::out_of_range)
+		{
+			std::string message = "Number would fall out of the range of the float";
+			foundErrors.push_back(LexicalError(ErrorType::FloatOverflow, std::move(message), currentLine, currentColumn));
+			const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
+			currentColumn += numberStr.length();
+			return token;
+		}
 	}
 	else
 	{
-		if (numberStr[0] == L'0' && numberStr.length() > 1)
-		{
-			std::string message = "Invalid integer format - leading zeros.";
-			foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn, true));
-			return Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
-		}
 		tokenType = TokenType::Integer;
-		tokenValue = std::stoi(numberStr);
+		try
+		{
+			tokenValue = std::stoi(numberStr);
+		}
+		catch (std::out_of_range)
+		{
+			std::string message = "Number would fall out of the range of the integer";
+			foundErrors.push_back(LexicalError(ErrorType::IntegerOverflow, std::move(message), currentLine, currentColumn));
+			const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
+			currentColumn += numberStr.length();
+			return token;
+		}
 	}
 
 	const auto token = Token(tokenType, currentLine, currentColumn, tokenValue);

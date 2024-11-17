@@ -23,6 +23,20 @@ static void CompareTokens(const std::vector<Lexer::Token>& tokens, const std::ve
 	}
 }
 
+static void CompareErrors(const std::vector<Lexer::LexicalError>& errors, const std::vector<Lexer::LexicalError>& expectedErrors)
+{
+	ASSERT_EQ(errors.size(), expectedErrors.size());
+
+	for (size_t i = 0; i < errors.size(); ++i)
+	{
+		EXPECT_EQ(errors[i].type, expectedErrors[i].type);
+		EXPECT_EQ(errors[i].message, expectedErrors[i].message);
+		EXPECT_EQ(errors[i].line, expectedErrors[i].line);
+		EXPECT_EQ(errors[i].column, expectedErrors[i].column);
+		EXPECT_EQ(errors[i].terminating, expectedErrors[i].terminating);
+	}
+}
+
 TEST_F(LexerTest, SingleCharOperatorRecognition)
 {
 	std::wstringstream input(L"= + - * / !");
@@ -467,4 +481,64 @@ TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
 	};
 
 	CompareTokens(tokens, expectedTokens);
+}
+
+TEST_F(LexerTest, IntegerOverflow)
+{
+	std::wstringstream input(L"2147483648");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1, L"2147483648"},
+		{Lexer::TokenType::EndOfFile, 1, 11}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::IntegerOverflow, "Number would fall out of the range of the integer", 1, 1}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, FloatOverflow)
+{
+	std::wstringstream input(L"99999999999999999999999999999999999999999.1");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1, L"99999999999999999999999999999999999999999.1"},
+		{Lexer::TokenType::EndOfFile, 1, 44}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::FloatOverflow, "Number would fall out of the range of the float", 1, 1}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, LeadingZerosError)
+{
+	std::wstringstream input(L"00042");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1, L"00042"},
+		{Lexer::TokenType::EndOfFile, 1, 6}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::InvalidNumber, "Invalid number format - leading zeros.", 1, 1}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }

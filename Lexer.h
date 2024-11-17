@@ -7,6 +7,7 @@
 
 class Lexer // maybe make it a singleton???
 {
+	friend class LexerTest; // just for easier testing
 public:
 	enum class TokenType
 	{
@@ -67,8 +68,10 @@ public:
 
 	enum class ErrorType
 	{
-		Overflow,
-		NumberTooLong,
+		IntegerOverflow,
+		FloatOverflow,
+		FloatTooLong,
+		integerTooLong,
 		IdentifierTooLong,
 		CommentTooLong,
 		StringLiteralTooLong,
@@ -115,7 +118,7 @@ private:
 
 	static constexpr unsigned int maxCommentLength = 500;
 	static constexpr unsigned int maxStringLiteralLength = 300;
-	static constexpr unsigned int maxNumberLength = 10;
+	static constexpr unsigned int maxNumberLength = 45;
 	static constexpr unsigned int maxIdentifierLength = 45;
 
 	static const std::unordered_map<std::wstring, TokenType> keywords;
