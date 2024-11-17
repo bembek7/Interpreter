@@ -51,6 +51,8 @@ public:
 		Else,
 		Return,
 		Func,
+		FunctionBind,
+		FunctionCompose
 	};
 
 	struct Token
@@ -66,10 +68,14 @@ public:
 	enum class ErrorType
 	{
 		Overflow,
-		TooLong,
+		NumberTooLong,
+		IdentifierTooLong,
+		CommentTooLong,
+		StringLiteralTooLong,
 		InvalidNumber,
 		InvalidEscapeSequence,
-		IncompleteStringLiteral
+		IncompleteStringLiteral,
+		UnrecognizedSymbol
 	};
 
 	struct LexicalError
@@ -91,7 +97,7 @@ private:
 
 	std::optional<Token> TryBuildComment(std::wistream& source);
 	std::optional<Token> TryBuildNumber(std::wistream& source);
-	std::optional<Token> TryBuildWord(std::wistream& source); // violates the one purpose rule, but saves code repetition
+	std::optional<Token> TryBuildWord(std::wistream& source);
 	std::optional<Token> TryBuildSymbol();
 	std::optional<Token> TryBuildSingleCharOperator();
 	std::optional<Token> TryBuildTwoCharsOperator(std::wistream& source);
@@ -109,56 +115,14 @@ private:
 
 	static constexpr unsigned int maxCommentLength = 500;
 	static constexpr unsigned int maxStringLiteralLength = 300;
-	static constexpr unsigned int maxIntegerLength = 10;
+	static constexpr unsigned int maxNumberLength = 10;
+	static constexpr unsigned int maxIdentifierLength = 45;
 
-	const std::unordered_map<std::wstring, TokenType> keywords =
-	{
-		{ L"mut",		TokenType::Mut },
-		{ L"var",		TokenType::Var },
-		{ L"while",		TokenType::While },
-		{ L"if",		TokenType::If },
-		{ L"else",		TokenType::Else },
-		{ L"return",	TokenType::Return },
-		{ L"func",		TokenType::Func },
-		{ L"true",		TokenType::Boolean },
-		{ L"false",		TokenType::Boolean }
-	};
+	static const std::unordered_map<std::wstring, TokenType> keywords;
 
-	const std::unordered_map<std::wstring, TokenType> symbols =
-	{
-		{ L";", TokenType::Semicolon },
-		{ L",", TokenType::Comma },
-		{ L"{", TokenType::LBracket },
-		{ L"}", TokenType::RBracket },
-		{ L"(", TokenType::LParenth },
-		{ L")", TokenType::RParenth },
-	};
+	static const std::unordered_map<std::wstring, TokenType> symbols;
 
-	const std::unordered_map<std::wstring, TokenType> singleCharOperators =
-	{
-		{ L"=", TokenType::Assign },
-		{ L"+", TokenType::Plus },
-		{ L"-", TokenType::Minus },
-		{ L"*", TokenType::Asterisk },
-		{ L"/", TokenType::Slash },
-		{ L"!", TokenType::LogicalNot },
-		{ L"<", TokenType::Less },
-		{ L">", TokenType::Greater },
-	};
+	static const std::unordered_map<std::wstring, TokenType> singleCharOperators;
 
-	const std::unordered_map<std::wstring, TokenType> twoCharsOperators =
-	{
-		{ L"&&", TokenType::LogicalAnd },
-		{ L"||", TokenType::LogicalOr },
-		{ L"==", TokenType::Equal },
-		{ L"!=", TokenType::NotEqual },
-		{ L"<=", TokenType::LessEqual },
-		{ L">=", TokenType::GreaterEqual },
-		{ L"+=", TokenType::PlusAssign },
-		{ L"-=", TokenType::MinusAssign },
-		{ L"*=", TokenType::AsteriskAssign },
-		{ L"/=", TokenType::SlashAssign },
-		{ L"&=", TokenType::AndAssign },
-		{ L"|=", TokenType::OrAssign },
-	};
+	static const std::unordered_map<std::wstring, TokenType> twoCharsOperators;
 };

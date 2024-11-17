@@ -6,12 +6,62 @@
 
 // TODO (not obvious stuff, well obvious too)
 // overflow checking
-// minuses before numbers
-// too long number, too long identifier
-// mroe tokens
 // clean string building func
 //
 // cannot use peek with wide chars
+
+const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::keywords =
+{
+	{ L"mut",		TokenType::Mut },
+	{ L"var",		TokenType::Var },
+	{ L"while",		TokenType::While },
+	{ L"if",		TokenType::If },
+	{ L"else",		TokenType::Else },
+	{ L"return",	TokenType::Return },
+	{ L"func",		TokenType::Func },
+	{ L"true",		TokenType::Boolean },
+	{ L"false",		TokenType::Boolean }
+};
+
+const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::symbols =
+{
+	{ L";", TokenType::Semicolon },
+	{ L",", TokenType::Comma },
+	{ L"{", TokenType::LBracket },
+	{ L"}", TokenType::RBracket },
+	{ L"(", TokenType::LParenth },
+	{ L")", TokenType::RParenth },
+};
+
+const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::singleCharOperators =
+{
+	{ L"=", TokenType::Assign },
+	{ L"+", TokenType::Plus },
+	{ L"-", TokenType::Minus },
+	{ L"*", TokenType::Asterisk },
+	{ L"/", TokenType::Slash },
+	{ L"!", TokenType::LogicalNot },
+	{ L"<", TokenType::Less },
+	{ L">", TokenType::Greater },
+};
+
+const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::twoCharsOperators =
+{
+	{ L"&&", TokenType::LogicalAnd },
+	{ L"||", TokenType::LogicalOr },
+	{ L"==", TokenType::Equal },
+	{ L"!=", TokenType::NotEqual },
+	{ L"<=", TokenType::LessEqual },
+	{ L">=", TokenType::GreaterEqual },
+	{ L"+=", TokenType::PlusAssign },
+	{ L"-=", TokenType::MinusAssign },
+	{ L"*=", TokenType::AsteriskAssign },
+	{ L"/=", TokenType::SlashAssign },
+	{ L"&=", TokenType::AndAssign },
+	{ L"|=", TokenType::OrAssign },
+	{ L"<<", TokenType::FunctionBind },
+	{ L">>", TokenType::FunctionCompose },
+};
 
 std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::Tokenize(std::wistream& source)
 {
@@ -66,7 +116,7 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(std::wistream& source)
 		{
 			std::stringstream message{};
 			message << "Comment too long. Max comment length: " << maxCommentLength << ".";
-			foundErrors.push_back(LexicalError(ErrorType::TooLong, message.str(), currentLine, currentColumn, true));
+			foundErrors.push_back(LexicalError(ErrorType::CommentTooLong, message.str(), currentLine, currentColumn, true));
 			return Token(TokenType::Comment, currentLine, currentColumn);
 		}
 	};
@@ -91,25 +141,35 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		if (std::iswdigit(currentChar))
 		{
 			numberStr += currentChar;
-		}
-		else if (currentChar == L'.' && !isFloat)
-		{
-			isFloat = true;
-			numberStr += currentChar;
+			if (numberStr.length() > maxCommentLength)
+			{
+				std::stringstream message{};
+				message << "Number too long. Max number length: " << maxNumberLength << ".";
+				foundErrors.push_back(LexicalError(ErrorType::NumberTooLong, message.str(), currentLine, currentColumn, true));
+				return Token(TokenType::Unrecognized, currentLine, currentColumn);
+			}
 		}
 		else
 		{
-			source.unget();
-			break;
+			if (currentChar == L'.' && !isFloat)
+			{
+				isFloat = true;
+				numberStr += currentChar;
+			}
+			else
+			{
+				source.unget();
+				break;
+			}
 		}
 	}
 
+	TokenType tokenType;
+	std::variant<std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
-		float floatValue = std::stof(numberStr);
-		const auto token = Token(TokenType::Float, currentLine, currentColumn, floatValue);
-		currentColumn += numberStr.length();
-		return token;
+		tokenType = TokenType::Float;
+		tokenValue = std::stof(numberStr);
 	}
 	else
 	{
@@ -119,13 +179,13 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 			foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn, true));
 			return Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 		}
-		int intValue = std::stoi(numberStr);
-		const auto token = Token(TokenType::Integer, currentLine, currentColumn, intValue);
-		currentColumn += numberStr.length();
-		return token;
+		tokenType = TokenType::Integer;
+		tokenValue = std::stoi(numberStr);
 	}
 
-	// error too long number
+	const auto token = Token(tokenType, currentLine, currentColumn, tokenValue);
+	currentColumn += numberStr.length();
+	return token;
 }
 
 std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
@@ -139,7 +199,13 @@ std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 	while (source.get(currentChar) && (std::iswalnum(currentChar) || currentChar == L'_'))
 	{
 		word += currentChar;
-		// too long idntifer check
+		if (word.length() > maxIdentifierLength)
+		{
+			std::stringstream message{};
+			message << "Identifier too long. Max identifier length: " << maxIdentifierLength << ".";
+			foundErrors.push_back(LexicalError(ErrorType::IdentifierTooLong, message.str(), currentLine, currentColumn, true));
+			return Token(TokenType::Unrecognized, currentLine, currentColumn);
+		}
 	}
 	source.unget();
 
@@ -264,7 +330,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 			{
 				std::stringstream message{};
 				message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
-				foundErrors.push_back(LexicalError(ErrorType::TooLong, message.str(), currentLine, currentColumn, true));
+				foundErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, message.str(), currentLine, currentColumn, true));
 				return Token(TokenType::Unrecognized, currentLine, currentColumn);
 			}
 		}
@@ -279,6 +345,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 Lexer::Token Lexer::BuildToken(std::wistream& source)
 {
 	std::optional<Token> token;
+
 	// could use some function table ???
 	if (token = TryBuildComment(source))
 	{
@@ -306,6 +373,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	}
 
 	token = Token(TokenType::Unrecognized, currentLine, currentColumn, std::wstring{ currentChar });
+	foundErrors.push_back(LexicalError(ErrorType::UnrecognizedSymbol, "Unrecognized symbol.", currentLine, currentColumn));
 	currentColumn++;
 	return token.value();
 }
