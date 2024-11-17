@@ -3,11 +3,11 @@
 #include <istream>
 #include <cwctype>
 #include <sstream>
+#include <array>
 
 // TODO (not obvious stuff, well obvious too)
 // overflow checking
-// clean string building func
-//
+
 // cannot use peek with wide chars
 
 const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::keywords =
@@ -294,23 +294,28 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 	wchar_t nextChar;
 	while (source.get(nextChar))
 	{
+		builtString += nextChar;
+		if (builtString.length() > maxStringLiteralLength)
+		{
+			std::stringstream message{};
+			message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
+			foundErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, message.str(), currentLine, currentColumn, true));
+			return Token(TokenType::Unrecognized, currentLine, currentColumn);
+		}
 		if (nextChar == L'"')
 		{
-			builtString += nextChar;
 			const auto token = Token(TokenType::String, currentLine, currentColumn, builtString);
 			currentColumn += builtString.length() + 2;
 			return token;
 		}
 		if (nextChar == L'\\')
 		{
-			builtString += nextChar;
 			if (source.get(nextChar))
 			{
-				if (nextChar == L'"' || nextChar == L'\\' || nextChar == L'n' || nextChar == L't')
-				{
-					builtString += nextChar;
-				}
-				else
+				builtString += nextChar;
+
+				static const std::array<wchar_t, 4> handledEscapedChars = { L'"',  L'\\', L'n', L't' };
+				if (std::find(handledEscapedChars.begin(), handledEscapedChars.end(), nextChar) == handledEscapedChars.end())
 				{
 					std::string message = "Unrecognized character escape sequence.";
 					foundErrors.push_back(LexicalError(ErrorType::InvalidEscapeSequence, std::move(message), currentLine, currentColumn + builtString.length()));
@@ -318,20 +323,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 			}
 			else
 			{
-				std::string message = "Incomplete escape sequence.";
-				foundErrors.push_back(LexicalError(ErrorType::InvalidEscapeSequence, std::move(message), currentLine, currentColumn + builtString.length()));
-				return Token(TokenType::Unrecognized, currentLine, currentColumn, builtString);
-			}
-		}
-		else
-		{
-			builtString += nextChar;
-			if (builtString.length() > maxStringLiteralLength)
-			{
-				std::stringstream message{};
-				message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
-				foundErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, message.str(), currentLine, currentColumn, true));
-				return Token(TokenType::Unrecognized, currentLine, currentColumn);
+				break;
 			}
 		}
 	}
