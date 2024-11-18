@@ -6,6 +6,21 @@
 #include <array>
 
 // cannot use peek with wide chars
+// could do some better errors throwing to avoid code repetition
+
+const std::unordered_map<Lexer::ErrorType, std::string>  Lexer::errorsMessages =
+{
+	{Lexer::ErrorType::IntegerOverflow, "Number would fall out of the range of the integer"},
+	{Lexer::ErrorType::FloatOverflow, "Number would fall out of the range of the float"},
+	{Lexer::ErrorType::NumberTooLong, "Number too long.Max number length : " + std::to_string(Lexer::maxNumberLength) + "."},
+	{Lexer::ErrorType::IdentifierTooLong, "Identifier too long.Max identifier length : " + std::to_string(Lexer::maxIdentifierLength) + "."},
+	{Lexer::ErrorType::CommentTooLong, "Comment too long. Max comment length: " + std::to_string(Lexer::maxCommentLength) + "."},
+	{Lexer::ErrorType::StringLiteralTooLong, "String literal too long. Max string literal length: " + std::to_string(Lexer::maxStringLiteralLength) + "."},
+	{Lexer::ErrorType::InvalidNumber, "Invalid number format - leading zeros."},
+	{Lexer::ErrorType::InvalidEscapeSequence, "Unrecognized character escape sequence."},
+	{Lexer::ErrorType::IncompleteStringLiteral, "Incomplete string literal."},
+	{Lexer::ErrorType::UnrecognizedSymbol, "Incomplete string literal."}
+};
 
 const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::keywords =
 {
@@ -111,9 +126,7 @@ std::optional<Lexer::Token> Lexer::TryBuildComment(std::wistream& source)
 		commentLength++;
 		if (commentLength > maxCommentLength)
 		{
-			std::stringstream message{};
-			message << "Comment too long. Max comment length: " << maxCommentLength << ".";
-			foundErrors.push_back(LexicalError(ErrorType::CommentTooLong, message.str(), currentLine, currentColumn, true));
+			foundErrors.push_back(LexicalError(ErrorType::CommentTooLong, errorsMessages.at(ErrorType::CommentTooLong), currentLine, currentColumn, true));
 			return Token(TokenType::Comment, currentLine, currentColumn);
 		}
 	};
@@ -140,9 +153,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 			numberStr += currentChar;
 			if (numberStr.length() > maxNumberLength)
 			{
-				std::stringstream message{};
-				message << "Number too long. Max number length: " << maxNumberLength << ".";
-				foundErrors.push_back(LexicalError(ErrorType::FloatTooLong, message.str(), currentLine, currentColumn, true));
+				foundErrors.push_back(LexicalError(ErrorType::NumberTooLong, errorsMessages.at(ErrorType::NumberTooLong), currentLine, currentColumn, true));
 				const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 				currentColumn += numberStr.length();
 				return token;
@@ -165,8 +176,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 
 	if (numberStr.length() > 1 && numberStr[0] == L'0' && numberStr[1] != L'.')
 	{
-		std::string message = "Invalid number format - leading zeros.";
-		foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, std::move(message), currentLine, currentColumn));
+		foundErrors.push_back(LexicalError(ErrorType::InvalidNumber, errorsMessages.at(ErrorType::InvalidNumber), currentLine, currentColumn));
 		const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 		currentColumn += numberStr.length();
 		return token;
@@ -183,8 +193,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		}
 		catch (std::out_of_range)
 		{
-			std::string message = "Number would fall out of the range of the float";
-			foundErrors.push_back(LexicalError(ErrorType::FloatOverflow, std::move(message), currentLine, currentColumn));
+			foundErrors.push_back(LexicalError(ErrorType::FloatOverflow, errorsMessages.at(ErrorType::FloatOverflow), currentLine, currentColumn));
 			const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 			currentColumn += numberStr.length();
 			return token;
@@ -199,8 +208,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber(std::wistream& source)
 		}
 		catch (std::out_of_range)
 		{
-			std::string message = "Number would fall out of the range of the integer";
-			foundErrors.push_back(LexicalError(ErrorType::IntegerOverflow, std::move(message), currentLine, currentColumn));
+			foundErrors.push_back(LexicalError(ErrorType::IntegerOverflow, errorsMessages.at(ErrorType::IntegerOverflow), currentLine, currentColumn));
 			const auto token = Token(TokenType::Unrecognized, currentLine, currentColumn, numberStr);
 			currentColumn += numberStr.length();
 			return token;
@@ -225,9 +233,7 @@ std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 		word += currentChar;
 		if (word.length() > maxIdentifierLength)
 		{
-			std::stringstream message{};
-			message << "Identifier too long. Max identifier length: " << maxIdentifierLength << ".";
-			foundErrors.push_back(LexicalError(ErrorType::IdentifierTooLong, message.str(), currentLine, currentColumn, true));
+			foundErrors.push_back(LexicalError(ErrorType::IdentifierTooLong, errorsMessages.at(ErrorType::IdentifierTooLong), currentLine, currentColumn, true));
 			return Token(TokenType::Unrecognized, currentLine, currentColumn);
 		}
 	}
@@ -321,9 +327,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 		builtString += nextChar;
 		if (builtString.length() > maxStringLiteralLength)
 		{
-			std::stringstream message{};
-			message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
-			foundErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, message.str(), currentLine, currentColumn, true));
+			foundErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, errorsMessages.at(ErrorType::StringLiteralTooLong), currentLine, currentColumn, true));
 			return Token(TokenType::Unrecognized, currentLine, currentColumn);
 		}
 		if (nextChar == L'"')
@@ -341,8 +345,7 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral(std::wistream& source)
 				static const std::array<wchar_t, 4> handledEscapedChars = { L'"',  L'\\', L'n', L't' };
 				if (std::find(handledEscapedChars.begin(), handledEscapedChars.end(), nextChar) == handledEscapedChars.end())
 				{
-					std::string message = "Unrecognized character escape sequence.";
-					foundErrors.push_back(LexicalError(ErrorType::InvalidEscapeSequence, std::move(message), currentLine, currentColumn + builtString.length()));
+					foundErrors.push_back(LexicalError(ErrorType::InvalidEscapeSequence, errorsMessages.at(ErrorType::InvalidEscapeSequence), currentLine, currentColumn + builtString.length()));
 				}
 			}
 			else
@@ -389,7 +392,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	}
 
 	token = Token(TokenType::Unrecognized, currentLine, currentColumn, std::wstring{ currentChar });
-	foundErrors.push_back(LexicalError(ErrorType::UnrecognizedSymbol, "Unrecognized symbol.", currentLine, currentColumn));
+	foundErrors.push_back(LexicalError(ErrorType::UnrecognizedSymbol, errorsMessages.at(ErrorType::UnrecognizedSymbol), currentLine, currentColumn));
 	currentColumn++;
 	return token.value();
 }

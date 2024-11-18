@@ -7,7 +7,7 @@
 
 class Lexer // maybe make it a singleton???
 {
-	friend class LexerTest; // just for easier testing
+	friend class LexerTest;
 public:
 	enum class TokenType
 	{
@@ -70,8 +70,7 @@ public:
 	{
 		IntegerOverflow,
 		FloatOverflow,
-		FloatTooLong,
-		integerTooLong,
+		NumberTooLong,
 		IdentifierTooLong,
 		CommentTooLong,
 		StringLiteralTooLong,
@@ -94,6 +93,8 @@ public:
 	};
 
 	std::pair<std::vector<Token>, std::vector<LexicalError>> Tokenize(std::wistream& source);
+
+	static const std::unordered_map<ErrorType, std::string> errorsMessages; // public for easier testing
 
 private:
 	Token BuildToken(std::wistream& source);

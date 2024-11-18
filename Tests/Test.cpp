@@ -499,7 +499,7 @@ TEST_F(LexerTest, IntegerOverflow)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IntegerOverflow, "Number would fall out of the range of the integer", 1, 1}
+		{Lexer::ErrorType::IntegerOverflow, Lexer::errorsMessages.at(Lexer::ErrorType::IntegerOverflow), 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -519,7 +519,7 @@ TEST_F(LexerTest, FloatOverflow)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::FloatOverflow, "Number would fall out of the range of the float", 1, 1}
+		{Lexer::ErrorType::FloatOverflow, Lexer::errorsMessages.at(Lexer::ErrorType::FloatOverflow), 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -539,7 +539,7 @@ TEST_F(LexerTest, LeadingZerosError)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidNumber, "Invalid number format - leading zeros.", 1, 1}
+		{Lexer::ErrorType::InvalidNumber, Lexer::errorsMessages.at(Lexer::ErrorType::InvalidNumber), 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -559,7 +559,7 @@ TEST_F(LexerTest, IncompleteStringLiteral)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IncompleteStringLiteral, "Incomplete string literal.", 1, 1}
+		{Lexer::ErrorType::IncompleteStringLiteral, Lexer::errorsMessages.at(Lexer::ErrorType::IncompleteStringLiteral), 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -583,7 +583,89 @@ TEST_F(LexerTest, CommentTooLong)
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
 		
-		{Lexer::ErrorType::CommentTooLong, message.str(), 1, 1, true}
+		{Lexer::ErrorType::CommentTooLong, Lexer::errorsMessages.at(Lexer::ErrorType::CommentTooLong), 1, 1, true}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, StringLiteralWithValidEscapes)
+{
+	std::wstringstream input(L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\"");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::String, 1, 1, L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\""},
+		{Lexer::TokenType::EndOfFile, 1, 34}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, StringLiteralTooLong)
+{
+	std::wstring longString(maxStringLiteralLength + 1, L'a');
+	std::wstringstream input(L"\"" + longString + L"\"");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1}
+	};
+
+	std::stringstream message{};
+	message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::StringLiteralTooLong, Lexer::errorsMessages.at(Lexer::ErrorType::StringLiteralTooLong), 1, 1, true}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
+{
+	std::wstringstream input(L"\"Invalid\\xEscape\"");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::String, 1, 1, L"\"Invalid\\xEscape\""},
+		{Lexer::TokenType::EndOfFile, 1, 20}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::InvalidEscapeSequence,  Lexer::errorsMessages.at(Lexer::ErrorType::InvalidEscapeSequence), 1, 11}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, StringLiteralsComplexScenarios)
+{
+	std::wstringstream input(
+		L"\"Valid string\" \"Too long string" + std::wstring(maxStringLiteralLength + 1, L'a') +
+		L"\" \"Unclosed string \"Invalid\\xEscape\""
+	);
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::String, 1, 1, L"\"Valid string\""},
+		{Lexer::TokenType::Unrecognized, 1, 18}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::StringLiteralTooLong,  Lexer::errorsMessages.at(Lexer::ErrorType::StringLiteralTooLong), 1, 18, true},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
