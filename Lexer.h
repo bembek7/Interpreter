@@ -80,11 +80,11 @@ public:
 		UnrecognizedSymbol
 	};
 
+	static const std::unordered_map<ErrorType, std::string> errorsMessages; // public for easier testing
+
 	struct LexicalError
 	{
-		LexicalError(const ErrorType type, const std::string& message,
-			const size_t line, const size_t column, bool terminating = false) noexcept :
-			type(type), message(message), line(line), column(column), terminating(terminating) {}
+		LexicalError(const ErrorType type, const size_t line, const size_t column, bool terminating = false) noexcept;
 		ErrorType type;
 		std::string message;
 		size_t line;
@@ -93,9 +93,6 @@ public:
 	};
 
 	std::pair<std::vector<Token>, std::vector<LexicalError>> Tokenize(std::wistream& source);
-
-	static const std::unordered_map<ErrorType, std::string> errorsMessages; // public for easier testing
-
 private:
 	Token BuildToken(std::wistream& source);
 

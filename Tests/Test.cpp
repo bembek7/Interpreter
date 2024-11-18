@@ -166,7 +166,7 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::UnrecognizedSymbol,  Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 1},
+		{Lexer::ErrorType::UnrecognizedSymbol, 1, 1},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -255,9 +255,9 @@ TEST_F(LexerTest, MalformedTokens)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidNumber, Lexer::errorsMessages.at(Lexer::ErrorType::InvalidNumber), 1, 1},
-		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 10},
-		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 12},
+		{Lexer::ErrorType::InvalidNumber, 1, 1},
+		{Lexer::ErrorType::UnrecognizedSymbol, 1, 10},
+		{Lexer::ErrorType::UnrecognizedSymbol, 1, 12},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -581,7 +581,7 @@ TEST_F(LexerTest, IntegerOverflow)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IntegerOverflow, Lexer::errorsMessages.at(Lexer::ErrorType::IntegerOverflow), 1, 1}
+		{Lexer::ErrorType::IntegerOverflow, 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -601,7 +601,7 @@ TEST_F(LexerTest, FloatOverflow)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::FloatOverflow, Lexer::errorsMessages.at(Lexer::ErrorType::FloatOverflow), 1, 1}
+		{Lexer::ErrorType::FloatOverflow, 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -621,7 +621,7 @@ TEST_F(LexerTest, LeadingZerosError)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidNumber, Lexer::errorsMessages.at(Lexer::ErrorType::InvalidNumber), 1, 1}
+		{Lexer::ErrorType::InvalidNumber, 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -641,7 +641,7 @@ TEST_F(LexerTest, IncompleteStringLiteral)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IncompleteStringLiteral, Lexer::errorsMessages.at(Lexer::ErrorType::IncompleteStringLiteral), 1, 1}
+		{Lexer::ErrorType::IncompleteStringLiteral, 1, 1}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -664,7 +664,7 @@ TEST_F(LexerTest, CommentTooLong)
 	message << "Comment too long. Max comment length: " << maxCommentLength << ".";
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::CommentTooLong, Lexer::errorsMessages.at(Lexer::ErrorType::CommentTooLong), 1, 1, true}
+		{Lexer::ErrorType::CommentTooLong, 1, 1, true}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -703,7 +703,7 @@ TEST_F(LexerTest, StringLiteralTooLong)
 	message << "String literal too long. Max string literal length: " << maxStringLiteralLength << ".";
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::StringLiteralTooLong, Lexer::errorsMessages.at(Lexer::ErrorType::StringLiteralTooLong), 1, 1, true}
+		{Lexer::ErrorType::StringLiteralTooLong, 1, 1, true}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -723,7 +723,7 @@ TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidEscapeSequence,  Lexer::errorsMessages.at(Lexer::ErrorType::InvalidEscapeSequence), 1, 11}
+		{Lexer::ErrorType::InvalidEscapeSequence, 1, 11}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -746,7 +746,7 @@ TEST_F(LexerTest, StringLiteralsComplexScenarios)
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::StringLiteralTooLong,  Lexer::errorsMessages.at(Lexer::ErrorType::StringLiteralTooLong), 1, 18, true},
+		{Lexer::ErrorType::StringLiteralTooLong, 1, 18, true},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
