@@ -84,9 +84,9 @@ std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::To
 		}
 
 		resolvedTokens.push_back(BuildToken(source));
-		if (const auto& last = foundErrors.end(); last != foundErrors.end())
+		if (!foundErrors.empty())
 		{
-			if (last->terminating)
+			if (foundErrors.back().terminating)
 			{
 				return { resolvedTokens, foundErrors };
 			}

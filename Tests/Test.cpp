@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <gtest/gtest.h>
 #include <sstream>
 #include "Lexer.h"
 
@@ -8,6 +7,10 @@ class LexerTest : public ::testing::Test
 {
 protected:
 	Lexer lexer;
+	static constexpr unsigned int maxCommentLength = Lexer::maxCommentLength;
+	static constexpr unsigned int maxStringLiteralLength = Lexer::maxStringLiteralLength;
+	static constexpr unsigned int maxNumberLength = Lexer::maxNumberLength;
+	static constexpr unsigned int maxIdentifierLength = Lexer::maxIdentifierLength;
 };
 
 static void CompareTokens(const std::vector<Lexer::Token>& tokens, const std::vector<Lexer::Token>& expectedTokens)
@@ -537,6 +540,50 @@ TEST_F(LexerTest, LeadingZerosError)
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
 		{Lexer::ErrorType::InvalidNumber, "Invalid number format - leading zeros.", 1, 1}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, IncompleteStringLiteral)
+{
+	std::wstringstream input(L"\"Incomplete string");
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1, L"\"Incomplete string"},
+		{Lexer::TokenType::EndOfFile, 1, 20}
+	};
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::IncompleteStringLiteral, "Incomplete string literal.", 1, 1}
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, CommentTooLong)
+{
+	std::wstring inputStr(550, '.');
+
+	std::wstringstream input(L"#This is too long comment" + inputStr);
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Comment, 1, 1},
+	};
+
+	std::stringstream message{};
+	message << "Comment too long. Max comment length: " << maxCommentLength << ".";
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		
+		{Lexer::ErrorType::CommentTooLong, message.str(), 1, 1, true}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
