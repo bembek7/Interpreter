@@ -43,7 +43,7 @@ static void CompareErrors(const std::vector<Lexer::LexicalError>& errors, const 
 TEST_F(LexerTest, SingleCharOperatorRecognition)
 {
 	std::wstringstream input(L"= + - * / !");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -56,13 +56,16 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 12}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, TwoCharOperatorRecognition)
 {
 	std::wstringstream input(L"&& || == !=");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -73,13 +76,16 @@ TEST_F(LexerTest, TwoCharOperatorRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 12}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, StringLiteralRecognition)
 {
 	std::wstringstream input(L"\"Hello, World!\"");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -87,13 +93,16 @@ TEST_F(LexerTest, StringLiteralRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 18}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 {
 	std::wstringstream input(L"var myVariable while");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -103,13 +112,16 @@ TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 21}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, IntegerRecognition)
 {
 	std::wstringstream input(L"12345");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -117,13 +129,16 @@ TEST_F(LexerTest, IntegerRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 6}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, CommentRecognition)
 {
 	std::wstringstream input(L"# This is a comment\nvar");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -132,13 +147,16 @@ TEST_F(LexerTest, CommentRecognition)
 		{Lexer::TokenType::EndOfFile, 2, 4}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 {
 	std::wstringstream input(L"@");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -146,13 +164,19 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 		{Lexer::TokenType::EndOfFile, 1, 2}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::UnrecognizedSymbol,  Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 1},
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 {
 	std::wstringstream input(L"var count = 123 + myVar * 4;");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -168,26 +192,33 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 		{Lexer::TokenType::EndOfFile, 1, 29}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 {
 	std::wstringstream input(L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\"");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::String, 1, 1, L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\""},
 		{Lexer::TokenType::EndOfFile, 1, 65}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
 {
 	std::wstringstream input(L">= <= != && || = !");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -200,30 +231,43 @@ TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
 		{Lexer::TokenType::LogicalNot, 1, 18},
 		{Lexer::TokenType::EndOfFile, 1, 19}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
-/*
 TEST_F(LexerTest, MalformedTokens)
 {
 	std::wstringstream input(L"00123 var$ %abc");
-	const auto& tokens = lexer.Tokenize(input).first;
-	// some error
-	std::vector<Lexer::Token> expectedTokens = {
-		{Lexer::TokenType::Unrecognized, L"00123", 1, 1},
-		{Lexer::TokenType::Keyword, L"var", 1, 7},
-		{Lexer::TokenType::Unrecognized, L"$", 1, 10},
-		{Lexer::TokenType::Unrecognized, L"%", 1, 12},
-		{Lexer::TokenType::Identifier, L"abc", 1, 13},
-		{Lexer::TokenType::EndOfFile, L"", 1, 16}
+	const auto& lexerOut = lexer.Tokenize(input);
+
+	std::vector<Lexer::Token> expectedTokens =
+	{
+		{Lexer::TokenType::Unrecognized, 1, 1, L"00123"},
+		{Lexer::TokenType::Var, 1, 7},
+		{Lexer::TokenType::Unrecognized, 1, 10, L"$"},
+		{Lexer::TokenType::Unrecognized, 1, 12, L"%"},
+		{Lexer::TokenType::Identifier, 1, 13, L"abc"},
+		{Lexer::TokenType::EndOfFile, 1, 16}
 	};
-	CompareTokens(tokens, expectedTokens);
-}*/
+
+	std::vector<Lexer::LexicalError> expectedErrors =
+	{
+		{Lexer::ErrorType::InvalidNumber, Lexer::errorsMessages.at(Lexer::ErrorType::InvalidNumber), 1, 1},
+		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 10},
+		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::errorsMessages.at(Lexer::ErrorType::UnrecognizedSymbol), 1, 12},
+	};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
 
 TEST_F(LexerTest, NestedCommentsAndOperators)
 {
 	std::wstringstream input(L"# This is a # comment\nvar x += 10 # Another comment");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -235,26 +279,34 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 		{Lexer::TokenType::Comment, 2, 13},
 		{Lexer::TokenType::EndOfFile, 3, 1}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, KeytwordInIdentifier)
 {
 	std::wstringstream input(L"while123");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
 		{Lexer::TokenType::Identifier, 1, 1, L"while123"},
 		{Lexer::TokenType::EndOfFile, 1, 9}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 {
 	std::wstringstream input(L"\n\n\t\tvar a = 5\nwhile (a < 10) { a += 1; }\n");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -276,13 +328,17 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 		{Lexer::TokenType::RBracket, 4, 26},
 		{Lexer::TokenType::EndOfFile, 5, 1}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, VariableAssignmentAndComment)
 {
 	std::wstringstream input(L"var a = 10;\n\nvar b = a * a;\n\n # b automatically converted to string and printed");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -302,13 +358,16 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 		{Lexer::TokenType::EndOfFile, 6, 1}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, IfElseBlock)
 {
 	std::wstringstream input(L"var b = false;\n\nif(b)\n{\n\t# do sth\n}\nelse\n{\n\t# do sth else\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -331,13 +390,16 @@ TEST_F(LexerTest, IfElseBlock)
 		{Lexer::TokenType::EndOfFile, 10, 2}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, WhileLoop)
 {
 	std::wstringstream input(L"while(a < 10)\n{\n\t# do stuff\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -353,13 +415,16 @@ TEST_F(LexerTest, WhileLoop)
 		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, RecursiveFunction)
 {
 	std::wstringstream input(L"func Fizz(a, b)\n{\n\treturn Fizz(a - 1, b);\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -385,13 +450,16 @@ TEST_F(LexerTest, RecursiveFunction)
 		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, FunctionWithReturn)
 {
 	std::wstringstream input(L"func Add(a, b)\n{\n\treturn a + b;\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -412,13 +480,16 @@ TEST_F(LexerTest, FunctionWithReturn)
 		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, SimpleMainFunction)
 {
 	std::wstringstream input(L"func main()\n{\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -430,13 +501,17 @@ TEST_F(LexerTest, SimpleMainFunction)
 		{Lexer::TokenType::RBracket, 3, 1},
 		{Lexer::TokenType::EndOfFile, 3, 2}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, HigherOrderFunctionComposition)
 {
 	std::wstringstream input(L"func compose(f, g)\n{\n\treturn func(x) { return f(g(x)); }\n}");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -467,12 +542,16 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 		{Lexer::TokenType::RBracket, 4, 1},
 		{Lexer::TokenType::EndOfFile, 4, 2}
 	};
-	CompareTokens(tokens, expectedTokens);
+
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
 	std::wstringstream input(L"3.14 2.718 42 0.5");
-	const auto& tokens = lexer.Tokenize(input).first;
+	const auto& lexerOut = lexer.Tokenize(input);
 
 	std::vector<Lexer::Token> expectedTokens =
 	{
@@ -483,7 +562,10 @@ TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
 		{Lexer::TokenType::EndOfFile, 1, 18}
 	};
 
-	CompareTokens(tokens, expectedTokens);
+	std::vector<Lexer::LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
 }
 
 TEST_F(LexerTest, IntegerOverflow)
@@ -582,7 +664,6 @@ TEST_F(LexerTest, CommentTooLong)
 	message << "Comment too long. Max comment length: " << maxCommentLength << ".";
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		
 		{Lexer::ErrorType::CommentTooLong, Lexer::errorsMessages.at(Lexer::ErrorType::CommentTooLong), 1, 1, true}
 	};
 
