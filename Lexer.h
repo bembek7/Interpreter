@@ -99,11 +99,10 @@ private:
 	std::optional<Token> TryBuildComment(std::wistream& source);
 	std::optional<Token> TryBuildNumber(std::wistream& source);
 	std::optional<Token> TryBuildWord(std::wistream& source);
-	std::optional<Token> TryBuildSymbol();
-	std::optional<Token> TryBuildSingleCharOperator();
+	std::optional<Token> TryBuildSymbolsMix(std::wistream& source);
+	std::optional<Token> TryBuildSingleSymbol();
 	std::optional<Token> TryBuildTwoCharsOperator(std::wistream& source);
 	std::optional<Token> TryBuildStringLiteral(std::wistream& source);
-	std::optional<Token> TryBuildOperator(std::wistream& source);
 
 	static std::optional<TokenType> FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, TokenType>& map) noexcept;
 
@@ -122,8 +121,6 @@ private:
 	static const std::unordered_map<std::wstring, TokenType> keywords;
 
 	static const std::unordered_map<std::wstring, TokenType> symbols;
-
-	static const std::unordered_map<std::wstring, TokenType> singleCharOperators;
 
 	static const std::unordered_map<std::wstring, TokenType> twoCharsOperators;
 };

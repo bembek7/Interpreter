@@ -43,10 +43,6 @@ const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::symbols =
 	{ L"}", TokenType::RBracket },
 	{ L"(", TokenType::LParenth },
 	{ L")", TokenType::RParenth },
-};
-
-const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::singleCharOperators =
-{
 	{ L"=", TokenType::Assign },
 	{ L"+", TokenType::Plus },
 	{ L"-", TokenType::Minus },
@@ -75,7 +71,7 @@ const std::unordered_map<std::wstring, Lexer::TokenType> Lexer::twoCharsOperator
 	{ L">>", TokenType::FunctionCompose },
 };
 
-Lexer::LexicalError::LexicalError(const Lexer::ErrorType type, const size_t line, const size_t column, bool terminating) noexcept:
+Lexer::LexicalError::LexicalError(const Lexer::ErrorType type, const size_t line, const size_t column, bool terminating) noexcept :
 	type(type), line(line), column(column), terminating(terminating)
 {
 	message = errorsMessages.at(type);
@@ -265,7 +261,7 @@ std::optional<Lexer::Token> Lexer::TryBuildWord(std::wistream& source)
 	return token;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildSymbol()
+std::optional<Lexer::Token> Lexer::TryBuildSingleSymbol()
 {
 	auto symbol = std::wstring{ currentChar };
 	if (const auto tokenType = FindTokenInMap({ currentChar }, symbols))
@@ -275,17 +271,6 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbol()
 		return token;
 	}
 
-	return std::nullopt;
-}
-
-std::optional<Lexer::Token> Lexer::TryBuildSingleCharOperator()
-{
-	if (const auto tokenType = FindTokenInMap({ currentChar }, singleCharOperators))
-	{
-		const auto token = Token(tokenType.value(), currentLine, currentColumn);
-		currentColumn++;
-		return token;
-	}
 	return std::nullopt;
 }
 
@@ -305,7 +290,7 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator(std::wistream& sourc
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildOperator(std::wistream& source)
+std::optional<Lexer::Token> Lexer::TryBuildSymbolsMix(std::wistream& source)
 {
 	if (std::optional<Token> token = TryBuildTwoCharsOperator(source))
 	{
@@ -313,7 +298,7 @@ std::optional<Lexer::Token> Lexer::TryBuildOperator(std::wistream& source)
 	}
 	else
 	{
-		return TryBuildSingleCharOperator();
+		return TryBuildSingleSymbol();
 	}
 }
 
@@ -383,11 +368,7 @@ Lexer::Token Lexer::BuildToken(std::wistream& source)
 	{
 		return token.value();
 	}
-	if (token = TryBuildSymbol())
-	{
-		return token.value();
-	}
-	if (token = TryBuildOperator(source))
+	if (token = TryBuildSymbolsMix(source))
 	{
 		return token.value();
 	}
