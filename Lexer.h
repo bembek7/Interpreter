@@ -5,9 +5,8 @@
 #include <optional>
 #include <unordered_map>
 
-class Lexer // maybe make it a singleton???
+class Lexer
 {
-	friend class LexerTest;
 public:
 	enum class TokenType
 	{
@@ -56,13 +55,20 @@ public:
 		FunctionCompose
 	};
 
-	struct Token
+	struct Position
 	{
-		Token(const TokenType type, const size_t line, const size_t column, const std::variant<std::wstring, int, float, bool>& value = false) noexcept :
-			type(type), line(line), column(column), value(value) {}
-		TokenType type;
+		Position(const size_t line, const size_t column) noexcept :
+			line(line), column(column) {}
 		size_t line;
 		size_t column;
+	};
+
+	struct Token
+	{
+		Token(const TokenType type, const Position position, const std::variant<std::wstring, int, float, bool>& value = false) noexcept :
+			type(type), position(position), value(value) {}
+		TokenType type;
+		Position position;
 		std::variant<std::wstring, int, float, bool> value;
 	};
 
@@ -80,15 +86,12 @@ public:
 		UnrecognizedSymbol
 	};
 
-	static const std::unordered_map<ErrorType, std::string> errorsMessages; // public for easier testing
-
 	struct LexicalError
 	{
-		LexicalError(const ErrorType type, const size_t line, const size_t column, bool terminating = false) noexcept;
+		LexicalError(const ErrorType type, const Position position, bool terminating = false) noexcept;
 		ErrorType type;
 		std::string message;
-		size_t line;
-		size_t column;
+		Position position;
 		bool terminating = false;
 	};
 
@@ -110,17 +113,5 @@ private:
 	// For code tidyness the tokenization needed variables are stored as class member values
 	std::vector<LexicalError> foundErrors;
 	wchar_t currentChar = {};
-	size_t currentLine = 1;
-	size_t currentColumn = 1;
-
-	static constexpr unsigned int maxCommentLength = 500;
-	static constexpr unsigned int maxStringLiteralLength = 300;
-	static constexpr unsigned int maxNumberLength = 45;
-	static constexpr unsigned int maxIdentifierLength = 45;
-
-	static const std::unordered_map<std::wstring, TokenType> keywords;
-
-	static const std::unordered_map<std::wstring, TokenType> symbols;
-
-	static const std::unordered_map<std::wstring, TokenType> twoCharsOperators;
+	Position currentPosition = { 1, 1 };
 };
