@@ -8,6 +8,8 @@
 class Lexer
 {
 public:
+	Lexer(std::wistream* const  source) noexcept; // can load and analyze only one source
+
 	enum class TokenType
 	{
 		Identifier,
@@ -95,23 +97,24 @@ public:
 		bool terminating = false;
 	};
 
-	std::pair<std::vector<Token>, std::vector<LexicalError>> Tokenize(std::wistream& source);
+	std::pair<std::vector<Token>, std::vector<LexicalError>> ResolveAllRemaining();
+	std::pair<Token, std::vector<LexicalError>> ResolveNext();
 private:
-	Token BuildToken(std::wistream& source);
+	Token BuildToken();
 
-	std::optional<Token> TryBuildComment(std::wistream& source);
-	std::optional<Token> TryBuildNumber(std::wistream& source);
-	std::optional<Token> TryBuildWord(std::wistream& source);
-	std::optional<Token> TryBuildSymbolsMix(std::wistream& source);
+	std::optional<Token> TryBuildComment();
+	std::optional<Token> TryBuildNumber();
+	std::optional<Token> TryBuildWord();
+	std::optional<Token> TryBuildSymbolsMix();
 	std::optional<Token> TryBuildSingleSymbol();
-	std::optional<Token> TryBuildTwoCharsOperator(std::wistream& source);
-	std::optional<Token> TryBuildStringLiteral(std::wistream& source);
+	std::optional<Token> TryBuildTwoCharsOperator();
+	std::optional<Token> TryBuildStringLiteral();
 
 	static std::optional<TokenType> FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, TokenType>& map) noexcept;
 
 private:
-	// For code tidyness the tokenization needed variables are stored as class member values
-	std::vector<LexicalError> foundErrors;
+	std::wistream* source = nullptr;
+	std::vector<LexicalError> currentErrors;
 	wchar_t currentChar = {};
 	Position currentPosition = { 1, 1 };
 };
