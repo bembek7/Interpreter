@@ -87,16 +87,61 @@ Lexer::LexicalError::LexicalError(const Lexer::ErrorType type, const Lexer::Posi
 	message = errorsMessages.at(type);
 }
 
+Lexer::Token::Token(const Lexer::TokenType type, const Lexer::Position position, const std::variant<std::monostate, std::wstring, int, float, bool>& value) noexcept :
+	type(type), position(position), value(value)
+{
+	bool invalid = false;
+	switch (type)
+	{
+	case TokenType::String:
+	case TokenType::Identifier:
+	case TokenType::Unrecognized:
+		if (!std::holds_alternative<std::wstring>(value))
+		{
+			invalid = true;
+		}
+		break;
+	case TokenType::Float:
+		if (!std::holds_alternative<float>(value))
+		{
+			invalid = true;
+		}
+		break;
+	case TokenType::Integer:
+		if (!std::holds_alternative<int>(value))
+		{
+			invalid = true;
+		}
+		break;
+	case TokenType::Boolean:
+		if (!std::holds_alternative<bool>(value))
+		{
+			invalid = true;
+		}
+		break;
+	default:
+		if (!std::holds_alternative<std::monostate>(value))
+		{
+			invalid = true;
+		}
+		break;
+	}
+
+	if (invalid)
+	{
+		throw std::runtime_error("Invalid type passsed to a variant for this type of token");
+	}
+}
+
 Lexer::Lexer(std::wistream* const source) noexcept :
 	source(source)
 {}
-
 
 std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::ResolveAllRemaining()
 {
 	std::vector<Lexer::Token> resolvedTokens;
 	std::vector<Lexer::LexicalError> foundErrors;
-	while(resolvedTokens.empty() || resolvedTokens.back().type != TokenType::EndOfFile)
+	while (resolvedTokens.empty() || resolvedTokens.back().type != TokenType::EndOfFile)
 	{
 		const auto next = ResolveNext();
 		resolvedTokens.push_back(next.first);
@@ -209,7 +254,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber()
 	}
 
 	TokenType tokenType;
-	std::variant<std::wstring, int, float, bool> tokenValue;
+	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
 		tokenType = TokenType::Float;
@@ -266,7 +311,7 @@ std::optional<Lexer::Token> Lexer::TryBuildWord()
 	source->unget();
 
 	TokenType tokenType;
-	std::variant<std::wstring, int, float, bool> tokenValue = false;
+	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (const auto tokenTypeOpt = FindTokenInMap(word, keywords))
 	{
 		tokenType = tokenTypeOpt.value();

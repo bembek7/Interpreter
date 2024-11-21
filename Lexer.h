@@ -67,11 +67,10 @@ public:
 
 	struct Token
 	{
-		Token(const TokenType type, const Position position, const std::variant<std::wstring, int, float, bool>& value = false) noexcept :
-			type(type), position(position), value(value) {}
+		Token(const TokenType type, const Position position, const std::variant<std::monostate, std::wstring, int, float, bool>& value = std::monostate{}) noexcept;
 		TokenType type;
 		Position position;
-		std::variant<std::wstring, int, float, bool> value;
+		std::variant<std::monostate, std::wstring, int, float, bool> value;
 	};
 
 	enum class ErrorType

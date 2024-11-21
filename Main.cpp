@@ -49,22 +49,16 @@ static void PrintToken(const Lexer::Token& token) noexcept
 		{Lexer::TokenType::Func, L"Func"}
 	}; // just for testing purposes
 
-	std::wcout << "Type: " << tokenNames[token.type] << " value: ";
-
-	std::visit([](const auto& value) { std::wcout << value; }, token.value);
-
-	std::wcout << " line: " << token.line << " column: " << token.column << std::endl;
+	std::wcout << "Type: " << tokenNames[token.type] << " line: " << token.position.line << " column: " << token.position.column << std::endl;
 }
 
 static void PrintError(const Lexer::LexicalError& error) noexcept
 {
-	std::cout << "Error [line: " << error.line << ", column : " << error.column << "] " << error.message << std::endl;
+	std::cout << "Error [line: " << error.position.line << ", column : " << error.position.column << "] " << error.message << std::endl;
 }
 
 int main()
 {
-	Lexer lexer;
-
 	/*std::string codeExample = R"(
 		mut var a;
 		a = 10;
@@ -83,7 +77,8 @@ int main()
 		return 1;
 	}
 
-	const auto lexerOut = lexer.Tokenize(codeFile);
+	Lexer lexer = Lexer(&codeFile);
+	const auto lexerOut = lexer.ResolveAllRemaining();
 
 	for (const auto& error : lexerOut.second)
 	{
