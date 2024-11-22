@@ -6,34 +6,13 @@
 #include <unordered_map>
 #include "Position.h"
 #include "LexToken.h"
+#include "LexicalError.h"
 
 class Lexer
 {
 public:
-	Lexer(std::wistream* const  source) noexcept; // can load and analyze only one source
-
-	enum class ErrorType
-	{
-		IntegerOverflow,
-		FloatOverflow,
-		NumberTooLong,
-		IdentifierTooLong,
-		CommentTooLong,
-		StringLiteralTooLong,
-		InvalidNumber,
-		InvalidEscapeSequence,
-		IncompleteStringLiteral,
-		UnrecognizedSymbol
-	};
-
-	struct LexicalError
-	{
-		LexicalError(const ErrorType type, const Position position, bool terminating = false) noexcept;
-		ErrorType type;
-		Position position;
-		std::string message;
-		bool terminating = false;
-	};
+	Lexer(std::wistream* const  source) noexcept;
+	void SetNewSource(std::wistream* const  newSource) noexcept;
 
 	std::pair<std::vector<LexToken>, std::vector<LexicalError>> ResolveAllRemaining();
 	std::pair<LexToken, std::vector<LexicalError>> ResolveNext();

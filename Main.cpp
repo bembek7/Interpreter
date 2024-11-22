@@ -52,9 +52,9 @@ static void PrintToken(const LexToken& token) noexcept
 	std::wcout << "Type: " << tokenNames[token.GetType()] << " line: " << token.GetPosition().line << " column: " << token.GetPosition().column << std::endl;
 }
 
-static void PrintError(const Lexer::LexicalError& error) noexcept
+static void PrintError(const LexicalError& error) noexcept
 {
-	std::cout << "Error [line: " << error.position.line << ", column : " << error.position.column << "] " << error.message << std::endl;
+	std::cout << "Error [line: " << error.GetPosition().line << ", column : " << error.GetPosition().column << "] " << error.GetMessage() << std::endl;
 }
 
 int main()
