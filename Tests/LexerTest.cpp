@@ -9,16 +9,16 @@ protected:
 	//Lexer lexer;
 };
 
-static void CompareTokens(const std::vector<Lexer::Token>& tokens, const std::vector<Lexer::Token>& expectedTokens)
+static void CompareTokens(const std::vector<LexToken>& tokens, const std::vector<LexToken>& expectedTokens)
 {
 	ASSERT_EQ(tokens.size(), expectedTokens.size());
 
 	for (size_t i = 0; i < tokens.size(); ++i)
 	{
-		EXPECT_EQ(tokens[i].type, expectedTokens[i].type);
-		EXPECT_EQ(tokens[i].value, expectedTokens[i].value);
-		EXPECT_EQ(tokens[i].position.line, expectedTokens[i].position.line);
-		EXPECT_EQ(tokens[i].position.column, expectedTokens[i].position.column);
+		EXPECT_EQ(tokens[i].GetType(), expectedTokens[i].GetType());
+		EXPECT_EQ(tokens[i].GetValue(), expectedTokens[i].GetValue());
+		EXPECT_EQ(tokens[i].GetPosition().line, expectedTokens[i].GetPosition().line);
+		EXPECT_EQ(tokens[i].GetPosition().column, expectedTokens[i].GetPosition().column);
 	}
 }
 
@@ -42,15 +42,15 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Assign, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Plus, Lexer::Position(1, 3)},
-		{Lexer::TokenType::Minus, Lexer::Position(1, 5)},
-		{Lexer::TokenType::Asterisk, Lexer::Position(1, 7)},
-		{Lexer::TokenType::Slash, Lexer::Position(1, 9)},
-		{Lexer::TokenType::LogicalNot, Lexer::Position(1, 11)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 12)}
+		{LexToken::TokenType::Assign, Position(1, 1)},
+		{LexToken::TokenType::Plus, Position(1, 3)},
+		{LexToken::TokenType::Minus, Position(1, 5)},
+		{LexToken::TokenType::Asterisk, Position(1, 7)},
+		{LexToken::TokenType::Slash, Position(1, 9)},
+		{LexToken::TokenType::LogicalNot, Position(1, 11)},
+		{LexToken::TokenType::EndOfFile, Position(1, 12)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -65,13 +65,13 @@ TEST_F(LexerTest, TwoCharOperatorRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::LogicalAnd, Lexer::Position(1, 1)},
-		{Lexer::TokenType::LogicalOr, Lexer::Position(1, 4)},
-		{Lexer::TokenType::Equal, Lexer::Position(1, 7)},
-		{Lexer::TokenType::NotEqual, Lexer::Position(1, 10)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 12)}
+		{LexToken::TokenType::LogicalAnd, Position(1, 1)},
+		{LexToken::TokenType::LogicalOr, Position(1, 4)},
+		{LexToken::TokenType::Equal, Position(1, 7)},
+		{LexToken::TokenType::NotEqual, Position(1, 10)},
+		{LexToken::TokenType::EndOfFile, Position(1, 12)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -86,10 +86,10 @@ TEST_F(LexerTest, StringLiteralRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::String, Lexer::Position(1, 1), L"\"Hello, World!\""},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 18)}
+		{LexToken::TokenType::String, Position(1, 1), L"\"Hello, World!\""},
+		{LexToken::TokenType::EndOfFile, Position(1, 18)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -104,12 +104,12 @@ TEST_F(LexerTest, KeywordAndIdentifierRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Var, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 5), L"myVariable"},
-		{Lexer::TokenType::While, Lexer::Position(1, 16)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 21)}
+		{LexToken::TokenType::Var, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 5), L"myVariable"},
+		{LexToken::TokenType::While, Position(1, 16)},
+		{LexToken::TokenType::EndOfFile, Position(1, 21)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -124,10 +124,10 @@ TEST_F(LexerTest, IntegerRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Integer, Lexer::Position(1, 1), 12345},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 6)}
+		{LexToken::TokenType::Integer, Position(1, 1), 12345},
+		{LexToken::TokenType::EndOfFile, Position(1, 6)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -142,11 +142,11 @@ TEST_F(LexerTest, CommentRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Comment, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Var, Lexer::Position(2, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(2, 4)}
+		{LexToken::TokenType::Comment, Position(1, 1)},
+		{LexToken::TokenType::Var, Position(2, 1)},
+		{LexToken::TokenType::EndOfFile, Position(2, 4)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -161,15 +161,15 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"@"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 2)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"@"},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::Position(1, 1)},
+		{Lexer::ErrorType::UnrecognizedSymbol, Position(1, 1)},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -182,18 +182,18 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Var, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 5), L"count"},
-		{Lexer::TokenType::Assign, Lexer::Position(1, 11)},
-		{Lexer::TokenType::Integer, Lexer::Position(1, 13), 123},
-		{Lexer::TokenType::Plus, Lexer::Position(1, 17)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 19), L"myVar"},
-		{Lexer::TokenType::Asterisk, Lexer::Position(1, 25)},
-		{Lexer::TokenType::Integer, Lexer::Position(1, 27), 4},
-		{Lexer::TokenType::Semicolon, Lexer::Position(1, 28)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 29)}
+		{LexToken::TokenType::Var, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 5), L"count"},
+		{LexToken::TokenType::Assign, Position(1, 11)},
+		{LexToken::TokenType::Integer, Position(1, 13), 123},
+		{LexToken::TokenType::Plus, Position(1, 17)},
+		{LexToken::TokenType::Identifier, Position(1, 19), L"myVar"},
+		{LexToken::TokenType::Asterisk, Position(1, 25)},
+		{LexToken::TokenType::Integer, Position(1, 27), 4},
+		{LexToken::TokenType::Semicolon, Position(1, 28)},
+		{LexToken::TokenType::EndOfFile, Position(1, 29)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -208,10 +208,10 @@ TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::String, Lexer::Position(1, 1), L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\""},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 65)}
+		{LexToken::TokenType::String, Position(1, 1), L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\""},
+		{LexToken::TokenType::EndOfFile, Position(1, 65)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -226,16 +226,16 @@ TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::GreaterEqual, Lexer::Position(1, 1)},
-		{Lexer::TokenType::LessEqual, Lexer::Position(1, 4)},
-		{Lexer::TokenType::NotEqual, Lexer::Position(1, 7)},
-		{Lexer::TokenType::LogicalAnd, Lexer::Position(1, 10)},
-		{Lexer::TokenType::LogicalOr, Lexer::Position(1, 13)},
-		{Lexer::TokenType::Assign, Lexer::Position(1, 16)},
-		{Lexer::TokenType::LogicalNot, Lexer::Position(1, 18)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 19)}
+		{LexToken::TokenType::GreaterEqual, Position(1, 1)},
+		{LexToken::TokenType::LessEqual, Position(1, 4)},
+		{LexToken::TokenType::NotEqual, Position(1, 7)},
+		{LexToken::TokenType::LogicalAnd, Position(1, 10)},
+		{LexToken::TokenType::LogicalOr, Position(1, 13)},
+		{LexToken::TokenType::Assign, Position(1, 16)},
+		{LexToken::TokenType::LogicalNot, Position(1, 18)},
+		{LexToken::TokenType::EndOfFile, Position(1, 19)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -250,21 +250,21 @@ TEST_F(LexerTest, MalformedTokens)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"00123"},
-		{Lexer::TokenType::Var, Lexer::Position(1, 7)},
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 10), L"$"},
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 12), L"%"},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 13), L"abc"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 16)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"00123"},
+		{LexToken::TokenType::Var, Position(1, 7)},
+		{LexToken::TokenType::Unrecognized, Position(1, 10), L"$"},
+		{LexToken::TokenType::Unrecognized, Position(1, 12), L"%"},
+		{LexToken::TokenType::Identifier, Position(1, 13), L"abc"},
+		{LexToken::TokenType::EndOfFile, Position(1, 16)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidNumber, Lexer::Position(1, 1)},
-		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::Position(1, 10)},
-		{Lexer::ErrorType::UnrecognizedSymbol, Lexer::Position(1, 12)},
+		{Lexer::ErrorType::InvalidNumber, Position(1, 1)},
+		{Lexer::ErrorType::UnrecognizedSymbol, Position(1, 10)},
+		{Lexer::ErrorType::UnrecognizedSymbol, Position(1, 12)},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -277,15 +277,15 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Comment, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Var, Lexer::Position(2, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(2, 5), L"x"},
-		{Lexer::TokenType::PlusAssign, Lexer::Position(2, 7)},
-		{Lexer::TokenType::Integer, Lexer::Position(2, 10), 10},
-		{Lexer::TokenType::Comment, Lexer::Position(2, 13)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(3, 1)}
+		{LexToken::TokenType::Comment, Position(1, 1)},
+		{LexToken::TokenType::Var, Position(2, 1)},
+		{LexToken::TokenType::Identifier, Position(2, 5), L"x"},
+		{LexToken::TokenType::PlusAssign, Position(2, 7)},
+		{LexToken::TokenType::Integer, Position(2, 10), 10},
+		{LexToken::TokenType::Comment, Position(2, 13)},
+		{LexToken::TokenType::EndOfFile, Position(3, 1)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -300,10 +300,10 @@ TEST_F(LexerTest, KeytwordInIdentifier)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 1), L"while123"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 9)}
+		{LexToken::TokenType::Identifier, Position(1, 1), L"while123"},
+		{LexToken::TokenType::EndOfFile, Position(1, 9)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -318,25 +318,25 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Var, Lexer::Position(3, 3)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 7), L"a"},
-		{Lexer::TokenType::Assign, Lexer::Position(3, 9)},
-		{Lexer::TokenType::Integer, Lexer::Position(3, 11), 5},
-		{Lexer::TokenType::While, Lexer::Position(4, 1)},
-		{Lexer::TokenType::LParenth, Lexer::Position(4, 7)},
-		{Lexer::TokenType::Identifier, Lexer::Position(4, 8), L"a"},
-		{Lexer::TokenType::Less, Lexer::Position(4, 10)},
-		{Lexer::TokenType::Integer, Lexer::Position(4, 12), 10},
-		{Lexer::TokenType::RParenth, Lexer::Position(4, 14)},
-		{Lexer::TokenType::LBracket, Lexer::Position(4, 16)},
-		{Lexer::TokenType::Identifier, Lexer::Position(4, 18), L"a"},
-		{Lexer::TokenType::PlusAssign, Lexer::Position(4, 20)},
-		{Lexer::TokenType::Integer, Lexer::Position(4, 23), 1},
-		{Lexer::TokenType::Semicolon, Lexer::Position(4, 24)},
-		{Lexer::TokenType::RBracket, Lexer::Position(4, 26)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(5, 1)}
+		{LexToken::TokenType::Var, Position(3, 3)},
+		{LexToken::TokenType::Identifier, Position(3, 7), L"a"},
+		{LexToken::TokenType::Assign, Position(3, 9)},
+		{LexToken::TokenType::Integer, Position(3, 11), 5},
+		{LexToken::TokenType::While, Position(4, 1)},
+		{LexToken::TokenType::LParenth, Position(4, 7)},
+		{LexToken::TokenType::Identifier, Position(4, 8), L"a"},
+		{LexToken::TokenType::Less, Position(4, 10)},
+		{LexToken::TokenType::Integer, Position(4, 12), 10},
+		{LexToken::TokenType::RParenth, Position(4, 14)},
+		{LexToken::TokenType::LBracket, Position(4, 16)},
+		{LexToken::TokenType::Identifier, Position(4, 18), L"a"},
+		{LexToken::TokenType::PlusAssign, Position(4, 20)},
+		{LexToken::TokenType::Integer, Position(4, 23), 1},
+		{LexToken::TokenType::Semicolon, Position(4, 24)},
+		{LexToken::TokenType::RBracket, Position(4, 26)},
+		{LexToken::TokenType::EndOfFile, Position(5, 1)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -351,22 +351,22 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Var, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 5), L"a"},
-		{Lexer::TokenType::Assign, Lexer::Position(1, 7)},
-		{Lexer::TokenType::Integer, Lexer::Position(1, 9), 10},
-		{Lexer::TokenType::Semicolon, Lexer::Position(1, 11)},
-		{Lexer::TokenType::Var, Lexer::Position(3, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 5), L"b"},
-		{Lexer::TokenType::Assign, Lexer::Position(3, 7)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 9), L"a"},
-		{Lexer::TokenType::Asterisk, Lexer::Position(3, 11)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 13), L"a"},
-		{Lexer::TokenType::Semicolon, Lexer::Position(3, 14)},
-		{Lexer::TokenType::Comment, Lexer::Position(5, 2)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(6, 1)}
+		{LexToken::TokenType::Var, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 5), L"a"},
+		{LexToken::TokenType::Assign, Position(1, 7)},
+		{LexToken::TokenType::Integer, Position(1, 9), 10},
+		{LexToken::TokenType::Semicolon, Position(1, 11)},
+		{LexToken::TokenType::Var, Position(3, 1)},
+		{LexToken::TokenType::Identifier, Position(3, 5), L"b"},
+		{LexToken::TokenType::Assign, Position(3, 7)},
+		{LexToken::TokenType::Identifier, Position(3, 9), L"a"},
+		{LexToken::TokenType::Asterisk, Position(3, 11)},
+		{LexToken::TokenType::Identifier, Position(3, 13), L"a"},
+		{LexToken::TokenType::Semicolon, Position(3, 14)},
+		{LexToken::TokenType::Comment, Position(5, 2)},
+		{LexToken::TokenType::EndOfFile, Position(6, 1)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -381,25 +381,25 @@ TEST_F(LexerTest, IfElseBlock)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Var, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 5), L"b"},
-		{Lexer::TokenType::Assign, Lexer::Position(1, 7)},
-		{Lexer::TokenType::Boolean, Lexer::Position(1, 9), false},
-		{Lexer::TokenType::Semicolon, Lexer::Position(1, 14)},
-		{Lexer::TokenType::If, Lexer::Position(3, 1)},
-		{Lexer::TokenType::LParenth, Lexer::Position(3, 3)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 4), L"b"},
-		{Lexer::TokenType::RParenth, Lexer::Position(3, 5)},
-		{Lexer::TokenType::LBracket, Lexer::Position(4, 1)},
-		{Lexer::TokenType::Comment, Lexer::Position(5, 2)},
-		{Lexer::TokenType::RBracket, Lexer::Position(6, 1)},
-		{Lexer::TokenType::Else, Lexer::Position(7, 1)},
-		{Lexer::TokenType::LBracket, Lexer::Position(8, 1)},
-		{Lexer::TokenType::Comment, Lexer::Position(9, 2)},
-		{Lexer::TokenType::RBracket, Lexer::Position(10, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(10, 2)}
+		{LexToken::TokenType::Var, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 5), L"b"},
+		{LexToken::TokenType::Assign, Position(1, 7)},
+		{LexToken::TokenType::Boolean, Position(1, 9), false},
+		{LexToken::TokenType::Semicolon, Position(1, 14)},
+		{LexToken::TokenType::If, Position(3, 1)},
+		{LexToken::TokenType::LParenth, Position(3, 3)},
+		{LexToken::TokenType::Identifier, Position(3, 4), L"b"},
+		{LexToken::TokenType::RParenth, Position(3, 5)},
+		{LexToken::TokenType::LBracket, Position(4, 1)},
+		{LexToken::TokenType::Comment, Position(5, 2)},
+		{LexToken::TokenType::RBracket, Position(6, 1)},
+		{LexToken::TokenType::Else, Position(7, 1)},
+		{LexToken::TokenType::LBracket, Position(8, 1)},
+		{LexToken::TokenType::Comment, Position(9, 2)},
+		{LexToken::TokenType::RBracket, Position(10, 1)},
+		{LexToken::TokenType::EndOfFile, Position(10, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -414,18 +414,18 @@ TEST_F(LexerTest, WhileLoop)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::While, Lexer::Position(1, 1)},
-		{Lexer::TokenType::LParenth, Lexer::Position(1, 6)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 7), L"a"},
-		{Lexer::TokenType::Less, Lexer::Position(1, 9)},
-		{Lexer::TokenType::Integer, Lexer::Position(1, 11), 10},
-		{Lexer::TokenType::RParenth, Lexer::Position(1, 13)},
-		{Lexer::TokenType::LBracket, Lexer::Position(2, 1)},
-		{Lexer::TokenType::Comment, Lexer::Position(3, 2)},
-		{Lexer::TokenType::RBracket, Lexer::Position(4, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(4, 2)}
+		{LexToken::TokenType::While, Position(1, 1)},
+		{LexToken::TokenType::LParenth, Position(1, 6)},
+		{LexToken::TokenType::Identifier, Position(1, 7), L"a"},
+		{LexToken::TokenType::Less, Position(1, 9)},
+		{LexToken::TokenType::Integer, Position(1, 11), 10},
+		{LexToken::TokenType::RParenth, Position(1, 13)},
+		{LexToken::TokenType::LBracket, Position(2, 1)},
+		{LexToken::TokenType::Comment, Position(3, 2)},
+		{LexToken::TokenType::RBracket, Position(4, 1)},
+		{LexToken::TokenType::EndOfFile, Position(4, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -440,28 +440,28 @@ TEST_F(LexerTest, RecursiveFunction)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Func, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 6), L"Fizz"},
-		{Lexer::TokenType::LParenth, Lexer::Position(1, 10)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 11), L"a"},
-		{Lexer::TokenType::Comma, Lexer::Position(1, 12)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 14), L"b"},
-		{Lexer::TokenType::RParenth, Lexer::Position(1, 15)},
-		{Lexer::TokenType::LBracket, Lexer::Position(2, 1)},
-		{Lexer::TokenType::Return, Lexer::Position(3, 2)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 9), L"Fizz"},
-		{Lexer::TokenType::LParenth, Lexer::Position(3, 13)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 14), L"a"},
-		{Lexer::TokenType::Minus, Lexer::Position(3, 16)},
-		{Lexer::TokenType::Integer, Lexer::Position(3, 18), 1},
-		{Lexer::TokenType::Comma, Lexer::Position(3, 19)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 21), L"b"},
-		{Lexer::TokenType::RParenth, Lexer::Position(3, 22)},
-		{Lexer::TokenType::Semicolon, Lexer::Position(3, 23)},
-		{Lexer::TokenType::RBracket, Lexer::Position(4, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(4, 2)}
+		{LexToken::TokenType::Func, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 6), L"Fizz"},
+		{LexToken::TokenType::LParenth, Position(1, 10)},
+		{LexToken::TokenType::Identifier, Position(1, 11), L"a"},
+		{LexToken::TokenType::Comma, Position(1, 12)},
+		{LexToken::TokenType::Identifier, Position(1, 14), L"b"},
+		{LexToken::TokenType::RParenth, Position(1, 15)},
+		{LexToken::TokenType::LBracket, Position(2, 1)},
+		{LexToken::TokenType::Return, Position(3, 2)},
+		{LexToken::TokenType::Identifier, Position(3, 9), L"Fizz"},
+		{LexToken::TokenType::LParenth, Position(3, 13)},
+		{LexToken::TokenType::Identifier, Position(3, 14), L"a"},
+		{LexToken::TokenType::Minus, Position(3, 16)},
+		{LexToken::TokenType::Integer, Position(3, 18), 1},
+		{LexToken::TokenType::Comma, Position(3, 19)},
+		{LexToken::TokenType::Identifier, Position(3, 21), L"b"},
+		{LexToken::TokenType::RParenth, Position(3, 22)},
+		{LexToken::TokenType::Semicolon, Position(3, 23)},
+		{LexToken::TokenType::RBracket, Position(4, 1)},
+		{LexToken::TokenType::EndOfFile, Position(4, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -476,23 +476,23 @@ TEST_F(LexerTest, FunctionWithReturn)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Func, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 6), L"Add"},
-		{Lexer::TokenType::LParenth, Lexer::Position(1, 9)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 10), L"a"},
-		{Lexer::TokenType::Comma, Lexer::Position(1, 11)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 13), L"b"},
-		{Lexer::TokenType::RParenth, Lexer::Position(1, 14)},
-		{Lexer::TokenType::LBracket, Lexer::Position(2, 1)},
-		{Lexer::TokenType::Return, Lexer::Position(3, 2)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 9), L"a"},
-		{Lexer::TokenType::Plus, Lexer::Position(3, 11)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 13), L"b"},
-		{Lexer::TokenType::Semicolon, Lexer::Position(3, 14)},
-		{Lexer::TokenType::RBracket, Lexer::Position(4, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(4, 2)}
+		{LexToken::TokenType::Func, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 6), L"Add"},
+		{LexToken::TokenType::LParenth, Position(1, 9)},
+		{LexToken::TokenType::Identifier, Position(1, 10), L"a"},
+		{LexToken::TokenType::Comma, Position(1, 11)},
+		{LexToken::TokenType::Identifier, Position(1, 13), L"b"},
+		{LexToken::TokenType::RParenth, Position(1, 14)},
+		{LexToken::TokenType::LBracket, Position(2, 1)},
+		{LexToken::TokenType::Return, Position(3, 2)},
+		{LexToken::TokenType::Identifier, Position(3, 9), L"a"},
+		{LexToken::TokenType::Plus, Position(3, 11)},
+		{LexToken::TokenType::Identifier, Position(3, 13), L"b"},
+		{LexToken::TokenType::Semicolon, Position(3, 14)},
+		{LexToken::TokenType::RBracket, Position(4, 1)},
+		{LexToken::TokenType::EndOfFile, Position(4, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -507,15 +507,15 @@ TEST_F(LexerTest, SimpleMainFunction)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Func, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 6), L"main"},
-		{Lexer::TokenType::LParenth, Lexer::Position(1, 10)},
-		{Lexer::TokenType::RParenth, Lexer::Position(1, 11)},
-		{Lexer::TokenType::LBracket, Lexer::Position(2, 1)},
-		{Lexer::TokenType::RBracket, Lexer::Position(3, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(3, 2)}
+		{LexToken::TokenType::Func, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 6), L"main"},
+		{LexToken::TokenType::LParenth, Position(1, 10)},
+		{LexToken::TokenType::RParenth, Position(1, 11)},
+		{LexToken::TokenType::LBracket, Position(2, 1)},
+		{LexToken::TokenType::RBracket, Position(3, 1)},
+		{LexToken::TokenType::EndOfFile, Position(3, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -530,34 +530,34 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Func, Lexer::Position(1, 1)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 6), L"compose"},
-		{Lexer::TokenType::LParenth, Lexer::Position(1, 13)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 14), L"f"},
-		{Lexer::TokenType::Comma, Lexer::Position(1, 15)},
-		{Lexer::TokenType::Identifier, Lexer::Position(1, 17), L"g"},
-		{Lexer::TokenType::RParenth, Lexer::Position(1, 18)},
-		{Lexer::TokenType::LBracket, Lexer::Position(2, 1)},
-		{Lexer::TokenType::Return, Lexer::Position(3, 2)},
-		{Lexer::TokenType::Func, Lexer::Position(3, 9)},
-		{Lexer::TokenType::LParenth, Lexer::Position(3, 13)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 14), L"x"},
-		{Lexer::TokenType::RParenth, Lexer::Position(3, 15)},
-		{Lexer::TokenType::LBracket, Lexer::Position(3, 17)},
-		{Lexer::TokenType::Return, Lexer::Position(3, 19)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 26), L"f"},
-		{Lexer::TokenType::LParenth, Lexer::Position(3, 27)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 28), L"g"},
-		{Lexer::TokenType::LParenth, Lexer::Position(3, 29)},
-		{Lexer::TokenType::Identifier, Lexer::Position(3, 30), L"x"},
-		{Lexer::TokenType::RParenth, Lexer::Position(3, 31)},
-		{Lexer::TokenType::RParenth, Lexer::Position(3, 32)},
-		{Lexer::TokenType::Semicolon, Lexer::Position(3, 33)},
-		{Lexer::TokenType::RBracket, Lexer::Position(3, 35)},
-		{Lexer::TokenType::RBracket, Lexer::Position(4, 1)},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(4, 2)}
+		{LexToken::TokenType::Func, Position(1, 1)},
+		{LexToken::TokenType::Identifier, Position(1, 6), L"compose"},
+		{LexToken::TokenType::LParenth, Position(1, 13)},
+		{LexToken::TokenType::Identifier, Position(1, 14), L"f"},
+		{LexToken::TokenType::Comma, Position(1, 15)},
+		{LexToken::TokenType::Identifier, Position(1, 17), L"g"},
+		{LexToken::TokenType::RParenth, Position(1, 18)},
+		{LexToken::TokenType::LBracket, Position(2, 1)},
+		{LexToken::TokenType::Return, Position(3, 2)},
+		{LexToken::TokenType::Func, Position(3, 9)},
+		{LexToken::TokenType::LParenth, Position(3, 13)},
+		{LexToken::TokenType::Identifier, Position(3, 14), L"x"},
+		{LexToken::TokenType::RParenth, Position(3, 15)},
+		{LexToken::TokenType::LBracket, Position(3, 17)},
+		{LexToken::TokenType::Return, Position(3, 19)},
+		{LexToken::TokenType::Identifier, Position(3, 26), L"f"},
+		{LexToken::TokenType::LParenth, Position(3, 27)},
+		{LexToken::TokenType::Identifier, Position(3, 28), L"g"},
+		{LexToken::TokenType::LParenth, Position(3, 29)},
+		{LexToken::TokenType::Identifier, Position(3, 30), L"x"},
+		{LexToken::TokenType::RParenth, Position(3, 31)},
+		{LexToken::TokenType::RParenth, Position(3, 32)},
+		{LexToken::TokenType::Semicolon, Position(3, 33)},
+		{LexToken::TokenType::RBracket, Position(3, 35)},
+		{LexToken::TokenType::RBracket, Position(4, 1)},
+		{LexToken::TokenType::EndOfFile, Position(4, 2)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -571,13 +571,13 @@ TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Float, Lexer::Position(1, 1), 3.14f},
-		{Lexer::TokenType::Float, Lexer::Position(1, 6), 2.718f},
-		{Lexer::TokenType::Integer, Lexer::Position(1, 12), 42},
-		{Lexer::TokenType::Float, Lexer::Position(1, 15), 0.5f},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 18)}
+		{LexToken::TokenType::Float, Position(1, 1), 3.14f},
+		{LexToken::TokenType::Float, Position(1, 6), 2.718f},
+		{LexToken::TokenType::Integer, Position(1, 12), 42},
+		{LexToken::TokenType::Float, Position(1, 15), 0.5f},
+		{LexToken::TokenType::EndOfFile, Position(1, 18)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -592,15 +592,15 @@ TEST_F(LexerTest, IntegerOverflow)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"2147483648"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 11)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"2147483648"},
+		{LexToken::TokenType::EndOfFile, Position(1, 11)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IntegerOverflow, Lexer::Position(1, 1)}
+		{Lexer::ErrorType::IntegerOverflow, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -613,15 +613,15 @@ TEST_F(LexerTest, FloatOverflow)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"99999999999999999999999999999999999999999.1"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 44)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"99999999999999999999999999999999999999999.1"},
+		{LexToken::TokenType::EndOfFile, Position(1, 44)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::FloatOverflow, Lexer::Position(1, 1)}
+		{Lexer::ErrorType::FloatOverflow, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -634,15 +634,15 @@ TEST_F(LexerTest, LeadingZerosError)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"00042"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 6)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"00042"},
+		{LexToken::TokenType::EndOfFile, Position(1, 6)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidNumber, Lexer::Position(1, 1)}
+		{Lexer::ErrorType::InvalidNumber, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -655,15 +655,15 @@ TEST_F(LexerTest, IncompleteStringLiteral)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1), L"\"Incomplete string"},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 20)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1), L"\"Incomplete string"},
+		{LexToken::TokenType::EndOfFile, Position(1, 20)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::IncompleteStringLiteral, Lexer::Position(1, 1)}
+		{Lexer::ErrorType::IncompleteStringLiteral, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -678,14 +678,14 @@ TEST_F(LexerTest, CommentTooLong)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Comment, Lexer::Position(1, 1)},
+		{LexToken::TokenType::Comment, Position(1, 1)},
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::CommentTooLong, Lexer::Position(1, 1), true}
+		{Lexer::ErrorType::CommentTooLong, Position(1, 1), true}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -698,10 +698,10 @@ TEST_F(LexerTest, StringLiteralWithValidEscapes)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::String, Lexer::Position(1, 1), L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\""},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 34)}
+		{LexToken::TokenType::String, Position(1, 1), L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\""},
+		{LexToken::TokenType::EndOfFile, Position(1, 34)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors = {};
@@ -717,14 +717,14 @@ TEST_F(LexerTest, StringLiteralTooLong)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 1)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::StringLiteralTooLong, Lexer::Position(1, 1), true}
+		{Lexer::ErrorType::StringLiteralTooLong, Position(1, 1), true}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -737,15 +737,15 @@ TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::String, Lexer::Position(1, 1), L"\"Invalid\\xEscape\""},
-		{Lexer::TokenType::EndOfFile, Lexer::Position(1, 20)}
+		{LexToken::TokenType::String, Position(1, 1), L"\"Invalid\\xEscape\""},
+		{LexToken::TokenType::EndOfFile, Position(1, 20)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::InvalidEscapeSequence, Lexer::Position(1, 11)}
+		{Lexer::ErrorType::InvalidEscapeSequence, Position(1, 11)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -761,15 +761,15 @@ TEST_F(LexerTest, StringLiteralsComplexScenarios)
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
-	std::vector<Lexer::Token> expectedTokens =
+	std::vector<LexToken> expectedTokens =
 	{
-		{Lexer::TokenType::String, Lexer::Position(1, 1), L"\"Valid string\""},
-		{Lexer::TokenType::Unrecognized, Lexer::Position(1, 18)}
+		{LexToken::TokenType::String, Position(1, 1), L"\"Valid string\""},
+		{LexToken::TokenType::Unrecognized, Position(1, 18)}
 	};
 
 	std::vector<Lexer::LexicalError> expectedErrors =
 	{
-		{Lexer::ErrorType::StringLiteralTooLong, Lexer::Position(1, 18), true},
+		{Lexer::ErrorType::StringLiteralTooLong, Position(1, 18), true},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);

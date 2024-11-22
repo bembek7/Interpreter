@@ -1,7 +1,5 @@
 #include "Lexer.h"
-#include "Lexer.h"
-#include "Lexer.h"
-#include "Lexer.h"
+#include "LexToken.h"
 #include <istream>
 #include <cwctype>
 #include <sstream>
@@ -31,117 +29,71 @@ namespace
 		{Lexer::ErrorType::UnrecognizedSymbol, "Incomplete string literal."}
 	};
 
-	const std::unordered_map<std::wstring, Lexer::TokenType> keywords =
+	const std::unordered_map<std::wstring, LexToken::TokenType> keywords =
 	{
-		{ L"mut",		Lexer::TokenType::Mut },
-		{ L"var",		Lexer::TokenType::Var },
-		{ L"while",		Lexer::TokenType::While },
-		{ L"if",		Lexer::TokenType::If },
-		{ L"else",		Lexer::TokenType::Else },
-		{ L"return",	Lexer::TokenType::Return },
-		{ L"func",		Lexer::TokenType::Func },
-		{ L"true",		Lexer::TokenType::Boolean },
-		{ L"false",		Lexer::TokenType::Boolean }
+		{ L"mut",		LexToken::TokenType::Mut },
+		{ L"var",		LexToken::TokenType::Var },
+		{ L"while",		LexToken::TokenType::While },
+		{ L"if",		LexToken::TokenType::If },
+		{ L"else",		LexToken::TokenType::Else },
+		{ L"return",	LexToken::TokenType::Return },
+		{ L"func",		LexToken::TokenType::Func },
+		{ L"true",		LexToken::TokenType::Boolean },
+		{ L"false",		LexToken::TokenType::Boolean }
 	};
 
-	const std::unordered_map<std::wstring, Lexer::TokenType> symbols =
+	const std::unordered_map<std::wstring, LexToken::TokenType> symbols =
 	{
-		{ L";", Lexer::TokenType::Semicolon },
-		{ L",", Lexer::TokenType::Comma },
-		{ L"{", Lexer::TokenType::LBracket },
-		{ L"}", Lexer::TokenType::RBracket },
-		{ L"(", Lexer::TokenType::LParenth },
-		{ L")", Lexer::TokenType::RParenth },
-		{ L"=", Lexer::TokenType::Assign },
-		{ L"+", Lexer::TokenType::Plus },
-		{ L"-", Lexer::TokenType::Minus },
-		{ L"*", Lexer::TokenType::Asterisk },
-		{ L"/", Lexer::TokenType::Slash },
-		{ L"!", Lexer::TokenType::LogicalNot },
-		{ L"<", Lexer::TokenType::Less },
-		{ L">", Lexer::TokenType::Greater },
+		{ L";", LexToken::TokenType::Semicolon },
+		{ L",", LexToken::TokenType::Comma },
+		{ L"{", LexToken::TokenType::LBracket },
+		{ L"}", LexToken::TokenType::RBracket },
+		{ L"(", LexToken::TokenType::LParenth },
+		{ L")", LexToken::TokenType::RParenth },
+		{ L"=", LexToken::TokenType::Assign },
+		{ L"+", LexToken::TokenType::Plus },
+		{ L"-", LexToken::TokenType::Minus },
+		{ L"*", LexToken::TokenType::Asterisk },
+		{ L"/", LexToken::TokenType::Slash },
+		{ L"!", LexToken::TokenType::LogicalNot },
+		{ L"<", LexToken::TokenType::Less },
+		{ L">", LexToken::TokenType::Greater },
 	};
 
-	const std::unordered_map<std::wstring, Lexer::TokenType> twoCharsOperators =
+	const std::unordered_map<std::wstring, LexToken::TokenType> twoCharsOperators =
 	{
-		{ L"&&", Lexer::TokenType::LogicalAnd },
-		{ L"||", Lexer::TokenType::LogicalOr },
-		{ L"==", Lexer::TokenType::Equal },
-		{ L"!=", Lexer::TokenType::NotEqual },
-		{ L"<=", Lexer::TokenType::LessEqual },
-		{ L">=", Lexer::TokenType::GreaterEqual },
-		{ L"+=", Lexer::TokenType::PlusAssign },
-		{ L"-=", Lexer::TokenType::MinusAssign },
-		{ L"*=", Lexer::TokenType::AsteriskAssign },
-		{ L"/=", Lexer::TokenType::SlashAssign },
-		{ L"&=", Lexer::TokenType::AndAssign },
-		{ L"|=", Lexer::TokenType::OrAssign },
-		{ L"<<", Lexer::TokenType::FunctionBind },
-		{ L">>", Lexer::TokenType::FunctionCompose },
+		{ L"&&", LexToken::TokenType::LogicalAnd },
+		{ L"||", LexToken::TokenType::LogicalOr },
+		{ L"==", LexToken::TokenType::Equal },
+		{ L"!=", LexToken::TokenType::NotEqual },
+		{ L"<=", LexToken::TokenType::LessEqual },
+		{ L">=", LexToken::TokenType::GreaterEqual },
+		{ L"+=", LexToken::TokenType::PlusAssign },
+		{ L"-=", LexToken::TokenType::MinusAssign },
+		{ L"*=", LexToken::TokenType::AsteriskAssign },
+		{ L"/=", LexToken::TokenType::SlashAssign },
+		{ L"&=", LexToken::TokenType::AndAssign },
+		{ L"|=", LexToken::TokenType::OrAssign },
+		{ L"<<", LexToken::TokenType::FunctionBind },
+		{ L">>", LexToken::TokenType::FunctionCompose },
 	};
 }
 
-Lexer::LexicalError::LexicalError(const Lexer::ErrorType type, const Lexer::Position position, bool terminating) noexcept :
+Lexer::LexicalError::LexicalError(const Lexer::ErrorType type, const Position position, bool terminating) noexcept :
 	type(type), position(position), terminating(terminating)
 {
 	message = errorsMessages.at(type);
-}
-
-Lexer::Token::Token(const Lexer::TokenType type, const Lexer::Position position, const std::variant<std::monostate, std::wstring, int, float, bool>& value) noexcept :
-	type(type), position(position), value(value)
-{
-	bool invalid = false;
-	switch (type)
-	{
-	case TokenType::String:
-	case TokenType::Identifier:
-	case TokenType::Unrecognized:
-		if (!std::holds_alternative<std::wstring>(value))
-		{
-			invalid = true;
-		}
-		break;
-	case TokenType::Float:
-		if (!std::holds_alternative<float>(value))
-		{
-			invalid = true;
-		}
-		break;
-	case TokenType::Integer:
-		if (!std::holds_alternative<int>(value))
-		{
-			invalid = true;
-		}
-		break;
-	case TokenType::Boolean:
-		if (!std::holds_alternative<bool>(value))
-		{
-			invalid = true;
-		}
-		break;
-	default:
-		if (!std::holds_alternative<std::monostate>(value))
-		{
-			invalid = true;
-		}
-		break;
-	}
-
-	if (invalid)
-	{
-		throw std::runtime_error("Invalid type passsed to a variant for this type of token");
-	}
 }
 
 Lexer::Lexer(std::wistream* const source) noexcept :
 	source(source)
 {}
 
-std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::ResolveAllRemaining()
+std::pair<std::vector<LexToken>, std::vector<Lexer::LexicalError>> Lexer::ResolveAllRemaining()
 {
-	std::vector<Lexer::Token> resolvedTokens;
+	std::vector<LexToken> resolvedTokens;
 	std::vector<Lexer::LexicalError> foundErrors;
-	while (resolvedTokens.empty() || resolvedTokens.back().type != TokenType::EndOfFile)
+	while (resolvedTokens.empty() || resolvedTokens.back().GetType() != LexToken::TokenType::EndOfFile)
 	{
 		const auto next = ResolveNext();
 		resolvedTokens.push_back(next.first);
@@ -158,7 +110,7 @@ std::pair<std::vector<Lexer::Token>, std::vector<Lexer::LexicalError>> Lexer::Re
 	return { resolvedTokens, foundErrors };
 }
 
-std::pair<Lexer::Token, std::vector<Lexer::LexicalError>> Lexer::ResolveNext()
+std::pair<LexToken, std::vector<Lexer::LexicalError>> Lexer::ResolveNext()
 {
 	currentErrors.clear();
 
@@ -181,10 +133,10 @@ std::pair<Lexer::Token, std::vector<Lexer::LexicalError>> Lexer::ResolveNext()
 		return { BuildToken(), currentErrors };
 	}
 
-	return { Token(TokenType::EndOfFile, currentPosition), currentErrors };
+	return { LexToken(LexToken::TokenType::EndOfFile, currentPosition), currentErrors };
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildComment()
+std::optional<LexToken> Lexer::TryBuildComment()
 {
 	if (currentChar != L'#')
 	{
@@ -198,16 +150,16 @@ std::optional<Lexer::Token> Lexer::TryBuildComment()
 		if (commentLength > maxCommentLength)
 		{
 			currentErrors.push_back(LexicalError(ErrorType::CommentTooLong, currentPosition, true));
-			return Token(TokenType::Comment, currentPosition);
+			return LexToken(LexToken::TokenType::Comment, currentPosition);
 		}
 	};
-	const auto token = Token(TokenType::Comment, currentPosition);
+	const auto token = LexToken(LexToken::TokenType::Comment, currentPosition);
 	currentPosition.line++;
 	currentPosition.column = 1;
 	return token;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildNumber()
+std::optional<LexToken> Lexer::TryBuildNumber()
 {
 	if (!std::iswdigit(currentChar))
 	{
@@ -225,7 +177,7 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber()
 			if (numberStr.length() > maxNumberLength)
 			{
 				currentErrors.push_back(LexicalError(ErrorType::NumberTooLong, currentPosition, true));
-				const auto token = Token(TokenType::Unrecognized, currentPosition, numberStr);
+				const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
 				currentPosition.column += numberStr.length();
 				return token;
 			}
@@ -248,16 +200,16 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber()
 	if (numberStr.length() > 1 && numberStr[0] == L'0' && numberStr[1] != L'.')
 	{
 		currentErrors.push_back(LexicalError(ErrorType::InvalidNumber, currentPosition));
-		const auto token = Token(TokenType::Unrecognized, currentPosition, numberStr);
+		const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
 		currentPosition.column += numberStr.length();
 		return token;
 	}
 
-	TokenType tokenType;
+	LexToken::TokenType tokenType;
 	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
-		tokenType = TokenType::Float;
+		tokenType = LexToken::TokenType::Float;
 		try // I don't think using exceptions here is the perfect solution, but seems to be the simplest one
 		{
 			tokenValue = std::stof(numberStr);
@@ -265,14 +217,14 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber()
 		catch (std::out_of_range)
 		{
 			currentErrors.push_back(LexicalError(ErrorType::FloatOverflow, currentPosition));
-			const auto token = Token(TokenType::Unrecognized, currentPosition, numberStr);
+			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
 			currentPosition.column += numberStr.length();
 			return token;
 		}
 	}
 	else
 	{
-		tokenType = TokenType::Integer;
+		tokenType = LexToken::TokenType::Integer;
 		try
 		{
 			tokenValue = std::stoi(numberStr);
@@ -280,18 +232,18 @@ std::optional<Lexer::Token> Lexer::TryBuildNumber()
 		catch (std::out_of_range)
 		{
 			currentErrors.push_back(LexicalError(ErrorType::IntegerOverflow, currentPosition));
-			const auto token = Token(TokenType::Unrecognized, currentPosition, numberStr);
+			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
 			currentPosition.column += numberStr.length();
 			return token;
 		}
 	}
 
-	const auto token = Token(tokenType, currentPosition, tokenValue);
+	const auto token = LexToken(tokenType, currentPosition, tokenValue);
 	currentPosition.column += numberStr.length();
 	return token;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildWord()
+std::optional<LexToken> Lexer::TryBuildWord()
 {
 	if (!std::iswalpha(currentChar) && currentChar != L'_')
 	{
@@ -305,37 +257,37 @@ std::optional<Lexer::Token> Lexer::TryBuildWord()
 		if (word.length() > maxIdentifierLength)
 		{
 			currentErrors.push_back(LexicalError(ErrorType::IdentifierTooLong, currentPosition, true));
-			return Token(TokenType::Unrecognized, currentPosition);
+			return LexToken(LexToken::TokenType::Unrecognized, currentPosition);
 		}
 	}
 	source->unget();
 
-	TokenType tokenType;
+	LexToken::TokenType tokenType;
 	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
-	if (const auto tokenTypeOpt = FindTokenInMap(word, keywords))
+	if (const auto tokenTypeOpt = LexToken::FindTokenInMap(word, keywords))
 	{
 		tokenType = tokenTypeOpt.value();
-		if (tokenType == TokenType::Boolean)
+		if (tokenType == LexToken::TokenType::Boolean)
 		{
 			tokenValue = (word == L"true");
 		}
 	}
 	else
 	{
-		tokenType = TokenType::Identifier;
+		tokenType = LexToken::TokenType::Identifier;
 		tokenValue = word;
 	}
-	const auto token = Token(tokenType, currentPosition, tokenValue);
+	const auto token = LexToken(tokenType, currentPosition, tokenValue);
 	currentPosition.column += word.length();
 	return token;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildSingleSymbol()
+std::optional<LexToken> Lexer::TryBuildSingleSymbol()
 {
 	auto symbol = std::wstring{ currentChar };
-	if (const auto tokenType = FindTokenInMap({ currentChar }, symbols))
+	if (const auto tokenType = LexToken::FindTokenInMap({ currentChar }, symbols))
 	{
-		const auto token = Token(tokenType.value(), currentPosition);
+		const auto token = LexToken(tokenType.value(), currentPosition);
 		currentPosition.column++;
 		return token;
 	}
@@ -343,14 +295,14 @@ std::optional<Lexer::Token> Lexer::TryBuildSingleSymbol()
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator()
+std::optional<LexToken> Lexer::TryBuildTwoCharsOperator()
 {
 	wchar_t nextChar;
 	if (source->get(nextChar))
 	{
-		if (const auto tokenType = FindTokenInMap({ currentChar, nextChar }, twoCharsOperators))
+		if (const auto tokenType = LexToken::FindTokenInMap({ currentChar, nextChar }, twoCharsOperators))
 		{
-			const auto token = Token(tokenType.value(), currentPosition);
+			const auto token = LexToken(tokenType.value(), currentPosition);
 			currentPosition.column += 2;
 			return token;
 		}
@@ -359,9 +311,9 @@ std::optional<Lexer::Token> Lexer::TryBuildTwoCharsOperator()
 	return std::nullopt;
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildSymbolsMix()
+std::optional<LexToken> Lexer::TryBuildSymbolsMix()
 {
-	if (std::optional<Token> token = TryBuildTwoCharsOperator())
+	if (std::optional<LexToken> token = TryBuildTwoCharsOperator())
 	{
 		return token.value();
 	}
@@ -371,7 +323,7 @@ std::optional<Lexer::Token> Lexer::TryBuildSymbolsMix()
 	}
 }
 
-std::optional<Lexer::Token> Lexer::TryBuildStringLiteral()
+std::optional<LexToken> Lexer::TryBuildStringLiteral()
 {
 	if (currentChar != L'"')
 	{
@@ -388,11 +340,11 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral()
 		if (builtString.length() > maxStringLiteralLength)
 		{
 			currentErrors.push_back(LexicalError(ErrorType::StringLiteralTooLong, currentPosition, true));
-			return Token(TokenType::Unrecognized, currentPosition);
+			return LexToken(LexToken::TokenType::Unrecognized, currentPosition);
 		}
 		if (nextChar == L'"')
 		{
-			const auto token = Token(TokenType::String, currentPosition, builtString);
+			const auto token = LexToken(LexToken::TokenType::String, currentPosition, builtString);
 			currentPosition.column += builtString.length() + 2;
 			return token;
 		}
@@ -415,14 +367,14 @@ std::optional<Lexer::Token> Lexer::TryBuildStringLiteral()
 		}
 	}
 	currentErrors.push_back(LexicalError(ErrorType::IncompleteStringLiteral, currentPosition));
-	const auto token = Token(TokenType::Unrecognized, currentPosition, builtString);
+	const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, builtString);
 	currentPosition.column += builtString.length() + 1;
 	return token;
 }
 
-Lexer::Token Lexer::BuildToken()
+LexToken Lexer::BuildToken()
 {
-	std::optional<Token> token;
+	std::optional<LexToken> token;
 	if (token = TryBuildComment())
 	{
 		return token.value();
@@ -445,16 +397,7 @@ Lexer::Token Lexer::BuildToken()
 	}
 
 	currentErrors.push_back(LexicalError(ErrorType::UnrecognizedSymbol, currentPosition));
-	token = Token(TokenType::Unrecognized, currentPosition, std::wstring{ currentChar });
+	token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, std::wstring{ currentChar });
 	currentPosition.column++;
 	return token.value();
-}
-
-std::optional<Lexer::TokenType> Lexer::FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, TokenType>& map) noexcept
-{
-	if (const auto it = map.find(key); it != map.end())
-	{
-		return it->second;
-	}
-	return std::nullopt;
 }
