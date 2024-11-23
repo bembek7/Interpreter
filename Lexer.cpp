@@ -1,6 +1,7 @@
 #include "Lexer.h"
 #include "Lexer.h"
 #include "Lexer.h"
+#include "Lexer.h"
 #include "LexToken.h"
 #include <istream>
 #include <cwctype>
@@ -143,15 +144,18 @@ std::optional<LexToken> Lexer::TryBuildComment()
 	unsigned int commentLength = 0;
 	while (source->get(currentChar) && currentChar != L'\n')
 	{
-		commentLength++;
+		++commentLength;
 		if (commentLength > maxCommentLength)
 		{
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::CommentTooLong, currentPosition, true));
-			return LexToken(LexToken::TokenType::Comment, currentPosition);
+			const auto errorPosition = currentPosition;
+			const auto token = LexToken(LexToken::TokenType::Comment, currentPosition);
+			const bool skippedSuccessfully = SkipComment();
+			currentErrors.push_back(LexicalError(LexicalError::ErrorType::CommentTooLong, errorPosition, !skippedSuccessfully));
+			return token;
 		}
 	};
 	const auto token = LexToken(LexToken::TokenType::Comment, currentPosition);
-	currentPosition.line++;
+	++currentPosition.line;
 	currentPosition.column = 1;
 	return token;
 }
@@ -298,6 +302,10 @@ std::optional<LexToken> Lexer::TryBuildWord()
 		word += currentChar;
 		if (word.length() > maxIdentifierLength)
 		{
+			/*const auto errorPosition = currentPosition;
+			const auto token = LexToken(LexToken::TokenType::Comment, currentPosition);
+			const bool skippedSuccessfully = SkipComment();
+			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IdentifierTooLong, errorPosition, !skippedSuccessfully));*/
 			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IdentifierTooLong, currentPosition, true));
 			return LexToken(LexToken::TokenType::Unrecognized, currentPosition);
 		}
@@ -478,4 +486,17 @@ bool Lexer::SkipNumber(bool dotOccured)
 	}
 
 	return true; // Successfully skipped number
+}
+
+bool Lexer::SkipComment()
+{
+	static constexpr int maxSafety = 5000;
+	source->ignore(std::numeric_limits<std::streamsize>::max(), L'\n');
+	const bool skipSuccessfull = !source->fail() || source->eof();
+	if (skipSuccessfull)
+	{
+		currentPosition.column = 1;
+		++currentPosition.line;
+	}
+	return skipSuccessfull;
 }

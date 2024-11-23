@@ -698,11 +698,12 @@ TEST_F(LexerTest, CommentTooLong)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Comment, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(2, 1)},
 	};
 
 	std::vector<LexicalError> expectedErrors =
 	{
-		{LexicalError::ErrorType::CommentTooLong, Position(1, 1), true}
+		{LexicalError::ErrorType::CommentTooLong, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);

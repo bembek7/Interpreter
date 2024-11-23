@@ -28,6 +28,7 @@ private:
 	std::optional<LexToken> TryBuildStringLiteral();
 
 	bool SkipNumber(bool dotOccured);
+	bool SkipComment();
 
 private:
 	std::wistream* source = nullptr;
