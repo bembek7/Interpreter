@@ -11,11 +11,12 @@
 // could do some better errors throwing to avoid code repetition
 
 #define THROW_NUMBER_ERROR(ERROR_TYPE, NUMBER_LENGTH, IS_FLOAT) \
-    currentErrors.push_back(LexicalError(ERROR_TYPE, currentPosition)); \
-    const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition); \
-    currentPosition.column += NUMBER_LENGTH; \
-    SkipNumber(IS_FLOAT); \
-    return token; \
+	const auto errorPosition = currentPosition; \
+	const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition); \
+	currentPosition.column += NUMBER_LENGTH; \
+	const bool skippedSuccessfully = SkipNumber(IS_FLOAT); \
+	currentErrors.push_back(LexicalError(ERROR_TYPE, errorPosition, !skippedSuccessfully)); \
+	return token; \
 
 namespace
 {
@@ -185,7 +186,7 @@ std::optional<LexToken> Lexer::TryBuildNumber()
 
 			const int currentDigit = currentChar - zeroChar;
 
-			if(!isFloat)
+			if (!isFloat)
 			{
 				if (integerOverflows)
 				{
@@ -237,10 +238,10 @@ std::optional<LexToken> Lexer::TryBuildNumber()
 				{
 					THROW_NUMBER_ERROR(LexicalError::ErrorType::FloatOverflow, numberLength, isFloat);
 				}
-				
+
 				builtValueFloat += toAdd;
 				++decimalPlace;
-			}	
+			}
 		}
 		else
 		{
@@ -443,12 +444,20 @@ LexToken Lexer::BuildToken()
 	return token.value();
 }
 
-void Lexer::SkipNumber(bool dotOccured)
+bool Lexer::SkipNumber(bool dotOccured)
 {
 	bool dotOccurred = false;
 
+	static constexpr int maxSafety = 1000;
+	int alreadySkipped = 0;
+
 	while (source->get(currentChar))
 	{
+		++alreadySkipped;
+		if (alreadySkipped > maxSafety)
+		{
+			return false; // Failure
+		}
 		++currentPosition.column;
 		if (std::iswdigit(currentChar))
 		{
@@ -467,4 +476,6 @@ void Lexer::SkipNumber(bool dotOccured)
 		source->unget();
 		break;
 	}
+
+	return true; // Successfully skipped number
 }
