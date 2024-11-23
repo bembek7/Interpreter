@@ -27,6 +27,8 @@ private:
 	std::optional<LexToken> TryBuildTwoCharsOperator();
 	std::optional<LexToken> TryBuildStringLiteral();
 
+	void SkipNumber(bool dotOccured);
+
 private:
 	std::wistream* source = nullptr;
 	std::vector<LexicalError> currentErrors;

@@ -1,13 +1,21 @@
 #include "Lexer.h"
 #include "Lexer.h"
+#include "Lexer.h"
 #include "LexToken.h"
 #include <istream>
 #include <cwctype>
 #include <sstream>
 #include <array>
-
+#include "OverflowChecks.h"
 // cannot use peek with wide chars
 // could do some better errors throwing to avoid code repetition
+
+#define THROW_NUMBER_ERROR(ERROR_TYPE, NUMBER_LENGTH, IS_FLOAT) \
+    currentErrors.push_back(LexicalError(ERROR_TYPE, currentPosition)); \
+    const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition); \
+    currentPosition.column += NUMBER_LENGTH; \
+    SkipNumber(IS_FLOAT); \
+    return token; \
 
 namespace
 {
@@ -154,28 +162,94 @@ std::optional<LexToken> Lexer::TryBuildNumber()
 		return std::nullopt;
 	}
 
-	std::wstring numberStr{ currentChar };
 	bool isFloat = false;
+	unsigned int numberLength = 1;
+	unsigned int decimalPlace = 0;
+
+	wchar_t zeroChar = L'0';
+
+	int builtValueInt = currentChar - zeroChar;
+	bool integerOverflows = false;
+
+	float builtValueFloat = 0.f;
 
 	while (source->get(currentChar))
 	{
 		if (std::iswdigit(currentChar))
 		{
-			numberStr += currentChar;
-			if (numberStr.length() > maxNumberLength)
+			++numberLength;
+			if (numberLength > maxNumberLength)
 			{
-				currentErrors.push_back(LexicalError(LexicalError::ErrorType::NumberTooLong, currentPosition, true));
-				const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
-				currentPosition.column += numberStr.length();
-				return token;
+				THROW_NUMBER_ERROR(LexicalError::ErrorType::NumberTooLong, numberLength, isFloat);
 			}
+
+			const int currentDigit = currentChar - zeroChar;
+
+			if(!isFloat)
+			{
+				if (integerOverflows)
+				{
+					if (OfC::WillMultiplicationOverflow(builtValueFloat, 10.f))
+					{
+						THROW_NUMBER_ERROR(LexicalError::ErrorType::FloatOverflow, numberLength, isFloat);
+					}
+					builtValueFloat *= 10;
+					if (OfC::WillAdditionOverflow(builtValueFloat, float(currentDigit)))
+					{
+						THROW_NUMBER_ERROR(LexicalError::ErrorType::FloatOverflow, numberLength, isFloat);
+					}
+					builtValueFloat += currentDigit;
+				}
+				else
+				{
+					if (OfC::WillMultiplicationOverflow(builtValueInt, 10))
+					{
+						integerOverflows = true;
+						builtValueFloat = float(builtValueInt) * 10;
+					}
+					else
+					{
+						builtValueInt *= 10;
+					}
+					if (!integerOverflows)
+					{
+						if (OfC::WillAdditionOverflow(builtValueInt, currentDigit))
+						{
+							integerOverflows = true;
+							builtValueFloat = float(builtValueInt) + currentDigit;
+						}
+						else
+						{
+							builtValueInt += currentDigit;
+						}
+					}
+				}
+
+				if (numberLength == 2 && builtValueInt == 0)
+				{
+					THROW_NUMBER_ERROR(LexicalError::ErrorType::InvalidNumber, numberLength, isFloat);
+				}
+			}
+			else
+			{
+				const float toAdd = currentDigit / float(std::pow(10, decimalPlace));
+				if (OfC::WillAdditionOverflow(builtValueFloat, toAdd))
+				{
+					THROW_NUMBER_ERROR(LexicalError::ErrorType::FloatOverflow, numberLength, isFloat);
+				}
+				
+				builtValueFloat += toAdd;
+				++decimalPlace;
+			}	
 		}
 		else
 		{
 			if (currentChar == L'.' && !isFloat)
 			{
+				++numberLength;
 				isFloat = true;
-				numberStr += currentChar;
+				builtValueFloat = float(builtValueInt);
+				decimalPlace = 1;
 			}
 			else
 			{
@@ -185,49 +259,28 @@ std::optional<LexToken> Lexer::TryBuildNumber()
 		}
 	}
 
-	if (numberStr.length() > 1 && numberStr[0] == L'0' && numberStr[1] != L'.')
-	{
-		currentErrors.push_back(LexicalError(LexicalError::ErrorType::InvalidNumber, currentPosition));
-		const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
-		currentPosition.column += numberStr.length();
-		return token;
-	}
-
 	LexToken::TokenType tokenType;
 	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
 		tokenType = LexToken::TokenType::Float;
-		try // I don't think using exceptions here is the perfect solution, but seems to be the simplest one
-		{
-			tokenValue = std::stof(numberStr);
-		}
-		catch (std::out_of_range)
-		{
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::FloatOverflow, currentPosition));
-			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
-			currentPosition.column += numberStr.length();
-			return token;
-		}
+		tokenValue = builtValueFloat;
 	}
 	else
 	{
+		if (!integerOverflows)
+		{
+			tokenValue = builtValueInt;
+		}
+		else
+		{
+			THROW_NUMBER_ERROR(LexicalError::ErrorType::IntegerOverflow, numberLength, isFloat);
+		}
 		tokenType = LexToken::TokenType::Integer;
-		try
-		{
-			tokenValue = std::stoi(numberStr);
-		}
-		catch (std::out_of_range)
-		{
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IntegerOverflow, currentPosition));
-			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, numberStr);
-			currentPosition.column += numberStr.length();
-			return token;
-		}
 	}
 
 	const auto token = LexToken(tokenType, currentPosition, tokenValue);
-	currentPosition.column += numberStr.length();
+	currentPosition.column += numberLength;
 	return token;
 }
 
@@ -388,4 +441,30 @@ LexToken Lexer::BuildToken()
 	token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, std::wstring{ currentChar });
 	currentPosition.column++;
 	return token.value();
+}
+
+void Lexer::SkipNumber(bool dotOccured)
+{
+	bool dotOccurred = false;
+
+	while (source->get(currentChar))
+	{
+		++currentPosition.column;
+		if (std::iswdigit(currentChar))
+		{
+			continue;
+		}
+		else
+		{
+			if (!dotOccured && currentChar == L'.')
+			{
+				dotOccured = true;
+				continue;
+			}
+		}
+
+		--currentPosition.column;
+		source->unget();
+		break;
+	}
 }

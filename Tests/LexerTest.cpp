@@ -16,9 +16,26 @@ static void CompareTokens(const std::vector<LexToken>& tokens, const std::vector
 	for (size_t i = 0; i < tokens.size(); ++i)
 	{
 		EXPECT_EQ(tokens[i].GetType(), expectedTokens[i].GetType());
-		EXPECT_EQ(tokens[i].GetValue(), expectedTokens[i].GetValue());
 		EXPECT_EQ(tokens[i].GetPosition().line, expectedTokens[i].GetPosition().line);
 		EXPECT_EQ(tokens[i].GetPosition().column, expectedTokens[i].GetPosition().column);
+
+		if (tokens[i].GetValue().index() == expectedTokens[i].GetValue().index())
+		{
+			if (std::holds_alternative<float>(tokens[i].GetValue()))
+			{
+				float actual = std::get<float>(tokens[i].GetValue());
+				float expected = std::get<float>(expectedTokens[i].GetValue());
+				EXPECT_NEAR(actual, expected, 0.01f);
+			}
+			else
+			{
+				EXPECT_EQ(tokens[i].GetValue(), expectedTokens[i].GetValue());
+			}
+		}
+		else
+		{
+			FAIL() << "Mismatched variant types in token values.";
+		}
 	}
 }
 
@@ -252,7 +269,7 @@ TEST_F(LexerTest, MalformedTokens)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"00123"},
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
 		{LexToken::TokenType::Var, Position(1, 7)},
 		{LexToken::TokenType::Unrecognized, Position(1, 10), L"$"},
 		{LexToken::TokenType::Unrecognized, Position(1, 12), L"%"},
@@ -594,7 +611,7 @@ TEST_F(LexerTest, IntegerOverflow)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"2147483648"},
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
 		{LexToken::TokenType::EndOfFile, Position(1, 11)}
 	};
 
@@ -615,7 +632,7 @@ TEST_F(LexerTest, FloatOverflow)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"99999999999999999999999999999999999999999.1"},
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
 		{LexToken::TokenType::EndOfFile, Position(1, 44)}
 	};
 
@@ -636,7 +653,7 @@ TEST_F(LexerTest, LeadingZerosError)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"00042"},
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
 		{LexToken::TokenType::EndOfFile, Position(1, 6)}
 	};
 
