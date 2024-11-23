@@ -29,6 +29,8 @@ private:
 
 	bool SkipNumber(bool dotOccured);
 	bool SkipComment();
+	bool SkipStringLiteral();
+	bool SkipIdentifier();
 
 private:
 	std::wistream* source = nullptr;

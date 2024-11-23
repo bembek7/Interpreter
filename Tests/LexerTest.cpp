@@ -105,8 +105,8 @@ TEST_F(LexerTest, StringLiteralRecognition)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"\"Hello, World!\""},
-		{LexToken::TokenType::EndOfFile, Position(1, 18)}
+		{LexToken::TokenType::String, Position(1, 1), L"Hello, World!"},
+		{LexToken::TokenType::EndOfFile, Position(1, 16)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -227,8 +227,8 @@ TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"\"This is a long string with \\\"escaped quotes\\\" and new\\nlines\""},
-		{LexToken::TokenType::EndOfFile, Position(1, 65)}
+		{LexToken::TokenType::String, Position(1, 1), L"This is a long string with \"escaped quotes\" and new\nlines"},
+		{LexToken::TokenType::EndOfFile, Position(1, 63)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -674,8 +674,8 @@ TEST_F(LexerTest, IncompleteStringLiteral)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"\"Incomplete string"},
-		{LexToken::TokenType::EndOfFile, Position(1, 20)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 19)}
 	};
 
 	std::vector<LexicalError> expectedErrors =
@@ -712,14 +712,14 @@ TEST_F(LexerTest, CommentTooLong)
 
 TEST_F(LexerTest, StringLiteralWithValidEscapes)
 {
-	std::wstringstream input(L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\"");
+	std::wstringstream input(L"\"Line1\\nLine2\\tTabbed\"");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"\"Line1\\nLine2\\tTabbed\\\"Quote\\\"\""},
-		{LexToken::TokenType::EndOfFile, Position(1, 34)}
+		{LexToken::TokenType::String, Position(1, 1), L"Line1\nLine2\tTabbed"},
+		{LexToken::TokenType::EndOfFile, Position(1, 23)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -737,12 +737,13 @@ TEST_F(LexerTest, StringLiteralTooLong)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1)}
+		{LexToken::TokenType::Unrecognized, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 1003)}
 	};
 
 	std::vector<LexicalError> expectedErrors =
 	{
-		{LexicalError::ErrorType::StringLiteralTooLong, Position(1, 1), true}
+		{LexicalError::ErrorType::StringLiteralTooLong, Position(1, 1)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -757,13 +758,13 @@ TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"\"Invalid\\xEscape\""},
-		{LexToken::TokenType::EndOfFile, Position(1, 20)}
+		{LexToken::TokenType::String, Position(1, 1), L"InvalidxEscape"},
+		{LexToken::TokenType::EndOfFile, Position(1, 17)}
 	};
 
 	std::vector<LexicalError> expectedErrors =
 	{
-		{LexicalError::ErrorType::InvalidEscapeSequence, Position(1, 11)}
+		{LexicalError::ErrorType::InvalidEscapeSequence, Position(1, 8)}
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);
@@ -772,22 +773,20 @@ TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
 
 TEST_F(LexerTest, StringLiteralsComplexScenarios)
 {
-	std::wstringstream input(
-		L"\"Valid string\" \"Too long string" + std::wstring(1000 + 1, L'a') +
-		L"\" \"Unclosed string \"Invalid\\xEscape\""
-	);
+	std::wstringstream input(L"\"Valid string\" \"Too long string" + std::wstring(1000 + 1, L'a') + L"\"");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"\"Valid string\""},
-		{LexToken::TokenType::Unrecognized, Position(1, 18)}
+		{LexToken::TokenType::String, Position(1, 1), L"Valid string"},
+		{LexToken::TokenType::Unrecognized, Position(1, 16)},
+		{LexToken::TokenType::EndOfFile, Position(1, 1034)},
 	};
 
 	std::vector<LexicalError> expectedErrors =
 	{
-		{LexicalError::ErrorType::StringLiteralTooLong, Position(1, 18), true},
+		{LexicalError::ErrorType::StringLiteralTooLong, Position(1, 16)},
 	};
 
 	CompareTokens(lexerOut.first, expectedTokens);

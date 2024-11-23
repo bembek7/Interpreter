@@ -1,7 +1,4 @@
 #include "Lexer.h"
-#include "Lexer.h"
-#include "Lexer.h"
-#include "Lexer.h"
 #include "LexToken.h"
 #include <istream>
 #include <cwctype>
@@ -302,12 +299,12 @@ std::optional<LexToken> Lexer::TryBuildWord()
 		word += currentChar;
 		if (word.length() > maxIdentifierLength)
 		{
-			/*const auto errorPosition = currentPosition;
-			const auto token = LexToken(LexToken::TokenType::Comment, currentPosition);
-			const bool skippedSuccessfully = SkipComment();
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IdentifierTooLong, errorPosition, !skippedSuccessfully));*/
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IdentifierTooLong, currentPosition, true));
-			return LexToken(LexToken::TokenType::Unrecognized, currentPosition);
+			const auto errorPosition = currentPosition;
+			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition);
+			currentPosition.column += word.length();
+			const bool skippedSuccessfully = SkipIdentifier();
+			currentErrors.push_back(LexicalError(LexicalError::ErrorType::IdentifierTooLong, errorPosition, !skippedSuccessfully));
+			return token;
 		}
 	}
 	source->unget();
@@ -381,33 +378,49 @@ std::optional<LexToken> Lexer::TryBuildStringLiteral()
 	}
 
 	std::wstring builtString;
-	builtString += currentChar;
+	unsigned int escapeSequencesAdditionalLength = 0;
 
-	wchar_t nextChar;
-	while (source->get(nextChar))
+	while (source->get(currentChar))
 	{
-		builtString += nextChar;
 		if (builtString.length() > maxStringLiteralLength)
 		{
-			currentErrors.push_back(LexicalError(LexicalError::ErrorType::StringLiteralTooLong, currentPosition, true));
-			return LexToken(LexToken::TokenType::Unrecognized, currentPosition);
-		}
-		if (nextChar == L'"')
-		{
-			const auto token = LexToken(LexToken::TokenType::String, currentPosition, builtString);
-			currentPosition.column += builtString.length() + 2;
+			const auto errorPosition = currentPosition;
+			const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition);
+			currentPosition.column += builtString.length() + escapeSequencesAdditionalLength + 2;
+			const bool skippedSuccessfully = SkipStringLiteral();
+			currentErrors.push_back(LexicalError(LexicalError::ErrorType::StringLiteralTooLong, errorPosition, !skippedSuccessfully));
 			return token;
 		}
-		if (nextChar == L'\\')
+		if (currentChar == L'"')
 		{
-			if (source->get(nextChar))
+			const auto token = LexToken(LexToken::TokenType::String, currentPosition, builtString);
+			currentPosition.column += builtString.length() + escapeSequencesAdditionalLength + 2;
+			return token;
+		}
+		if (currentChar == L'\\')
+		{
+			if (source->get(currentChar))
 			{
-				builtString += nextChar;
-
 				static constexpr std::array<wchar_t, 4> handledEscapedChars = { L'"',  L'\\', L'n', L't' };
-				if (std::find(handledEscapedChars.begin(), handledEscapedChars.end(), nextChar) == handledEscapedChars.end())
+				if (std::find(handledEscapedChars.begin(), handledEscapedChars.end(), currentChar) == handledEscapedChars.end())
 				{
 					currentErrors.push_back(LexicalError(LexicalError::ErrorType::InvalidEscapeSequence, Position(currentPosition.line, currentPosition.column + builtString.length())));
+				}
+				else
+				{
+					escapeSequencesAdditionalLength += 1;
+				}
+				switch (currentChar)
+				{
+				case L'n':
+					builtString.push_back(L'\n');
+					break;
+				case L't':
+					builtString.push_back(L'\t');
+					break;
+				default:
+					builtString.push_back(currentChar);
+					break;
 				}
 			}
 			else
@@ -415,10 +428,14 @@ std::optional<LexToken> Lexer::TryBuildStringLiteral()
 				break;
 			}
 		}
+		else
+		{
+			builtString += currentChar;
+		}
 	}
 	currentErrors.push_back(LexicalError(LexicalError::ErrorType::IncompleteStringLiteral, currentPosition));
-	const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, builtString);
-	currentPosition.column += builtString.length() + 1;
+	const auto token = LexToken(LexToken::TokenType::Unrecognized, currentPosition);
+	currentPosition.column += builtString.length() + escapeSequencesAdditionalLength + 1;
 	return token;
 }
 
@@ -456,8 +473,8 @@ bool Lexer::SkipNumber(bool dotOccured)
 {
 	bool dotOccurred = false;
 
-	static constexpr int maxSafety = 1000;
-	int alreadySkipped = 0;
+	static constexpr int maxSafety = 200;
+	unsigned int alreadySkipped = 0;
 
 	while (source->get(currentChar))
 	{
@@ -499,4 +516,51 @@ bool Lexer::SkipComment()
 		++currentPosition.line;
 	}
 	return skipSuccessfull;
+}
+
+bool Lexer::SkipStringLiteral()
+{
+	static constexpr int maxSafety = 5000;
+	unsigned int alreadySkipped = 0;
+	wchar_t prevChar = 0;
+
+	while (source->get(currentChar))
+	{
+		++alreadySkipped;
+		if (alreadySkipped > maxSafety)
+		{
+			return false;
+		}
+
+		++currentPosition.column;
+		if (currentChar == L'"' && prevChar != L'\\')
+		{
+			return true;
+		}
+
+		prevChar = currentChar;
+	}
+}
+
+bool Lexer::SkipIdentifier()
+{
+	static constexpr int maxSafety = 200;
+	unsigned int alreadySkipped = 0;
+
+	while (source->get(currentChar))
+	{
+		++alreadySkipped;
+		if (alreadySkipped > maxSafety)
+		{
+			return false;
+		}
+		++currentPosition.column;
+
+		if (!std::iswalnum(currentChar) && currentChar != L'_')
+		{
+			--currentPosition.column;
+			source->unget();
+			return true;
+		}
+	}
 }
