@@ -53,21 +53,16 @@ static void CompareErrors(const std::vector<LexicalError>& errors, const std::ve
 	}
 }
 
-TEST_F(LexerTest, SingleCharOperatorRecognition)
+TEST_F(LexerTest, RecognizesAssignOperator)
 {
-	std::wstringstream input(L"= + - * / !");
+	std::wstringstream input(L"=");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Assign, Position(1, 1)},
-		{LexToken::TokenType::Plus, Position(1, 3)},
-		{LexToken::TokenType::Minus, Position(1, 5)},
-		{LexToken::TokenType::Asterisk, Position(1, 7)},
-		{LexToken::TokenType::Slash, Position(1, 9)},
-		{LexToken::TokenType::LogicalNot, Position(1, 11)},
-		{LexToken::TokenType::EndOfFile, Position(1, 12)}
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -76,19 +71,88 @@ TEST_F(LexerTest, SingleCharOperatorRecognition)
 	CompareErrors(lexerOut.second, expectedErrors);
 }
 
-TEST_F(LexerTest, TwoCharOperatorRecognition)
+TEST_F(LexerTest, RecognizesPlusOperator)
 {
-	std::wstringstream input(L"&& || == !=");
+	std::wstringstream input(L"+");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::LogicalAnd, Position(1, 1)},
-		{LexToken::TokenType::LogicalOr, Position(1, 4)},
-		{LexToken::TokenType::Equal, Position(1, 7)},
-		{LexToken::TokenType::NotEqual, Position(1, 10)},
-		{LexToken::TokenType::EndOfFile, Position(1, 12)}
+		{LexToken::TokenType::Plus, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesMinusOperator)
+{
+	std::wstringstream input(L"-");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Minus, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesAsteriskOperator)
+{
+	std::wstringstream input(L"*");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Asterisk, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesSlashOperator)
+{
+	std::wstringstream input(L"/");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Slash, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesLogicalNotOperator)
+{
+	std::wstringstream input(L"!");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::LogicalNot, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 2)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -115,18 +179,160 @@ TEST_F(LexerTest, StringLiteralRecognition)
 	CompareErrors(lexerOut.second, expectedErrors);
 }
 
-TEST_F(LexerTest, KeywordAndIdentifierRecognition)
+TEST_F(LexerTest, RecognizesMutKeyword)
 {
-	std::wstringstream input(L"var myVariable while");
+	std::wstringstream input(L"mut");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Mut, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 4)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesVarKeyword)
+{
+	std::wstringstream input(L"var");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Var, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 5), L"myVariable"},
-		{LexToken::TokenType::While, Position(1, 16)},
-		{LexToken::TokenType::EndOfFile, Position(1, 21)}
+		{LexToken::TokenType::EndOfFile, Position(1, 4)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesWhileKeyword)
+{
+	std::wstringstream input(L"while");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::While, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 6)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesIfKeyword)
+{
+	std::wstringstream input(L"if");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::If, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesElseKeyword)
+{
+	std::wstringstream input(L"else");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Else, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 5)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesReturnKeyword)
+{
+	std::wstringstream input(L"return");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Return, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 7)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesFuncKeyword)
+{
+	std::wstringstream input(L"func");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Func, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 5)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesTrueKeyword)
+{
+	std::wstringstream input(L"true");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Boolean, Position(1, 1), true},
+		{LexToken::TokenType::EndOfFile, Position(1, 5)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesFalseKeyword)
+{
+	std::wstringstream input(L"false");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Boolean, Position(1, 1), false},
+		{LexToken::TokenType::EndOfFile, Position(1, 6)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -237,22 +443,88 @@ TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 	CompareErrors(lexerOut.second, expectedErrors);
 }
 
-TEST_F(LexerTest, MixedSingleAndMultiCharacterOperators)
+TEST_F(LexerTest, RecognizesGreaterEqualOperator)
 {
-	std::wstringstream input(L">= <= != && || = !");
+	std::wstringstream input(L">=");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::GreaterEqual, Position(1, 1)},
-		{LexToken::TokenType::LessEqual, Position(1, 4)},
-		{LexToken::TokenType::NotEqual, Position(1, 7)},
-		{LexToken::TokenType::LogicalAnd, Position(1, 10)},
-		{LexToken::TokenType::LogicalOr, Position(1, 13)},
-		{LexToken::TokenType::Assign, Position(1, 16)},
-		{LexToken::TokenType::LogicalNot, Position(1, 18)},
-		{LexToken::TokenType::EndOfFile, Position(1, 19)}
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesLessEqualOperator)
+{
+	std::wstringstream input(L"<=");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::LessEqual, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesNotEqualOperator)
+{
+	std::wstringstream input(L"!=");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::NotEqual, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesLogicalAndOperator)
+{
+	std::wstringstream input(L"&&");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::LogicalAnd, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesLogicalOrOperator)
+{
+	std::wstringstream input(L"||");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::LogicalOr, Position(1, 1)},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
@@ -583,18 +855,70 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 	CompareErrors(lexerOut.second, expectedErrors);
 }
 
-TEST_F(LexerTest, RecognizesMultipleFloatsAndIntegers) {
-	std::wstringstream input(L"3.14 2.718 42 0.5");
+TEST_F(LexerTest, RecognizesFloat3_14)
+{
+	std::wstringstream input(L"3.14");
 	auto lexer = Lexer(&input);
 	const auto& lexerOut = lexer.ResolveAllRemaining();
 
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Float, Position(1, 1), 3.14f},
-		{LexToken::TokenType::Float, Position(1, 6), 2.718f},
-		{LexToken::TokenType::Integer, Position(1, 12), 42},
-		{LexToken::TokenType::Float, Position(1, 15), 0.5f},
-		{LexToken::TokenType::EndOfFile, Position(1, 18)}
+		{LexToken::TokenType::EndOfFile, Position(1, 5)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesFloat2_718)
+{
+	std::wstringstream input(L"2.718");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Float, Position(1, 1), 2.718f},
+		{LexToken::TokenType::EndOfFile, Position(1, 6)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesInteger42)
+{
+	std::wstringstream input(L"42");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Integer, Position(1, 1), 42},
+		{LexToken::TokenType::EndOfFile, Position(1, 3)}
+	};
+
+	std::vector<LexicalError> expectedErrors = {};
+
+	CompareTokens(lexerOut.first, expectedTokens);
+	CompareErrors(lexerOut.second, expectedErrors);
+}
+
+TEST_F(LexerTest, RecognizesFloat0_5)
+{
+	std::wstringstream input(L"0.5");
+	auto lexer = Lexer(&input);
+	const auto& lexerOut = lexer.ResolveAllRemaining();
+
+	std::vector<LexToken> expectedTokens =
+	{
+		{LexToken::TokenType::Float, Position(1, 1), 0.5f},
+		{LexToken::TokenType::EndOfFile, Position(1, 4)}
 	};
 
 	std::vector<LexicalError> expectedErrors = {};
