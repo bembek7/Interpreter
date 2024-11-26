@@ -33,21 +33,21 @@ Jeśli operator nie jest opisany znaczy że konwersja jest niemożliwa - błąd,
 
 Wszystkie operatory relacji = rel
 
-| Typ in 1      | Typ In 2  | Operator      | Typ Out                                                                                                                                                       |
-|---------------|-----------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **bool**      | **int**   | &&, \|\|, ==  | **bool** jeśli **int** konwertowalny (0, 1),<br> błąd                                                                                                         |
-| **bool**      | float     |               | błąd                                                                                                                                                          |
-| **bool**      | string    | &&, \|\|, ==  | **bool** jeśli string konwertowalny ("true", "false"),<br> błąd                                                                                               |
-| **bool**      | string    | +             | **string** zmiana boola na ("true", "false") i doklejenie do stringa                                                                                          |
-| **int**       | float     | +,-,*,/, rel  | **float**                                                                                                                                                     |
-| **int**       | string    | -,*,/, rel    | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> błąd                                                      |
-| **int**       | string    | +             | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> zmiana inta na stringa i doklejenie z odpowiedniej strony |
-| float         | string    | -,*,/, rel    | **float** jeśli string konwertowalny na inta lub floata,<br> błąd                                                                                             |
-| float         | string    | +             | **string** zmiana floata na stringa i doklejenie z odpowiedniej strony                                                                                        |
-| **bool**      | funkcja   |               | błąd                                                                                                                                                          |
-| **int**       | funkcja   |               | błąd                                                                                                                                                          |
-| float         | funkcja   |               | błąd                                                                                                                                                          |
-| string        | funkcja   |               | błąd                                                                                                                                                          |
+| Typ in 1   | Typ In 2    | Operator     | Typ Out                                                                                                                                                       |
+|------------|-------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **bool**   | **int**     | &&, \|\|, == | **bool** jeśli **int** konwertowalny (0, 1),<br> błąd                                                                                                         |
+| **bool**   | **float**   |              | błąd                                                                                                                                                          |
+| **bool**   | **string**  | &&, \|\|, == | **bool** jeśli string konwertowalny ("true", "false"),<br> błąd                                                                                               |
+| **bool**   | **string**  | +            | **string** zmiana boola na ("true", "false") i doklejenie do stringa                                                                                          |
+| **int**    | **float**   | +,-,*,/, rel | **float**                                                                                                                                                     |
+| **int**    | **string**  | -,*,/, rel   | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> błąd                                                      |
+| **int**    | **string**  | +            | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> zmiana inta na stringa i doklejenie z odpowiedniej strony |
+| **float**  | **string**  | -,*,/, rel   | **float** jeśli string konwertowalny na inta lub floata,<br> błąd                                                                                             |
+| **float**  | **string**  | +            | **string** zmiana floata na stringa i doklejenie z odpowiedniej strony                                                                                        |
+| **bool**   | **funkcja** |              | błąd                                                                                                                                                          |
+| **int**    | **funkcja** |              | błąd                                                                                                                                                          |
+| **float**  | **funkcja** |              | błąd                                                                                                                                                          |
+| **string** | **funkcja** |              | błąd                                                                                                                                                          |
 
 Jedyny standardowy operator działający na funkcjach, to ==, zwracające prawdę tylko jeśli chodzi o dokładnie tą samą zdefiniowaną funkcję (porówwnanie niemożliwe w przypadku lambdy).
 
