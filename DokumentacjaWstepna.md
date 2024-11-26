@@ -17,18 +17,67 @@ Jest to dokumentacja wstępna, więc będzie zmieniana i uzupełniana, nie wszys
 
 ### Typy danych
 
-- Podstawowe typy liczbowe (`int`, `float`)
+- Podstawowe typy liczbowe (`**int**`, `float`)
 - Typ logiczny - `bool`
 - Typ tekstowy - `string`
 - Typowanie dynamiczne, słabe
 - Funkcja jako typ danych, tzn. funkcja może być argumentem lub wartością zwracaną przez inną funkcję.
 
-Kompozycja łączy dwie funkcje w jedną, gdzie wynik pierwszej funkcji jest argumentem drugiej.
+#### Konwersja typów
+
+Kolejność typów bez znaczenia, chyba że typ out to string wtedy doklejenie od lewej lub prawej.
+
+Jako, że typowanie dynamiczne w przypadku assignmentu po prostu zmienna staja się assignowanym typem.
+
+Jeśli operator nie jest opisany znaczy że konwersja jest niemożliwa - błąd,
+
+Wszystkie operatory relacji = rel
+
+| Typ in 1      | Typ In 2  | Operator      | Typ Out                                                                                                                                                       |
+|---------------|-----------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **bool**      | **int**   | &&, \|\|, ==  | **bool** jeśli **int** konwertowalny (0, 1),<br> błąd                                                                                                         |
+| **bool**      | float     |               | błąd                                                                                                                                                          |
+| **bool**      | string    | &&, \|\|, ==  | **bool** jeśli string konwertowalny ("true", "false"),<br> błąd                                                                                               |
+| **bool**      | string    | +             | **string** zmiana boola na ("true", "false") i doklejenie do stringa                                                                                          |
+| **int**       | float     | +,-,*,/, rel  | **float**                                                                                                                                                     |
+| **int**       | string    | -,*,/, rel    | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> błąd                                                      |
+| **int**       | string    | +             | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> zmiana inta na stringa i doklejenie z odpowiedniej strony |
+| float         | string    | -,*,/, rel    | **float** jeśli string konwertowalny na inta lub floata,<br> błąd                                                                                             |
+| float         | string    | +             | **string** zmiana floata na stringa i doklejenie z odpowiedniej strony                                                                                        |
+| **bool**      | funkcja   |               | błąd                                                                                                                                                          |
+| **int**       | funkcja   |               | błąd                                                                                                                                                          |
+| float         | funkcja   |               | błąd                                                                                                                                                          |
+| string        | funkcja   |               | błąd                                                                                                                                                          |
+
+Jedyny standardowy operator działający na funkcjach, to ==, zwracające prawdę tylko jeśli chodzi o dokładnie tą samą zdefiniowaną funkcję (porówwnanie niemożliwe w przypadku lambdy).
+
+### Operatory działające na funkcjach
+
+- ">>" - kompozycja, łączy dwie funkcje w jedną, gdzie wynik pierwszej funkcji jest argumentem drugiej.
+
+```plaintext
+func Square(x)
+{
+    return x * x;
+}
+
+func Increment(x)
+{
+    return x + 1;
+}
+
+func main()
+{
+    var composedFunction = square >> increment;
+}
+```
+
+równe temu:
 
 ```plaintext
 func Compose(f, g)
 {
-    return func(x){ return f(g(x));}
+    return func(x){ return g(f(x));}
 }
 
 func Square(x)
@@ -49,30 +98,18 @@ func main()
 }
 ```
 
-LogDecorator zwraca nową funkcję, która rozszerza zachowanie przekazanej funkcji, dodając logowanie. Nie wiem jeszcze w jaki sposób przekazane zostana argumenty dekorowanej funkcji.
+- "<<" - pozwala na stworzenie nowej funkcji i przekazanie do niej domyślnych argumentów
 
 ```plaintext
-func LogDecorator(func)
+func Fizz(a, b, c)
 {
-    return func(args...)
-    {
-        print("Called function: " + func.name);
-        print("Arguments: " + args);
-        var result = func(args...);
-        print("Result: " + result);
-        return result;
-    }
-}
-
-func Add(a, b)
-{
-    return a + b;
+    return a + b + c;
 }
 
 func main()
 {
-    var decoratedAdd = LogDecorator(Add);
-    var result = decoratedAdd(3, 4);
+    var buzz = Fizz << (3, 2);
+    # buzz (x) == Fizz (3, 2, x)
 }
 ```
 
@@ -152,15 +189,42 @@ func main()
 }
 ```
 
+Funkcje jako zmienne
+
+```plaintext
+func LogDecorator(func)
+{
+    return func(args...)
+    {
+        print("Called function: " + func.name);
+        print("Arguments: " + args);
+        var result = func(args...);
+        print("Result: " + result);
+        return result;
+    }
+}
+
+func Add(a, b)
+{
+    return a + b;
+}
+
+func main()
+{
+    var decoratedAdd = LogDecorator(Add);
+    var result = decoratedAdd(3, 4);
+}
+```
+
 ## Gramatyka
 
 Część składniowa
 
 ```plaintext
-program               = { function_definition | comment };
-comment               = "#", { any_character_except_newline }, ("\n" | EOF);
+program               = { function_definition };
 function_definition   = "func", identifier, "(", parameters, ")", block;
-parameters            = [ identifier, { ",", identifier } ];
+parameters            = [ parameter, { ",", parameter } ];
+parameter             = ["mut"], identifier 
 
 block                 = "{", { statement }, "}";
 statement             = function_call
@@ -170,12 +234,11 @@ statement             = function_call
                       | block
                       | declaration
                       | assignment
-                      | comment;
 
-declaration           = ["mut"] "var", identifier, [ "=", expression ], ";";
+declaration           = ["mut"], "var", identifier, [ "=", expression ], ";";
 assignment            = identifier, "=", expression, ";";
 
-function_call         = identifier, "(", arguments, ")", ";";
+function_call         = identifier, "(", arguments, ")";
 arguments             = [ expression, { ",", expression } ];
 
 conditional           = "if", "(", expression, ")", block,
@@ -184,21 +247,30 @@ conditional           = "if", "(", expression, ")", block,
 loop                  = "while", "(", expression, ")", block;
 return_statement      = "return", [ expression ], ";";
 
-expression            = conjunction, { "or", conjunction };
-conjunction           = relation_term, { "and", relation_term };
+expression            = conjunction, { "||", conjunction } 
+                      | func_expression;
+conjunction           = relation_term, { "&&", relation_term };
 relation_term         = additive_term, [ relation_operator, additive_term ];
-additive_term         = multiplicative_term, { ("+" | "-"), multiplicative_term };
+additive_term         = ["-"], (multiplicative_term, { ("+" | "-"), multiplicative_term });
 multiplicative_term   = factor, { ("*" | "/"), factor };
-factor                = literal | "(", expression, ")" | identifier;
+factor                = [ "!" ], (literal | "(", expression, ")" | identifier | function_call);
 
+func_expression       = possible_function, ">>", possible_function
+                      | possible_function, "<<", "(", arguments, ")"
+                      | possible_function;
+
+possible_function     = (function_lit | identifier | func_expression);
+function_lit          = "(", parameters, ")", block;
 literal               = number | string | boolean;
 number                = integer | float;
-integer               = ["-"], nonZeroDigit, { digit };
-float                 = integer, ".", digit, { digit };
+integer               = nonZeroDigit, { digit } | "0";
+float                 = integer, ".", [ digit, { digit } ];
 string                = '"', { any_character }, '"';
 boolean               = "true" | "false";
 
 identifier            = letter, { letter | digit | "_" };
+
+comment               = "#", { any_character_except_newline }, ("\n" | EOF);
 ```
 
 Część leksykalna
@@ -327,6 +399,7 @@ Przykład: `.\Interpreter sourceFile.xxx`
 Nie znam szczegółów na tym etapie projektu.
 
 Interpreter będzie zbudowany z czterech kluczowych modułów:
+
 - analizator leksykalny,
 - analizator składniowy,
 - analizator semantyczny,
@@ -340,9 +413,54 @@ Lekser przekształca kod źródłowy na tokeny zgodne z gramatyką języka. Każ
 - przekroczenie maksymalnej długości liczby (15 znaków) lub identyfikatora (50 znaków).
 - overflow liczb.
 
-Tokeny generowane przez lekser:
+Tokeny generowane przez lekser (aktualnie, na pewno będzie ich więcej):
 
-Jeżeli lekser napotka sekwencję znaków, której nie może zdekodować, wygeneruje specjalny token.
+- Identifier  
+- Integer  
+- Float  
+- String  
+- Boolean  
+- Semicolon  
+- LParenth  
+- RParenth  
+- LBracket  
+- RBracket  
+- Comma  
+- Comment  
+- EndOfFile  
+- Unrecognized  
+- Assign  
+- Plus  
+- Minus  
+- Asterisk  
+- Slash  
+- LogicalNot  
+- Less  
+- Greater  
+- LogicalAnd  
+- LogicalOr  
+- Equal  
+- LessEqual  
+- GreaterEqual  
+- NotEqual  
+- PlusAssign  
+- MinusAssign  
+- AsteriskAssign  
+- SlashAssign  
+- AndAssign  
+- OrAssign  
+- Mut  
+- Var  
+- While  
+- If  
+- Else  
+- Return  
+- Func  
+- FunctionBind  
+- FunctionCompose
+
+
+Jeżeli lekser napotka sekwencję znaków, której nie może zdekodować, wygeneruje specjalny token `Unrecognized`.
 
 ### Analizator składniowy
 
@@ -365,4 +483,4 @@ Testy jednostkowe dla wszystkich modułów jeśli tylko będzie to możliwe oraz
 - **Analizator leksykalny**: Sprawdzenie, czy dla danego wejściowego ciągu znaków zwróci oczekiwany ciąg tokenów.
 - **Analizator składniowy**: Sprawdzenie, czy podany kod źródłowy lub ciąg tokenów generuje oczekiwaną hierarchię obiektów.
 - **Analizator semantyczny**: Sprawdzenie, czy przygotowany niepoprawny kod zwraca odpowiednie komunikaty o błędach – testowany program musi zawierać wyjątek z oczekiwanym komunikatem.
-- **Interpreter hierarchi obiektów**: Sprawdzenie, czy interpreter generuje oczekiwane wyniki.
+- **Interpreter hierarchi obiektów**: Sprawdzenie, czy interpreter generuje oczekiwane wyniki
