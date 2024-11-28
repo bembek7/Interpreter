@@ -1,4 +1,4 @@
-﻿# Implementacja języka programowania ogólnego przeznaczenia
+# Implementacja języka programowania ogólnego przeznaczenia
 
 *Bartłomiej Puciłowski 325212*
 
@@ -227,7 +227,7 @@ parameters            = [ parameter, { ",", parameter } ];
 parameter             = ["mut"], identifier 
 
 block                 = "{", { statement }, "}";
-statement             = function_call
+statement             = function_call, ";"
                       | conditional
                       | loop
                       | return_statement
