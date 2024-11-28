@@ -255,11 +255,10 @@ additive_term         = ["-"], (multiplicative_term, { ("+" | "-"), multiplicati
 multiplicative_term   = factor, { ("*" | "/"), factor };
 factor                = [ "!" ], (literal | "(", expression, ")" | identifier | function_call);
 
-func_expression       = possible_function, ">>", possible_function
-                      | possible_function, "<<", "(", arguments, ")"
-                      | possible_function;
+func_expression       = composable, { ">>", composable };
+composable            = bindable, [ "<<", "(", arguments, ")" ];
+bindable              = (function_lit | identifier | func_expression);
 
-possible_function     = (function_lit | identifier | func_expression);
 function_lit          = "(", parameters, ")", block;
 literal               = number | string | boolean;
 number                = integer | float;
