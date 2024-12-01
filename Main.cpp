@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <fstream>
 #include "PathConfig.h"
+#include "Parser.h"
 
 static void PrintToken(const LexToken& token) noexcept
 {
@@ -78,19 +79,15 @@ int main()
 	}
 
 	Lexer lexer = Lexer(&codeFile);
-	const auto lexerOut = lexer.ResolveAllRemaining();
 
-	for (const auto& error : lexerOut.second)
-	{
-		PrintError(error);
-	}
+	Parser parser = Parser(&lexer);
 
-	for (const auto& token : lexerOut.first)
-	{
-		PrintToken(token);
-	}
+	parser.ParseProgram();
 
+
+	
+	
+	
 	codeFile.close();
-
 	return 0;
 }

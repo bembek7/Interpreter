@@ -12,12 +12,7 @@ public:
 	struct Program { bool b = false; };
 	struct Param { bool b = false; };
 	struct Statement { bool b = false; };
-	struct FunctionCall { bool b = false; };
-	struct Conditional { bool b = false; };
-	struct Loop { bool b = false; };
-	struct Return : public Loop { bool b = false; };
-	struct Declaration { bool b = false; };
-	struct Assignment { bool b = false; };
+
 	struct Expression { bool b = false; };
 	struct Conjunction { bool b = false; };
 	struct Relation { bool b = false; };
@@ -30,21 +25,75 @@ public:
 	struct Bindable { bool b = false; };
 	struct FunctionLit { bool b = false; };
 
-private:
+	struct Block : Statement
+	{
+		Block(std::vector<std::unique_ptr<Statement>> statements) noexcept :
+			statements(std::move(statements)) {}
+		std::vector<std::unique_ptr<Statement>> statements;
+	};
+
+	struct FunctionCall : Statement
+	{
+		FunctionCall(const std::wstring& identifier, const std::vector<Expression>& arguments) noexcept :
+			identifier(identifier), arguments(arguments) {}
+		std::wstring identifier;
+		std::vector<Expression> arguments;
+	};
+
+	struct Conditional : Statement
+	{
+		Expression condition;
+		std::unique_ptr<Block> ifBlock;
+		std::optional<std::unique_ptr<Block>> elseBlock;
+	};
+
+	struct WhileLoop : Statement
+	{
+		Expression condition;
+		std::unique_ptr<Block> block;
+	};
+
+	struct Return : Statement
+	{
+		Return(const std::optional<Expression>& expression) noexcept :
+			expression(expression) {}
+		std::optional<Expression> expression;
+	};
+
+	struct Declaration : Statement
+	{
+		bool varMutable = false;
+		std::wstring identifier;
+		std::optional<Expression> expression;
+	};
+
+	struct Assignment : Statement
+	{
+		Assignment(const std::wstring& identifier, const Expression& expression) noexcept :
+			identifier(identifier), expression(expression) {}
+
+		std::wstring identifier;
+		Expression expression;
+	};
+
 	Program ParseProgram();
+
+private:
 	LexToken GetNextToken();
 	bool ConsumeToken(const LexToken::TokenType expectedToken) noexcept;
 	std::optional<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<Param> ParseParams();
 	std::optional<Param> ParseParam();
-	std::vector<Statement> ParseBlock();
-	std::optional<Statement> ParseStatement();
-	std::optional<FunctionCall> ParseFunctionCall();
-	std::optional<Conditional> ParseConditional();
-	std::optional<Loop> ParseLoop();
-	std::optional<Return> ParseReturn();
-	std::optional<Declaration> ParseDeclaration();
-	std::optional<Assignment> ParseAssignment();
+
+	std::unique_ptr<Block> ParseBlock();
+	std::unique_ptr<Statement> ParseStatement();
+	std::unique_ptr<FunctionCall> ParseFunctionCall();
+	std::unique_ptr<Conditional> ParseConditional();
+	std::unique_ptr<WhileLoop> ParseLoop();
+	std::unique_ptr<Return> ParseReturn();
+	std::unique_ptr<Declaration> ParseDeclaration();
+	std::unique_ptr<Assignment> ParseAssignment();
+
 	std::optional<std::vector<Expression>> ParseArguments();
 	std::optional<Expression> ParseExpression();
 	std::optional<Conjunction> ParseConjunction();
