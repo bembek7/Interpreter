@@ -4,6 +4,20 @@
 
 class Parser
 {
+	class ParserException : public std::exception {
+	private:
+		std::string message;
+
+	public:
+		ParserException(const char* msg)
+			: message(msg)
+		{}
+
+		const char* what() const throw()
+		{
+			return message.c_str();
+		}
+	};
 public:
 	Parser(Lexer* const lexer) noexcept;
 	void SetLexer(Lexer* const newLexer) noexcept;
@@ -145,7 +159,8 @@ public:
 
 private:
 	LexToken GetNextToken();
-	bool ConsumeToken(const LexToken::TokenType expectedToken) noexcept;
+	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
+	bool ConsumeToken(const LexToken::TokenType expectedToken);
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<std::unique_ptr<Param>> ParseParams();
 	std::unique_ptr<Param> ParseParam();
@@ -174,5 +189,6 @@ private:
 	std::optional<FunctionLit> ParseFunctionLit();
 
 private:
+	std::optional<LexToken> lastUnusedToken = std::nullopt;
 	Lexer* lexer = nullptr;
 };
