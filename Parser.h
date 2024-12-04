@@ -88,6 +88,9 @@ public:
 
 	struct Param
 	{
+		Param() = default;
+		Param(const std::wstring& identifier, bool paramMutable = false) noexcept :
+			identifier(identifier), paramMutable(paramMutable) {}
 		bool paramMutable = false;
 		std::wstring identifier;
 	};

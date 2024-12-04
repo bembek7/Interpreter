@@ -26,7 +26,7 @@ LexToken Parser::GetNextToken()
 	}
 	else
 	{
-		const auto& out = std::move(*lastUnusedToken);
+		const auto out = std::move(*lastUnusedToken);
 		lastUnusedToken = std::nullopt;
 		return out;
 	}
