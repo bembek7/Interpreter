@@ -2,54 +2,74 @@
 #include <stdexcept>
 #include <optional>
 
-LexToken::LexToken(const TokenType type, const Position position, const std::variant<std::monostate, std::wstring, int, float, bool>& value) :
+LexToken::LexToken(const TokenType type, const Position position, const std::monostate value) :
 	type(type), position(position), value(value)
 {
-	bool invalid = false;
 	switch (type)
 	{
 	case TokenType::String:
 	case TokenType::Identifier:
-		if (!std::holds_alternative<std::wstring>(value))
-		{
-			invalid = true;
-		}
-		break;
 	case TokenType::Float:
-		if (!std::holds_alternative<float>(value))
-		{
-			invalid = true;
-		}
-		break;
 	case TokenType::Integer:
-		if (!std::holds_alternative<int>(value))
-		{
-			invalid = true;
-		}
-		break;
 	case TokenType::Boolean:
-		if (!std::holds_alternative<bool>(value))
-		{
-			invalid = true;
-		}
-		break;
-	case TokenType::Unrecognized:
-		if (!std::holds_alternative<std::wstring>(value) && !std::holds_alternative<std::monostate>(value))
-		{
-			invalid = true;
-		}
+		throw std::runtime_error("Invalid type passed to a variant for this type of token");
 		break;
 	default:
-		if (!std::holds_alternative<std::monostate>(value))
-		{
-			invalid = true;
-		}
 		break;
 	}
+}
 
-	if (invalid)
+LexToken::LexToken(const TokenType type, const Position position, const std::wstring value) :
+	type(type), position(position), value(value)
+{
+	switch (type)
 	{
+	case TokenType::String:
+	case TokenType::Identifier:
+	case TokenType::Unrecognized:
+		break;
+	default:
 		throw std::runtime_error("Invalid type passed to a variant for this type of token");
+		break;
+	}
+}
+
+LexToken::LexToken(const TokenType type, const Position position, const int value) :
+	type(type), position(position), value(value)
+{
+	switch (type)
+	{
+	case TokenType::Integer:
+		break;
+	default:
+		throw std::runtime_error("Invalid type passed to a variant for this type of token");
+		break;
+	}
+}
+
+LexToken::LexToken(const TokenType type, const Position position, const float value) :
+	type(type), position(position), value(value)
+{
+	switch (type)
+	{
+	case TokenType::Float:
+		break;
+	default:
+		throw std::runtime_error("Invalid type passed to a variant for this type of token");
+		break;
+	}
+}
+
+LexToken::LexToken(const TokenType type, const Position position, const bool value) :
+	type(type), position(position), value(value)
+{
+	switch (type)
+	{
+	case TokenType::Boolean:
+		break;
+	default:
+		throw std::runtime_error("Invalid type passed to a variant for this type of token");
+		break;
 	}
 }
 

@@ -55,7 +55,11 @@ public:
 		FunctionCompose
 	};
 
-	LexToken(const TokenType type, const Position position, const std::variant<std::monostate, std::wstring, int, float, bool>& value = std::monostate{});
+	LexToken(const TokenType type, const Position position, const std::monostate value = std::monostate{});
+	LexToken(const TokenType type, const Position position, const std::wstring value);
+	LexToken(const TokenType type, const Position position, const int value);
+	LexToken(const TokenType type, const Position position, const float value);
+	LexToken(const TokenType type, const Position position, const bool value);
 
 	static std::optional<TokenType> FindTokenInMap(const std::wstring& key, const std::unordered_map<std::wstring, LexToken::TokenType>& map) noexcept;
 
