@@ -51,7 +51,7 @@ func main()
 -----------------
 func compose(f, g)
 {
-    return func(x){ return f(g(x));}
+    return (x){ return f(g(x));};
 }
 
 func square(x)
@@ -67,23 +67,4 @@ func increment(x)
 var composed_function = compose(square, increment);
 var result = composed_function(3);
 print(result);
------------------
-func log_decorator(func)
-{
-    return func(args...)
-    {
-        print("Called function: " + func.name);
-        print("Arguments: " + args);
-        var result = func(args...);
-        print("Result: " + result);
-        return result;
-    }
-}
-func Add(a, b)
-{
-    return a + b;
-}
-
-var decorated_add = log_decorator(Add);
-var result = decorated_add(3, 4);
 -----------------

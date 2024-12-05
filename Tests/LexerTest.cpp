@@ -169,7 +169,7 @@ TEST_F(LexerTest, StringLiteralRecognition)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"Hello, World!"},
+		{LexToken::TokenType::String, Position(1, 1), std::wstring(L"Hello, World!")},
 		{LexToken::TokenType::EndOfFile, Position(1, 16)}
 	};
 
@@ -386,7 +386,7 @@ TEST_F(LexerTest, UnrecognizedCharacterRecognition)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Unrecognized, Position(1, 1), L"@"},
+		{LexToken::TokenType::Unrecognized, Position(1, 1), std::wstring(L"@")},
 		{LexToken::TokenType::EndOfFile, Position(1, 2)}
 	};
 
@@ -408,11 +408,11 @@ TEST_F(LexerTest, MultipleTokensIncludingWhitespaceAndOperators)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Var, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 5), L"count"},
+		{LexToken::TokenType::Identifier, Position(1, 5), std::wstring(L"count")},
 		{LexToken::TokenType::Assign, Position(1, 11)},
 		{LexToken::TokenType::Integer, Position(1, 13), 123},
 		{LexToken::TokenType::Plus, Position(1, 17)},
-		{LexToken::TokenType::Identifier, Position(1, 19), L"myVar"},
+		{LexToken::TokenType::Identifier, Position(1, 19), std::wstring(L"myVar")},
 		{LexToken::TokenType::Asterisk, Position(1, 25)},
 		{LexToken::TokenType::Integer, Position(1, 27), 4},
 		{LexToken::TokenType::Semicolon, Position(1, 28)},
@@ -433,7 +433,7 @@ TEST_F(LexerTest, LongStringLiteralWithEscapedCharacters)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"This is a long string with \"escaped quotes\" and new\nlines"},
+		{LexToken::TokenType::String, Position(1, 1), std::wstring(L"This is a long string with \"escaped quotes\" and new\nlines")},
 		{LexToken::TokenType::EndOfFile, Position(1, 63)}
 	};
 
@@ -543,9 +543,9 @@ TEST_F(LexerTest, MalformedTokens)
 	{
 		{LexToken::TokenType::Unrecognized, Position(1, 1)},
 		{LexToken::TokenType::Var, Position(1, 7)},
-		{LexToken::TokenType::Unrecognized, Position(1, 10), L"$"},
-		{LexToken::TokenType::Unrecognized, Position(1, 12), L"%"},
-		{LexToken::TokenType::Identifier, Position(1, 13), L"abc"},
+		{LexToken::TokenType::Unrecognized, Position(1, 10), std::wstring(L"$")},
+		{LexToken::TokenType::Unrecognized, Position(1, 12), std::wstring(L"%")},
+		{LexToken::TokenType::Identifier, Position(1, 13), std::wstring(L"abc")},
 		{LexToken::TokenType::EndOfFile, Position(1, 16)}
 	};
 
@@ -570,7 +570,7 @@ TEST_F(LexerTest, NestedCommentsAndOperators)
 	{
 		{LexToken::TokenType::Comment, Position(1, 1)},
 		{LexToken::TokenType::Var, Position(2, 1)},
-		{LexToken::TokenType::Identifier, Position(2, 5), L"x"},
+		{LexToken::TokenType::Identifier, Position(2, 5), std::wstring(L"x")},
 		{LexToken::TokenType::PlusAssign, Position(2, 7)},
 		{LexToken::TokenType::Integer, Position(2, 10), 10},
 		{LexToken::TokenType::Comment, Position(2, 13)},
@@ -591,7 +591,7 @@ TEST_F(LexerTest, KeytwordInIdentifier)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::Identifier, Position(1, 1), L"while123"},
+		{LexToken::TokenType::Identifier, Position(1, 1), std::wstring(L"while123")},
 		{LexToken::TokenType::EndOfFile, Position(1, 9)}
 	};
 
@@ -610,17 +610,17 @@ TEST_F(LexerTest, EdgeCaseMultipleNewlinesAndTabs)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Var, Position(3, 3)},
-		{LexToken::TokenType::Identifier, Position(3, 7), L"a"},
+		{LexToken::TokenType::Identifier, Position(3, 7), std::wstring(L"a")},
 		{LexToken::TokenType::Assign, Position(3, 9)},
 		{LexToken::TokenType::Integer, Position(3, 11), 5},
 		{LexToken::TokenType::While, Position(4, 1)},
 		{LexToken::TokenType::LParenth, Position(4, 7)},
-		{LexToken::TokenType::Identifier, Position(4, 8), L"a"},
+		{LexToken::TokenType::Identifier, Position(4, 8), std::wstring(L"a")},
 		{LexToken::TokenType::Less, Position(4, 10)},
 		{LexToken::TokenType::Integer, Position(4, 12), 10},
 		{LexToken::TokenType::RParenth, Position(4, 14)},
 		{LexToken::TokenType::LBracket, Position(4, 16)},
-		{LexToken::TokenType::Identifier, Position(4, 18), L"a"},
+		{LexToken::TokenType::Identifier, Position(4, 18), std::wstring(L"a")},
 		{LexToken::TokenType::PlusAssign, Position(4, 20)},
 		{LexToken::TokenType::Integer, Position(4, 23), 1},
 		{LexToken::TokenType::Semicolon, Position(4, 24)},
@@ -643,16 +643,16 @@ TEST_F(LexerTest, VariableAssignmentAndComment)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Var, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 5), L"a"},
+		{LexToken::TokenType::Identifier, Position(1, 5), std::wstring(L"a")},
 		{LexToken::TokenType::Assign, Position(1, 7)},
 		{LexToken::TokenType::Integer, Position(1, 9), 10},
 		{LexToken::TokenType::Semicolon, Position(1, 11)},
 		{LexToken::TokenType::Var, Position(3, 1)},
-		{LexToken::TokenType::Identifier, Position(3, 5), L"b"},
+		{LexToken::TokenType::Identifier, Position(3, 5), std::wstring(L"b")},
 		{LexToken::TokenType::Assign, Position(3, 7)},
-		{LexToken::TokenType::Identifier, Position(3, 9), L"a"},
+		{LexToken::TokenType::Identifier, Position(3, 9), std::wstring(L"a")},
 		{LexToken::TokenType::Asterisk, Position(3, 11)},
-		{LexToken::TokenType::Identifier, Position(3, 13), L"a"},
+		{LexToken::TokenType::Identifier, Position(3, 13), std::wstring(L"a")},
 		{LexToken::TokenType::Semicolon, Position(3, 14)},
 		{LexToken::TokenType::Comment, Position(5, 2)},
 		{LexToken::TokenType::EndOfFile, Position(6, 1)}
@@ -673,13 +673,13 @@ TEST_F(LexerTest, IfElseBlock)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Var, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 5), L"b"},
+		{LexToken::TokenType::Identifier, Position(1, 5), std::wstring(L"b")},
 		{LexToken::TokenType::Assign, Position(1, 7)},
 		{LexToken::TokenType::Boolean, Position(1, 9), false},
 		{LexToken::TokenType::Semicolon, Position(1, 14)},
 		{LexToken::TokenType::If, Position(3, 1)},
 		{LexToken::TokenType::LParenth, Position(3, 3)},
-		{LexToken::TokenType::Identifier, Position(3, 4), L"b"},
+		{LexToken::TokenType::Identifier, Position(3, 4), std::wstring(L"b")},
 		{LexToken::TokenType::RParenth, Position(3, 5)},
 		{LexToken::TokenType::LBracket, Position(4, 1)},
 		{LexToken::TokenType::Comment, Position(5, 2)},
@@ -707,7 +707,7 @@ TEST_F(LexerTest, WhileLoop)
 	{
 		{LexToken::TokenType::While, Position(1, 1)},
 		{LexToken::TokenType::LParenth, Position(1, 6)},
-		{LexToken::TokenType::Identifier, Position(1, 7), L"a"},
+		{LexToken::TokenType::Identifier, Position(1, 7), std::wstring(L"a")},
 		{LexToken::TokenType::Less, Position(1, 9)},
 		{LexToken::TokenType::Integer, Position(1, 11), 10},
 		{LexToken::TokenType::RParenth, Position(1, 13)},
@@ -732,21 +732,21 @@ TEST_F(LexerTest, RecursiveFunction)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Func, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 6), L"Fizz"},
+		{LexToken::TokenType::Identifier, Position(1, 6), std::wstring(L"Fizz")},
 		{LexToken::TokenType::LParenth, Position(1, 10)},
-		{LexToken::TokenType::Identifier, Position(1, 11), L"a"},
+		{LexToken::TokenType::Identifier, Position(1, 11), std::wstring(L"a")},
 		{LexToken::TokenType::Comma, Position(1, 12)},
-		{LexToken::TokenType::Identifier, Position(1, 14), L"b"},
+		{LexToken::TokenType::Identifier, Position(1, 14), std::wstring(L"b")},
 		{LexToken::TokenType::RParenth, Position(1, 15)},
 		{LexToken::TokenType::LBracket, Position(2, 1)},
 		{LexToken::TokenType::Return, Position(3, 2)},
-		{LexToken::TokenType::Identifier, Position(3, 9), L"Fizz"},
+		{LexToken::TokenType::Identifier, Position(3, 9), std::wstring(L"Fizz")},
 		{LexToken::TokenType::LParenth, Position(3, 13)},
-		{LexToken::TokenType::Identifier, Position(3, 14), L"a"},
+		{LexToken::TokenType::Identifier, Position(3, 14), std::wstring(L"a")},
 		{LexToken::TokenType::Minus, Position(3, 16)},
 		{LexToken::TokenType::Integer, Position(3, 18), 1},
 		{LexToken::TokenType::Comma, Position(3, 19)},
-		{LexToken::TokenType::Identifier, Position(3, 21), L"b"},
+		{LexToken::TokenType::Identifier, Position(3, 21), std::wstring(L"b")},
 		{LexToken::TokenType::RParenth, Position(3, 22)},
 		{LexToken::TokenType::Semicolon, Position(3, 23)},
 		{LexToken::TokenType::RBracket, Position(4, 1)},
@@ -768,17 +768,17 @@ TEST_F(LexerTest, FunctionWithReturn)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Func, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 6), L"Add"},
+		{LexToken::TokenType::Identifier, Position(1, 6), std::wstring(L"Add")},
 		{LexToken::TokenType::LParenth, Position(1, 9)},
-		{LexToken::TokenType::Identifier, Position(1, 10), L"a"},
+		{LexToken::TokenType::Identifier, Position(1, 10), std::wstring(L"a")},
 		{LexToken::TokenType::Comma, Position(1, 11)},
-		{LexToken::TokenType::Identifier, Position(1, 13), L"b"},
+		{LexToken::TokenType::Identifier, Position(1, 13), std::wstring(L"b")},
 		{LexToken::TokenType::RParenth, Position(1, 14)},
 		{LexToken::TokenType::LBracket, Position(2, 1)},
 		{LexToken::TokenType::Return, Position(3, 2)},
-		{LexToken::TokenType::Identifier, Position(3, 9), L"a"},
+		{LexToken::TokenType::Identifier, Position(3, 9), std::wstring(L"a")},
 		{LexToken::TokenType::Plus, Position(3, 11)},
-		{LexToken::TokenType::Identifier, Position(3, 13), L"b"},
+		{LexToken::TokenType::Identifier, Position(3, 13), std::wstring(L"b")},
 		{LexToken::TokenType::Semicolon, Position(3, 14)},
 		{LexToken::TokenType::RBracket, Position(4, 1)},
 		{LexToken::TokenType::EndOfFile, Position(4, 2)}
@@ -799,7 +799,7 @@ TEST_F(LexerTest, SimpleMainFunction)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Func, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 6), L"main"},
+		{LexToken::TokenType::Identifier, Position(1, 6), std::wstring(L"main")},
 		{LexToken::TokenType::LParenth, Position(1, 10)},
 		{LexToken::TokenType::RParenth, Position(1, 11)},
 		{LexToken::TokenType::LBracket, Position(2, 1)},
@@ -822,25 +822,25 @@ TEST_F(LexerTest, HigherOrderFunctionComposition)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Func, Position(1, 1)},
-		{LexToken::TokenType::Identifier, Position(1, 6), L"compose"},
+		{LexToken::TokenType::Identifier, Position(1, 6), std::wstring(L"compose")},
 		{LexToken::TokenType::LParenth, Position(1, 13)},
-		{LexToken::TokenType::Identifier, Position(1, 14), L"f"},
+		{LexToken::TokenType::Identifier, Position(1, 14), std::wstring(L"f")},
 		{LexToken::TokenType::Comma, Position(1, 15)},
-		{LexToken::TokenType::Identifier, Position(1, 17), L"g"},
+		{LexToken::TokenType::Identifier, Position(1, 17), std::wstring(L"g")},
 		{LexToken::TokenType::RParenth, Position(1, 18)},
 		{LexToken::TokenType::LBracket, Position(2, 1)},
 		{LexToken::TokenType::Return, Position(3, 2)},
 		{LexToken::TokenType::Func, Position(3, 9)},
 		{LexToken::TokenType::LParenth, Position(3, 13)},
-		{LexToken::TokenType::Identifier, Position(3, 14), L"x"},
+		{LexToken::TokenType::Identifier, Position(3, 14), std::wstring(L"x")},
 		{LexToken::TokenType::RParenth, Position(3, 15)},
 		{LexToken::TokenType::LBracket, Position(3, 17)},
 		{LexToken::TokenType::Return, Position(3, 19)},
-		{LexToken::TokenType::Identifier, Position(3, 26), L"f"},
+		{LexToken::TokenType::Identifier, Position(3, 26), std::wstring(L"f")},
 		{LexToken::TokenType::LParenth, Position(3, 27)},
-		{LexToken::TokenType::Identifier, Position(3, 28), L"g"},
+		{LexToken::TokenType::Identifier, Position(3, 28), std::wstring(L"g")},
 		{LexToken::TokenType::LParenth, Position(3, 29)},
-		{LexToken::TokenType::Identifier, Position(3, 30), L"x"},
+		{LexToken::TokenType::Identifier, Position(3, 30), std::wstring(L"x")},
 		{LexToken::TokenType::RParenth, Position(3, 31)},
 		{LexToken::TokenType::RParenth, Position(3, 32)},
 		{LexToken::TokenType::Semicolon, Position(3, 33)},
@@ -957,6 +957,7 @@ TEST_F(LexerTest, FloatOverflow)
 	std::vector<LexToken> expectedTokens =
 	{
 		{LexToken::TokenType::Unrecognized, Position(1, 1)},
+
 		{LexToken::TokenType::EndOfFile, Position(1, 44)}
 	};
 
@@ -1042,7 +1043,7 @@ TEST_F(LexerTest, StringLiteralWithValidEscapes)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"Line1\nLine2\tTabbed"},
+		{LexToken::TokenType::String, Position(1, 1), std::wstring(L"Line1\nLine2\tTabbed")},
 		{LexToken::TokenType::EndOfFile, Position(1, 23)}
 	};
 
@@ -1082,7 +1083,7 @@ TEST_F(LexerTest, StringLiteralInvalidEscapeSequence)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"InvalidxEscape"},
+		{LexToken::TokenType::String, Position(1, 1), std::wstring(L"InvalidxEscape")},
 		{LexToken::TokenType::EndOfFile, Position(1, 17)}
 	};
 
@@ -1103,7 +1104,7 @@ TEST_F(LexerTest, StringLiteralsComplexScenarios)
 
 	std::vector<LexToken> expectedTokens =
 	{
-		{LexToken::TokenType::String, Position(1, 1), L"Valid string"},
+		{LexToken::TokenType::String, Position(1, 1), std::wstring(L"Valid string")},
 		{LexToken::TokenType::Unrecognized, Position(1, 16)},
 		{LexToken::TokenType::EndOfFile, Position(1, 1034)},
 	};

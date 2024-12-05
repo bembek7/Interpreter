@@ -261,27 +261,19 @@ std::optional<LexToken> Lexer::TryBuildNumber()
 		}
 	}
 
-	LexToken::TokenType tokenType;
-	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (isFloat)
 	{
-		tokenType = LexToken::TokenType::Float;
-		tokenValue = builtValueFloat;
-	}
-	else
-	{
-		if (!integerOverflows)
-		{
-			tokenValue = builtValueInt;
-		}
-		else
-		{
-			THROW_NUMBER_ERROR(LexicalError::ErrorType::IntegerOverflow, numberLength, isFloat);
-		}
-		tokenType = LexToken::TokenType::Integer;
+		const auto token = LexToken(LexToken::TokenType::Float, currentPosition, builtValueFloat);
+		currentPosition.column += numberLength;
+		return token;
 	}
 
-	const auto token = LexToken(tokenType, currentPosition, tokenValue);
+	if (integerOverflows)
+	{
+		THROW_NUMBER_ERROR(LexicalError::ErrorType::IntegerOverflow, numberLength, isFloat);
+	}
+
+	const auto token = LexToken(LexToken::TokenType::Integer, currentPosition, builtValueInt);
 	currentPosition.column += numberLength;
 	return token;
 }
@@ -309,22 +301,20 @@ std::optional<LexToken> Lexer::TryBuildWord()
 	}
 	source->unget();
 
-	LexToken::TokenType tokenType;
-	std::variant<std::monostate, std::wstring, int, float, bool> tokenValue;
 	if (const auto tokenTypeOpt = LexToken::FindTokenInMap(word, keywords))
 	{
-		tokenType = tokenTypeOpt.value();
-		if (tokenType == LexToken::TokenType::Boolean)
+		if (*tokenTypeOpt == LexToken::TokenType::Boolean)
 		{
-			tokenValue = (word == L"true");
+			const auto token = LexToken(LexToken::TokenType::Boolean, currentPosition, (word == L"true"));
+			currentPosition.column += word.length();
+			return token;
 		}
+		const auto token = LexToken(*tokenTypeOpt, currentPosition);
+		currentPosition.column += word.length();
+		return token;
 	}
-	else
-	{
-		tokenType = LexToken::TokenType::Identifier;
-		tokenValue = word;
-	}
-	const auto token = LexToken(tokenType, currentPosition, tokenValue);
+
+	const auto token = LexToken(LexToken::TokenType::Identifier, currentPosition, word);
 	currentPosition.column += word.length();
 	return token;
 }
@@ -334,7 +324,7 @@ std::optional<LexToken> Lexer::TryBuildSingleSymbol()
 	auto symbol = std::wstring{ currentChar };
 	if (const auto tokenType = LexToken::FindTokenInMap({ currentChar }, symbols))
 	{
-		const auto token = LexToken(tokenType.value(), currentPosition);
+		const auto token = LexToken(*tokenType, currentPosition);
 		currentPosition.column++;
 		return token;
 	}
@@ -349,7 +339,7 @@ std::optional<LexToken> Lexer::TryBuildTwoCharsOperator()
 	{
 		if (const auto tokenType = LexToken::FindTokenInMap({ currentChar, nextChar }, twoCharsOperators))
 		{
-			const auto token = LexToken(tokenType.value(), currentPosition);
+			const auto token = LexToken(*tokenType, currentPosition);
 			currentPosition.column += 2;
 			return token;
 		}
@@ -362,7 +352,7 @@ std::optional<LexToken> Lexer::TryBuildSymbolsMix()
 {
 	if (std::optional<LexToken> token = TryBuildTwoCharsOperator())
 	{
-		return token.value();
+		return *token;
 	}
 	else
 	{
@@ -444,29 +434,29 @@ LexToken Lexer::BuildToken()
 	std::optional<LexToken> token;
 	if (token = TryBuildComment())
 	{
-		return token.value();
+		return *token;
 	}
 	if (token = TryBuildNumber())
 	{
-		return token.value();
+		return *token;
 	}
 	if (token = TryBuildWord())
 	{
-		return token.value();
+		return *token;
 	}
 	if (token = TryBuildSymbolsMix())
 	{
-		return token.value();
+		return *token;
 	}
 	if (token = TryBuildStringLiteral())
 	{
-		return token.value();
+		return *token;
 	}
 
 	currentErrors.push_back(LexicalError(LexicalError::ErrorType::UnrecognizedSymbol, currentPosition));
 	token = LexToken(LexToken::TokenType::Unrecognized, currentPosition, std::wstring{ currentChar });
 	currentPosition.column++;
-	return token.value();
+	return *token;
 }
 
 bool Lexer::SkipNumber(bool dotOccured)
@@ -540,6 +530,8 @@ bool Lexer::SkipStringLiteral()
 
 		prevChar = currentChar;
 	}
+
+	return true;
 }
 
 bool Lexer::SkipIdentifier()
@@ -563,4 +555,6 @@ bool Lexer::SkipIdentifier()
 			return true;
 		}
 	}
+
+	return true;
 }
