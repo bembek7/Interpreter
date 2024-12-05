@@ -12,13 +12,32 @@ project("Interpreter")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(Interpreter "Main.cpp")
+# Set the data path (adjust as needed)
+set(EXAMPLE_CODES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ExampleCodes/")
+
+# Configure the header file
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/PathConfig.h.in"
+    "${CMAKE_BINARY_DIR}/PathConfig.h"
+)
+
+include_directories("${CMAKE_BINARY_DIR}")
+
+# Add a library target for sharing with the test executable
+add_library(InterpreterLib "Lexer.cpp" "Lexer.h" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp")
+
+# Add the executable for running the program
+add_executable(Interpreter "Main.cpp" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp")
+
+# Link the executable to the library
+target_link_libraries(Interpreter PRIVATE InterpreterLib)
 
 # Include FetchContent module for GoogleTest
 include(FetchContent)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

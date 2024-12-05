@@ -1,8 +1,9 @@
 # Create a test executable
-add_executable(InterpreterTest "Test.cpp")
+add_executable(InterpreterTest "LexerTest.cpp")
 
-# Link GoogleTest libraries
-target_link_libraries(InterpreterTest GTest::gtest_main)
+target_include_directories(InterpreterTest PRIVATE "${CMAKE_SOURCE_DIR}")
+
+target_link_libraries(InterpreterTest PRIVATE InterpreterLib GTest::gtest_main)
 
 # Discover and register tests
 include(GoogleTest)

@@ -1,0 +1,7 @@
+#pragma once
+#include <string>
+
+namespace CodesPath
+{
+	const std::string exampleCodesPath = "@EXAMPLE_CODES_PATH@";
+}
