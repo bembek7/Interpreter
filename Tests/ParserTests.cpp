@@ -7,26 +7,10 @@ class ParserTest : public ::testing::Test
 {
 };
 
-static void CompareStatements(const Statement* const param, const Statement* const expectedParam)
-{
-	ASSERT_EQ(typeid(*param), typeid(*expectedParam));
-	//EXPECT_EQ(*param, *expectedParam);
-}
-
 static void CompareParams(const Param* const param, const Param* const expectedParam)
 {
 	EXPECT_EQ(param->paramMutable, expectedParam->paramMutable);
 	EXPECT_EQ(param->identifier, expectedParam->identifier);
-}
-
-static void CompareBlocks(const Block* const block, const Block* const expectedBlock)
-{
-	ASSERT_EQ(block->statements.size(), expectedBlock->statements.size());
-
-	for (size_t i = 0; i < block->statements.size(); ++i)
-	{
-		CompareStatements(block->statements[i].get(), expectedBlock->statements[i].get());
-	}
 }
 
 static void CompareFunDefs(const FunctionDefiniton* const funDef, const FunctionDefiniton* const expectedFunDef)
@@ -38,6 +22,8 @@ static void CompareFunDefs(const FunctionDefiniton* const funDef, const Function
 	{
 		CompareParams(funDef->parameters[i].get(), expectedFunDef->parameters[i].get());
 	}
+
+	EXPECT_EQ(*funDef->block, *expectedFunDef->block);
 }
 
 static void ComparePrograms(const Program& program, const Program& expectedProgram)
@@ -63,6 +49,7 @@ TEST_F(ParserTest, SimpleMainFunction)
 
 	auto exFunDef = std::make_unique<FunctionDefiniton>();
 	exFunDef->identifier = L"main";
+	exFunDef->block = std::make_unique<Block>(std::vector<std::unique_ptr<Statement>>{});
 
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
@@ -85,7 +72,7 @@ TEST_F(ParserTest, FunctionWithParameters)
 	exFunDef->parameters.push_back(std::make_unique<Param>(L"a", true));
 	exFunDef->parameters.push_back(std::make_unique<Param>(L"c"));
 	exFunDef->parameters.push_back(std::make_unique<Param>(L"d", true));
-
+	exFunDef->block = std::make_unique<Block>(std::vector<std::unique_ptr<Statement>>{});
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
 	ComparePrograms(program, expectedProgram);

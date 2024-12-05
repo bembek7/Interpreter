@@ -9,6 +9,8 @@
 struct Statement
 {
 	virtual ~Statement() = default;
+	friend bool operator==(const Statement&, const Statement&);
+	virtual bool isEqual(const Statement& obj) const { return true; }
 };
 
 struct Literal { bool b = false; };
@@ -84,6 +86,23 @@ struct Block : Statement
 	Block(std::vector<std::unique_ptr<Statement>> statements) noexcept :
 		statements(std::move(statements)) {}
 	std::vector<std::unique_ptr<Statement>> statements;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const Block&>(obj);
+		bool blocksEqual = (statements.size() == casted.statements.size());
+		if (!blocksEqual)
+		{
+			return false;
+		}
+		for (size_t i = 0; i < statements.size(); ++i)
+		{
+			if (*statements[i] != *casted.statements[i])
+			{
+				return false;
+			}
+		}
+		return Statement::isEqual(casted) && blocksEqual;
+	}
 };
 
 struct FunctionCall : Statement
@@ -92,6 +111,12 @@ struct FunctionCall : Statement
 		identifier(identifier), arguments(std::move(arguments)) {}
 	std::wstring identifier;
 	std::vector<std::unique_ptr<Expression>> arguments;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const FunctionCall&>(obj);
+		//add stuff
+		return Statement::isEqual(casted) && casted.identifier == identifier;
+	}
 };
 
 struct Conditional : Statement
@@ -99,12 +124,25 @@ struct Conditional : Statement
 	std::unique_ptr<Expression> condition;
 	std::unique_ptr<Block> ifBlock;
 	std::unique_ptr<Block> elseBlock;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const Conditional&>(obj);
+		//add stuff
+		return Statement::isEqual(casted) && casted.ifBlock == ifBlock
+			&& casted.elseBlock == elseBlock;
+	}
 };
 
 struct WhileLoop : Statement
 {
 	std::unique_ptr<Expression> condition;
 	std::unique_ptr<Block> block;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const WhileLoop&>(obj);
+		//add stuff
+		return Statement::isEqual(casted) && casted.block == block;
+	}
 };
 
 struct Return : Statement
@@ -112,6 +150,12 @@ struct Return : Statement
 	Return(std::unique_ptr<Expression> expression) noexcept :
 		expression(std::move(expression)) {}
 	std::unique_ptr<Expression> expression;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const Return&>(obj);
+		//add stuff
+		return Statement::isEqual(casted);
+	}
 };
 
 struct Declaration : Statement
@@ -119,6 +163,13 @@ struct Declaration : Statement
 	bool varMutable = false;
 	std::wstring identifier;
 	std::unique_ptr<Expression> expression;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const Declaration&>(obj);
+		//add stuff
+		return Statement::isEqual(casted) && casted.varMutable == varMutable
+			&& casted.identifier == identifier;
+	}
 };
 
 struct Assignment : Statement
@@ -128,6 +179,12 @@ struct Assignment : Statement
 
 	std::wstring identifier;
 	std::unique_ptr<Expression> expression;
+	virtual bool isEqual(const Statement& obj) const override
+	{
+		auto& casted = static_cast<const Assignment&>(obj);
+		//add stuff
+		return Statement::isEqual(casted) && casted.identifier == identifier;
+	}
 };
 
 struct FunctionDefiniton
