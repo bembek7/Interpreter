@@ -586,16 +586,16 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 		return factor;
 	}
 
-	//if (ConsumeToken(LT::LParenth))
-	//{
-	//	auto expression = ParseExpression();
-	//	factor.factor = std::move(expression);
-	//	if (!ConsumeToken(LT::RParenth))
-	//	{
-	//		// error
-	//	}
-	//	return factor;
-	//}
+	if (ConsumeToken(LT::LParenth))
+	{
+		auto expression = ParseExpression();
+		factor->factor = std::move(expression);
+		if (!ConsumeToken(LT::RParenth))
+		{
+			// error
+		}
+		return factor;
+	}
 
 	const auto idToken = GetExpectedToken(LT::Identifier);
 	if (idToken)
@@ -604,12 +604,12 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 		return factor;
 	}
 
-	/*auto functionCall = ParseFunctionCall();
+	auto functionCall = ParseFunctionCall();
 	if (functionCall)
 	{
-		factor.factor = *(functionCall.release());
+		factor->factor = std::move(functionCall);
 		return factor;
-	}*/
+	}
 
 	if (factor->logicallyNegated)
 	{
@@ -627,21 +627,25 @@ std::unique_ptr<Literal> Parser::ParseLiteral()
 	const auto integer = GetExpectedToken(LT::Integer);
 	if (integer)
 	{
+		return std::make_unique<Literal>(std::get<int>(integer->GetValue()));
 	}
 
 	const auto floatNumber = GetExpectedToken(LT::Float);
 	if (floatNumber)
 	{
+		return std::make_unique<Literal>(std::get<float>(floatNumber->GetValue()));
 	}
 
 	const auto string = GetExpectedToken(LT::String);
 	if (string)
 	{
+		return std::make_unique<Literal>(std::get<std::wstring>(string->GetValue()));
 	}
 
 	const auto boolean = GetExpectedToken(LT::Boolean);
 	if (boolean)
 	{
+		return std::make_unique<Literal>(std::get<bool>(boolean->GetValue()));
 	}
 
 	return nullptr;
