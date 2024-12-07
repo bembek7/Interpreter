@@ -152,7 +152,7 @@ struct Param
 
 struct Block : Statement
 {
-	Block(std::vector<std::unique_ptr<Statement>> statements) noexcept :
+	Block(std::vector<std::unique_ptr<Statement>> statements = {}) noexcept :
 		statements(std::move(statements)) {}
 	std::vector<std::unique_ptr<Statement>> statements;
 protected:
@@ -166,7 +166,7 @@ protected:
 
 struct FunctionCall : Statement
 {
-	FunctionCall(const std::wstring& identifier, std::vector<std::unique_ptr<Expression>> arguments) noexcept :
+	FunctionCall(const std::wstring& identifier, std::vector<std::unique_ptr<Expression>> arguments = {}) noexcept :
 		identifier(identifier), arguments(std::move(arguments)) {}
 	std::wstring identifier;
 	std::vector<std::unique_ptr<Expression>> arguments;
@@ -206,7 +206,7 @@ struct WhileLoop : Statement
 
 struct Return : Statement
 {
-	Return(std::unique_ptr<Expression> expression) noexcept :
+	Return(std::unique_ptr<Expression> expression = nullptr) noexcept :
 		expression(std::move(expression)) {}
 	std::unique_ptr<Expression> expression;
 protected:
