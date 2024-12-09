@@ -2,6 +2,7 @@
 #include <istream>
 #include "Lexer.h"
 #include "ParserObjects.h"
+#include <queue>
 
 class Parser
 {
@@ -28,7 +29,7 @@ public:
 private:
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
-	bool ConsumeToken(const LexToken::TokenType expectedToken);
+	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<std::unique_ptr<Param>> ParseParams();
 	std::unique_ptr<Param> ParseParam();
@@ -51,12 +52,12 @@ private:
 	std::unique_ptr<Factor> ParseFactor();
 	std::unique_ptr<Literal> ParseLiteral();
 
-	std::optional<FuncExpression> ParseFuncExpression();
-	std::optional<Composable> ParseComposable();
-	std::optional<Bindable> ParseBindable();
-	std::optional<FunctionLit> ParseFunctionLit();
+	std::unique_ptr<FuncExpression> ParseFuncExpression();
+	std::unique_ptr<Composable> ParseComposable();
+	std::unique_ptr<Bindable> ParseBindable();
+	std::unique_ptr<FunctionLit> ParseFunctionLit();
 
 private:
-	std::optional<LexToken> lastUnusedToken = std::nullopt;
+	std::queue<LexToken> unusedTokens = {};
 	Lexer* lexer = nullptr;
 };

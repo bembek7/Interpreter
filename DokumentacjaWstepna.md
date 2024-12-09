@@ -257,7 +257,7 @@ factor                = [ "!" ], (literal | "(", expression, ")" | identifier | 
 
 func_expression       = composable, { ">>", composable };
 composable            = bindable, [ "<<", "(", arguments, ")" ];
-bindable              = (function_lit | identifier | func_expression);
+bindable              = (function_lit | identifier |  "(", func_expression, ")");
 
 function_lit          = "(", parameters, ")", block;
 literal               = number | string | boolean;
