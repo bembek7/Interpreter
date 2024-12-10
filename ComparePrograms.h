@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
+static void CompareStandardExpressions(const StandardExpression* const expression, const StandardExpression* const expectedExpression);
 static void CompareExpressions(const Expression* const expression, const Expression* const expectedExpression);
 static void CompareFunctionCalls(const FunctionCall* const funcCall, const FunctionCall* const expectedFuncCall);
+static void CompareFunctionCallStatements(const FunctionCallStatement* const funcCall, const FunctionCallStatement* const expectedFuncCall);
 static void CompareFuncExpressions(const FuncExpression* const funcExpr, const FuncExpression* const expectedFuncExpr);
 static void CompareComposables(const Composable* const composable, const Composable* const expectedComposable);
 static void CompareBindables(const Bindable* const bindable, const Bindable* const expectedBindable);
@@ -30,15 +32,20 @@ static void CompareExpressions(const Expression* const expression, const Express
 		ASSERT_TRUE(expectedFuncExpr != nullptr);
 		CompareFuncExpressions(funcExpr->get(), expectedFuncExpr->get());
 	}
-	else if (auto* conjunctions = std::get_if<std::vector<std::unique_ptr<Conjunction>>>(&expression->expression))
+	else if (auto* stdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expression->expression))
 	{
-		auto* expectedConjunctions = std::get_if<std::vector<std::unique_ptr<Conjunction>>>(&expectedExpression->expression);
-		ASSERT_TRUE(expectedConjunctions != nullptr);
-		ASSERT_EQ(conjunctions->size(), expectedConjunctions->size());
-		for (size_t i = 0; i < conjunctions->size(); ++i)
-		{
-			CompareConjunctions(conjunctions->at(i).get(), expectedConjunctions->at(i).get());
-		}
+		auto* expectedStdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expectedExpression->expression);
+		ASSERT_TRUE(expectedStdExpr != nullptr);
+		CompareStandardExpressions(stdExpr->get(), expectedStdExpr->get());
+	}
+}
+
+static void CompareStandardExpressions(const StandardExpression* const expression, const StandardExpression* const expectedExpression)
+{
+	ASSERT_EQ(expression->conjunctions.size(), expectedExpression->conjunctions.size());
+	for (size_t i = 0; i < expression->conjunctions.size(); ++i)
+	{
+		CompareConjunctions(expression->conjunctions[i].get(), expectedExpression->conjunctions[i].get());
 	}
 }
 
@@ -51,6 +58,11 @@ static void CompareFunctionCalls(const FunctionCall* const funcCall, const Funct
 	{
 		CompareExpressions(funcCall->arguments[i].get(), expectedFuncCall->arguments[i].get());
 	}
+}
+
+inline void CompareFunctionCallStatements(const FunctionCallStatement* const funcCall, const FunctionCallStatement* const expectedFuncCall)
+{
+	CompareFunctionCalls(funcCall->funcCall.get(), expectedFuncCall->funcCall.get());
 }
 
 static void CompareFuncExpressions(const FuncExpression* const funcExpr, const FuncExpression* const expectedFuncExpr)
@@ -160,11 +172,11 @@ static void CompareFactors(const Factor* const factor, const Factor* const expec
 		ASSERT_TRUE(expectedLit != nullptr);
 		CompareLiterals(lit, expectedLit);
 	}
-	else if (auto* expr = std::get_if<std::unique_ptr<Expression>>(&factor->factor))
+	else if (auto* expr = std::get_if<std::unique_ptr<StandardExpression>>(&factor->factor))
 	{
-		auto* expectedExpr = std::get_if<std::unique_ptr<Expression>>(&expectedFactor->factor);
+		auto* expectedExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expectedFactor->factor);
 		ASSERT_TRUE(expectedExpr != nullptr);
-		CompareExpressions(expr->get(), expectedExpr->get());
+		CompareStandardExpressions(expr->get(), expectedExpr->get());
 	}
 	else if (auto* funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&factor->factor))
 	{
@@ -203,7 +215,10 @@ static void CompareWhileLoops(const WhileLoop* const whileLoop, const WhileLoop*
 
 static void CompareReturns(const Return* const returnStmt, const Return* const expectedReturnStmt)
 {
-	CompareExpressions(returnStmt->expression.get(), expectedReturnStmt->expression.get());
+	if (returnStmt->expression != expectedReturnStmt->expression)
+	{
+		CompareExpressions(returnStmt->expression.get(), expectedReturnStmt->expression.get());
+	}
 }
 
 static void CompareDeclarations(const Declaration* const declaration, const Declaration* const expectedDeclaration)
@@ -243,11 +258,11 @@ static void CompareStatements(const Statement* const statement, const Statement*
 		ASSERT_TRUE(expectedBlockStmt != nullptr);
 		CompareBlocks(blockStmt, expectedBlockStmt);
 	}
-	else if (auto* funcCallStmt = dynamic_cast<const FunctionCall*>(statement))
+	else if (auto* funcCallStmt = dynamic_cast<const FunctionCallStatement*>(statement))
 	{
-		auto* expectedFuncCallStmt = dynamic_cast<const FunctionCall*>(expectedStatement);
+		auto* expectedFuncCallStmt = dynamic_cast<const FunctionCallStatement*>(expectedStatement);
 		ASSERT_TRUE(expectedFuncCallStmt != nullptr);
-		CompareFunctionCalls(funcCallStmt, expectedFuncCallStmt);
+		CompareFunctionCallStatements(funcCallStmt, expectedFuncCallStmt);
 	}
 	else if (auto* conditionalStmt = dynamic_cast<const Conditional*>(statement))
 	{

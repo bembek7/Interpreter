@@ -199,12 +199,8 @@ std::unique_ptr<Block> Parser::ParseBlock()
 //			| assignment
 std::unique_ptr<Statement> Parser::ParseStatement()
 {
-	if (auto funcCall = ParseFunctionCall())
+	if (auto funcCall = ParseFunctionCallStatement())
 	{
-		if (!ConsumeToken(LexToken::TokenType::Semicolon))
-		{
-			throw ParserException("Expected semicolon at the end", currentPosition);
-		}
 		return funcCall;
 	}
 	if (auto conditional = ParseConditional())
@@ -232,6 +228,19 @@ std::unique_ptr<Statement> Parser::ParseStatement()
 		return assignment;
 	}
 
+	return nullptr;
+}
+
+std::unique_ptr<FunctionCallStatement> Parser::ParseFunctionCallStatement()
+{
+	if (auto funcCall = ParseFunctionCall())
+	{
+		if (!ConsumeToken(LexToken::TokenType::Semicolon))
+		{
+			throw ParserException("Expected semicolon at the end", currentPosition);
+		}
+		return std::make_unique<FunctionCallStatement>(std::move(funcCall));
+	}
 	return nullptr;
 }
 
@@ -437,40 +446,46 @@ std::unique_ptr<Expression> Parser::ParseExpression()
 {
 	using LT = LexToken::TokenType;
 
-	auto conjunction = ParseConjunction();
-	if (conjunction)
+	if (ConsumeToken(LT::LSquareBracket))
 	{
-		std::vector<std::unique_ptr<Conjunction>> conjunctions;
-		conjunctions.push_back(std::move(conjunction));
-		while (ConsumeToken(LexToken::TokenType::LogicalOr))
+		auto fExpr = ParseFuncExpression();
+		if (!fExpr)
 		{
-			auto conjunction = ParseConjunction();
-			if (!conjunction)
-			{
-				throw ParserException("Expected expression after \"||\".", currentPosition);
-			}
-
-			conjunctions.push_back(std::move(conjunction));
+			throw ParserException("Expected function expression after \"[\".", currentPosition);
 		}
-		return std::make_unique<Expression>(std::move(conjunctions));
+		if (!ConsumeToken(LT::RSquareBracket))
+		{
+			throw ParserException("Expected \"]\" after function expression.", currentPosition);
+		}
+		return std::make_unique<Expression>(std::move(fExpr));
 	}
-	else
+	if (auto stdExpr = ParseStandardExpression())
 	{
-		if (ConsumeToken(LT::LSquareBracket))
-		{
-			auto fExpr = ParseFuncExpression();
-			if (!fExpr)
-			{
-				throw ParserException("Expected function expression after \"[\".", currentPosition);
-			}
-			if (!ConsumeToken(LT::RSquareBracket))
-			{
-				throw ParserException("Expected \"]\" after function expression.", currentPosition);
-			}
-			return std::make_unique<Expression>(std::move(fExpr));
-		}
+		return std::make_unique<Expression>(std::move(stdExpr));
 	}
 	return nullptr;
+}
+
+std::unique_ptr<StandardExpression> Parser::ParseStandardExpression()
+{
+	auto conjunction = ParseConjunction();
+	if (!conjunction)
+	{
+		return nullptr;
+	}
+	std::vector<std::unique_ptr<Conjunction>> conjunctions;
+	conjunctions.push_back(std::move(conjunction));
+	while (ConsumeToken(LexToken::TokenType::LogicalOr))
+	{
+		auto conjunction = ParseConjunction();
+		if (!conjunction)
+		{
+			throw ParserException("Expected expression after \"||\".", currentPosition);
+		}
+
+		conjunctions.push_back(std::move(conjunction));
+	}
+	return std::make_unique<StandardExpression>(std::move(conjunctions));
 }
 
 // conjunction = relation_term, { "&&", relation_term };
@@ -663,7 +678,7 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 
 	if (ConsumeToken(LT::LParenth))
 	{
-		auto expression = ParseExpression();
+		auto expression = ParseStandardExpression();
 		factor->factor = std::move(expression);
 		if (!ConsumeToken(LT::RParenth))
 		{

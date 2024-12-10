@@ -17,12 +17,19 @@ struct Block : Statement
 	std::vector<std::unique_ptr<Statement>> statements;
 };
 
-struct FunctionCall : Statement
+struct FunctionCall
 {
 	FunctionCall(const std::wstring& identifier, std::vector<std::unique_ptr<Expression>> arguments = {}) noexcept :
 		identifier(identifier), arguments(std::move(arguments)) {}
 	std::wstring identifier;
 	std::vector<std::unique_ptr<Expression>> arguments;
+};
+
+struct FunctionCallStatement : Statement
+{
+	FunctionCallStatement(std::unique_ptr<FunctionCall> funcCall) noexcept :
+		funcCall(std::move(funcCall)) {}
+	std::unique_ptr<FunctionCall> funcCall;
 };
 
 struct Conditional : Statement

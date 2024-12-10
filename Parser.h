@@ -40,7 +40,7 @@ private:
 
 	std::unique_ptr<Block> ParseBlock();
 	std::unique_ptr<Statement> ParseStatement();
-	std::unique_ptr<FunctionCall> ParseFunctionCall();
+	std::unique_ptr<FunctionCallStatement> ParseFunctionCallStatement();
 	std::unique_ptr<Conditional> ParseConditional();
 	std::unique_ptr<WhileLoop> ParseLoop();
 	std::unique_ptr<Return> ParseReturn();
@@ -48,7 +48,10 @@ private:
 	std::unique_ptr<Assignment> ParseAssignment();
 	std::vector<std::unique_ptr<Expression>> ParseArguments();
 
+	std::unique_ptr<FunctionCall> ParseFunctionCall();
+
 	std::unique_ptr<Expression> ParseExpression();
+	std::unique_ptr<StandardExpression> ParseStandardExpression();
 	std::unique_ptr<Conjunction> ParseConjunction();
 	std::unique_ptr<Relation> ParseRelation();
 	std::unique_ptr<Multiplicative> ParseMultiplicative();

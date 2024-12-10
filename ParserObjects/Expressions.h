@@ -4,7 +4,7 @@
 #include<string>
 
 struct FuncExpression;
-struct Expression;
+struct StandardExpression;
 struct FunctionCall;
 
 struct Literal
@@ -26,7 +26,7 @@ struct Factor
 	Factor(const Literal& literal, bool logicallyNegated = false)
 		: factor(literal), logicallyNegated(logicallyNegated) {}
 
-	Factor(std::unique_ptr<Expression> expression, bool logicallyNegated = false)
+	Factor(std::unique_ptr<StandardExpression> expression, bool logicallyNegated = false)
 		: factor(std::move(expression)), logicallyNegated(logicallyNegated) {}
 
 	Factor(std::unique_ptr<FunctionCall> functionCall, bool logicallyNegated = false)
@@ -36,7 +36,7 @@ struct Factor
 		: factor(string), logicallyNegated(logicallyNegated) {}
 
 	bool logicallyNegated = false;
-	std::variant<std::wstring, Literal, std::unique_ptr<Expression>, std::unique_ptr<FunctionCall>> factor;
+	std::variant<std::wstring, Literal, std::unique_ptr<StandardExpression>, std::unique_ptr<FunctionCall>> factor;
 };
 
 struct Multiplicative
@@ -92,12 +92,20 @@ struct Conjunction
 	std::vector<std::unique_ptr<Relation>> relations;
 };
 
+struct StandardExpression
+{
+	StandardExpression() = default;
+	StandardExpression(std::vector<std::unique_ptr<Conjunction>> conjunctions) noexcept :
+		conjunctions(std::move(conjunctions)) {}
+	std::vector<std::unique_ptr<Conjunction>> conjunctions;
+};
+
 struct Expression
 {
 	Expression() = default;
 	Expression(std::unique_ptr<FuncExpression> funcExpression) noexcept :
 		expression(std::move(funcExpression)) {}
-	Expression(std::vector<std::unique_ptr<Conjunction>> conjunctions) noexcept :
-		expression(std::move(conjunctions)) {}
-	std::variant<std::unique_ptr<FuncExpression>, std::vector<std::unique_ptr<Conjunction>>> expression;
+	Expression(std::unique_ptr<StandardExpression> stdExpression) noexcept :
+		expression(std::move(stdExpression)) {}
+	std::variant<std::unique_ptr<FuncExpression>, std::unique_ptr<StandardExpression>> expression;
 };
