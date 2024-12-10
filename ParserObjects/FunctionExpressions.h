@@ -12,7 +12,7 @@ struct FuncExpression;
 
 struct FunctionLit
 {
-	std::vector<std::unique_ptr<Param>> parameters;
+	std::vector<Param> parameters;
 	std::unique_ptr<Block> block;
 };
 

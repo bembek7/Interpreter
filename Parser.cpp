@@ -120,9 +120,9 @@ std::unique_ptr<FunctionDefiniton> Parser::ParseFunctionDefinition()
 }
 
 // parameters = [parameter, { ",", parameter }];
-std::vector<std::unique_ptr<Param>> Parser::ParseParams()
+std::vector<Param> Parser::ParseParams()
 {
-	std::vector<std::unique_ptr<Param>> params;
+	std::vector<Param> params;
 
 	auto param = ParseParam();
 	if (!param)
@@ -130,7 +130,7 @@ std::vector<std::unique_ptr<Param>> Parser::ParseParams()
 		return params;
 	}
 
-	params.push_back(std::move(param));
+	params.push_back(std::move(*param));
 
 	while (ConsumeToken(LexToken::TokenType::Comma))
 	{
@@ -139,30 +139,30 @@ std::vector<std::unique_ptr<Param>> Parser::ParseParams()
 		{
 			throw ParserException("Expected parameter after coma.", currentPosition);
 		}
-		params.push_back(std::move(param));
+		params.push_back(std::move(*param));
 	}
 
 	return params;
 }
 
 // parameter = ["mut"], identifier
-std::unique_ptr<Param> Parser::ParseParam()
+std::optional<Param> Parser::ParseParam()
 {
 	using LT = LexToken::TokenType;
 
-	auto param = std::make_unique<Param>();
-	param->paramMutable = ConsumeToken(LT::Mut);
+	auto param = Param();
+	param.paramMutable = ConsumeToken(LT::Mut);
 
 	const auto idToken = GetExpectedToken(LT::Identifier);
 	if (!idToken)
 	{
-		if (param->paramMutable)
+		if (param.paramMutable)
 		{
 			throw ParserException("Expected identifier after \"mut\" keyword.", currentPosition);
 		}
-		return nullptr;
+		return std::nullopt;
 	}
-	param->identifier = std::get<std::wstring>(idToken->GetValue());
+	param.identifier = std::get<std::wstring>(idToken->GetValue());
 	return param;
 }
 

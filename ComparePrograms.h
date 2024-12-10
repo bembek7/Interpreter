@@ -19,7 +19,7 @@ static void CompareWhileLoops(const WhileLoop* const whileLoop, const WhileLoop*
 static void CompareReturns(const Return* const returnStmt, const Return* const expectedReturnStmt);
 static void CompareDeclarations(const Declaration* const declaration, const Declaration* const expectedDeclaration);
 static void CompareAssignments(const Assignment* const assignment, const Assignment* const expectedAssignment);
-static void CompareParams(const Param* const param, const Param* const expectedParam);
+static void CompareParams(const Param& param, const Param& expectedParam);
 static void CompareStatements(const Statement* const statement, const Statement* const expectedStatement);
 static void CompareBlocks(const Block* const block, const Block* const expectedBlock);
 static void CompareFunDefs(const FunctionDefiniton* const funDef, const FunctionDefiniton* const expectedFunDef);
@@ -117,7 +117,7 @@ static void CompareFunctionLits(const FunctionLit* const funcLit, const Function
 	ASSERT_EQ(funcLit->parameters.size(), expectedFuncLit->parameters.size());
 	for (size_t i = 0; i < funcLit->parameters.size(); ++i)
 	{
-		CompareParams(funcLit->parameters[i].get(), expectedFuncLit->parameters[i].get());
+		CompareParams(funcLit->parameters[i], expectedFuncLit->parameters[i]);
 	}
 	CompareBlocks(funcLit->block.get(), expectedFuncLit->block.get());
 }
@@ -234,10 +234,10 @@ static void CompareAssignments(const Assignment* const assignment, const Assignm
 	CompareExpressions(assignment->expression.get(), expectedAssignment->expression.get());
 }
 
-static void CompareParams(const Param* const param, const Param* const expectedParam)
+static void CompareParams(const Param& param, const Param& expectedParam)
 {
-	EXPECT_EQ(param->paramMutable, expectedParam->paramMutable);
-	EXPECT_EQ(param->identifier, expectedParam->identifier);
+	EXPECT_EQ(param.paramMutable, expectedParam.paramMutable);
+	EXPECT_EQ(param.identifier, expectedParam.identifier);
 }
 
 static void CompareBlocks(const Block* const block, const Block* const expectedBlock)
@@ -307,7 +307,7 @@ static void CompareFunDefs(const FunctionDefiniton* const funDef, const Function
 
 	for (size_t i = 0; i < funDef->parameters.size(); ++i)
 	{
-		CompareParams(funDef->parameters[i].get(), expectedFunDef->parameters[i].get());
+		CompareParams(funDef->parameters[i], expectedFunDef->parameters[i]);
 	}
 
 	CompareBlocks(funDef->block.get(), expectedFunDef->block.get());

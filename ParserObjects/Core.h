@@ -15,7 +15,7 @@ struct Param
 struct FunctionDefiniton
 {
 	std::wstring identifier;
-	std::vector<std::unique_ptr<Param>> parameters;
+	std::vector<Param> parameters;
 	std::unique_ptr<struct Block> block;
 };
 

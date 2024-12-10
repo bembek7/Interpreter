@@ -104,9 +104,9 @@ TEST_F(ParserTest, FunctionWithParameters)
 
 	auto exFunDef = std::make_unique<FunctionDefiniton>();
 	exFunDef->identifier = L"Fizz";
-	exFunDef->parameters.push_back(std::make_unique<Param>(L"a", true));
-	exFunDef->parameters.push_back(std::make_unique<Param>(L"c"));
-	exFunDef->parameters.push_back(std::make_unique<Param>(L"d", true));
+	exFunDef->parameters.push_back(Param(L"a", true));
+	exFunDef->parameters.push_back(Param(L"c"));
+	exFunDef->parameters.push_back(Param(L"d", true));
 	exFunDef->block = std::make_unique<Block>(std::vector<std::unique_ptr<Statement>>{});
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
@@ -343,7 +343,7 @@ TEST_F(ParserTest, SampleFunctionalCode)
 	auto exFunDef = std::make_unique<FunctionDefiniton>();
 	exFunDef->identifier = L"Double";
 	exFunDef->block = std::make_unique<Block>();
-	exFunDef->parameters.push_back(std::make_unique<Param>(L"a", true));
+	exFunDef->parameters.push_back(Param(L"a", true));
 
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"b";
@@ -560,8 +560,8 @@ TEST_F(ParserTest, FunctionLiteralWithParameters)
 
 	auto funcLiteral = std::make_unique<FunctionLit>();
 
-	funcLiteral->parameters.push_back(std::make_unique<Param>(L"a", false));
-	funcLiteral->parameters.push_back(std::make_unique<Param>(L"b", false));
+	funcLiteral->parameters.push_back(Param(L"a", false));
+	funcLiteral->parameters.push_back(Param(L"b", false));
 	funcLiteral->block = std::make_unique<Block>();
 
 	auto expr = MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")));

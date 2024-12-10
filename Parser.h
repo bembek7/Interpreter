@@ -35,8 +35,8 @@ private:
 	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
 
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
-	std::vector<std::unique_ptr<Param>> ParseParams();
-	std::unique_ptr<Param> ParseParam();
+	std::vector<Param> ParseParams();
+	std::optional<Param> ParseParam();
 
 	std::unique_ptr<Block> ParseBlock();
 	std::unique_ptr<Statement> ParseStatement();
