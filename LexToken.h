@@ -18,6 +18,8 @@ public:
 		Semicolon,
 		LParenth,
 		RParenth,
+		LSquareBracket,
+		RSquareBracket,
 		LBracket,
 		RBracket,
 		Comma,
