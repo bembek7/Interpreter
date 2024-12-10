@@ -36,9 +36,9 @@ static std::unique_ptr<Expression> MakeExprFromFactor(std::unique_ptr<Factor> fa
 	return std::make_unique<Expression>(std::move(conjunctions));
 }
 
-static std::unique_ptr<Expression> MakeExprFromLiteral(std::unique_ptr<Literal> literal)
+static std::unique_ptr<Expression> MakeExprFromLiteral(const Literal& literal)
 {
-	auto factor = std::make_unique<Factor>(std::move(literal));
+	auto factor = std::make_unique<Factor>(literal);
 
 	return MakeExprFromFactor(std::move(factor));
 }
@@ -131,7 +131,7 @@ TEST_F(ParserTest, FunctionWithDeclaration)
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"a";
 	exDeclaration->varMutable = true;
-	exDeclaration->expression = MakeExprFromLiteral(std::make_unique<Literal>(10));
+	exDeclaration->expression = MakeExprFromLiteral(Literal(10));
 
 	exFunDef->block->statements.push_back(std::move(exDeclaration));
 
@@ -156,7 +156,7 @@ TEST_F(ParserTest, Conditional)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto conditional = std::make_unique<Conditional>();
-	conditional->condition = MakeExprFromLiteral(std::make_unique<Literal>(true));
+	conditional->condition = MakeExprFromLiteral(Literal(true));
 	conditional->ifBlock = std::make_unique<Block>();
 	exFunDef->block->statements.push_back(std::move(conditional));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -180,7 +180,7 @@ TEST_F(ParserTest, WhileLoop)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto loop = std::make_unique<WhileLoop>();
-	loop->condition = MakeExprFromLiteral(std::make_unique<Literal>(true));
+	loop->condition = MakeExprFromLiteral(Literal(true));
 	loop->block = std::make_unique<Block>();
 	exFunDef->block->statements.push_back(std::move(loop));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -248,10 +248,10 @@ TEST_F(ParserTest, FunctionCallWithArguments)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto arguments = vecUni<Expression>{};
-	arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(10)));
-	arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(5.f)));
-	arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(false)));
-	arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(std::wstring(L"string"))));
+	arguments.push_back(MakeExprFromLiteral(Literal(10)));
+	arguments.push_back(MakeExprFromLiteral(Literal(5.f)));
+	arguments.push_back(MakeExprFromLiteral(Literal(false)));
+	arguments.push_back(MakeExprFromLiteral(Literal(std::wstring(L"string"))));
 	arguments.push_back(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a"))));
 	auto funcCall = std::make_unique<FunctionCall>(std::wstring(L"Buzz"), std::move(arguments));
 	exFunDef->block->statements.push_back(std::move(funcCall));
@@ -410,8 +410,8 @@ TEST_F(ParserTest, Bind)
 	auto composable = std::make_unique<Composable>();
 	auto bindable = std::make_unique<Bindable>(std::wstring(L"a"));
 	composable->bindable = std::move(bindable);
-	composable->arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(10)));
-	composable->arguments.push_back(MakeExprFromLiteral(std::make_unique<Literal>(false)));
+	composable->arguments.push_back(MakeExprFromLiteral(Literal(10)));
+	composable->arguments.push_back(MakeExprFromLiteral(Literal(false)));
 
 	fExpr->composables.push_back(std::move(composable));
 
@@ -443,7 +443,7 @@ TEST_F(ParserTest, FunctionLiteral)
 
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"a";
-	exDeclaration->expression = MakeExprFromLiteral(std::make_unique<Literal>(10));
+	exDeclaration->expression = MakeExprFromLiteral(Literal(10));
 	fLiteral->block = std::make_unique<Block>();
 	fLiteral->block->statements.push_back(std::move(exDeclaration));
 
@@ -486,17 +486,17 @@ TEST_F(ParserTest, NestedConditionalAndLoops)
 
 	auto ifConditional = std::make_unique<Conditional>();
 	ifConditional->condition = MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"a")), RelationOperator::Greater,
-		std::make_unique<Factor>(std::make_unique<Literal>(10)));
+		std::make_unique<Factor>(Literal(10)));
 	ifConditional->ifBlock = std::make_unique<Block>();
 
 	auto whileLoop = std::make_unique<WhileLoop>();
 	whileLoop->condition = MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"b")), RelationOperator::Less,
-		std::make_unique<Factor>(std::make_unique<Literal>(20)));
+		std::make_unique<Factor>(Literal(20)));
 	whileLoop->block = std::make_unique<Block>();
 
 	auto nestedIf = std::make_unique<Conditional>();
 	nestedIf->condition = MakeRelationExpression(std::make_unique<Factor>(L"c"), RelationOperator::Equal,
-		std::make_unique<Factor>(std::make_unique<Literal>(0)));
+		std::make_unique<Factor>(Literal(0)));
 	nestedIf->ifBlock = std::make_unique<Block>();
 
 	auto returnStmt = std::make_unique<Return>();
@@ -529,10 +529,10 @@ TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
 	auto funcLiteral = std::make_unique<FunctionLit>();
 	funcLiteral->block = std::make_unique<Block>();
 	funcLiteral->block->statements.push_back(
-		std::make_unique<Return>(MakeExprFromLiteral(std::make_unique<Literal>(42))));
+		std::make_unique<Return>(MakeExprFromLiteral(Literal(42))));
 
 	auto funcExpr = std::make_unique<FuncExpression>();
-	
+
 	funcExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(funcLiteral)));
 
 	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(funcExpr)));

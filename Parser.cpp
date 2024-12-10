@@ -657,7 +657,7 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 	auto literal = ParseLiteral();
 	if (literal)
 	{
-		factor->factor = std::move(literal);
+		factor->factor = std::move(*literal);
 		return factor;
 	}
 
@@ -695,35 +695,35 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 }
 
 // literal = number | string | boolean;
-std::unique_ptr<Literal> Parser::ParseLiteral()
+std::optional<Literal> Parser::ParseLiteral()
 {
 	using LT = LexToken::TokenType;
 
 	const auto integer = GetExpectedToken(LT::Integer);
 	if (integer)
 	{
-		return std::make_unique<Literal>(std::get<int>(integer->GetValue()));
+		return Literal(std::get<int>(integer->GetValue()));
 	}
 
 	const auto floatNumber = GetExpectedToken(LT::Float);
 	if (floatNumber)
 	{
-		return std::make_unique<Literal>(std::get<float>(floatNumber->GetValue()));
+		return Literal(std::get<float>(floatNumber->GetValue()));
 	}
 
 	const auto string = GetExpectedToken(LT::String);
 	if (string)
 	{
-		return std::make_unique<Literal>(std::get<std::wstring>(string->GetValue()));
+		return Literal(std::get<std::wstring>(string->GetValue()));
 	}
 
 	const auto boolean = GetExpectedToken(LT::Boolean);
 	if (boolean)
 	{
-		return std::make_unique<Literal>(std::get<bool>(boolean->GetValue()));
+		return Literal(std::get<bool>(boolean->GetValue()));
 	}
 
-	return nullptr;
+	return std::nullopt;
 }
 
 // func_expression = composable, { ">>", composable };

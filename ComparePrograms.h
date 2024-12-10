@@ -154,11 +154,11 @@ static void CompareFactors(const Factor* const factor, const Factor* const expec
 {
 	EXPECT_EQ(factor->logicallyNegated, expectedFactor->logicallyNegated);
 
-	if (auto* lit = std::get_if<std::unique_ptr<Literal>>(&factor->factor))
+	if (auto* lit = std::get_if<Literal>(&factor->factor))
 	{
-		auto* expectedLit = std::get_if<std::unique_ptr<Literal>>(&expectedFactor->factor);
+		auto* expectedLit = std::get_if<Literal>(&expectedFactor->factor);
 		ASSERT_TRUE(expectedLit != nullptr);
-		CompareLiterals(lit->get(), expectedLit->get());
+		CompareLiterals(lit, expectedLit);
 	}
 	else if (auto* expr = std::get_if<std::unique_ptr<Expression>>(&factor->factor))
 	{

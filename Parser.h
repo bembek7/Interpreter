@@ -33,6 +33,7 @@ private:
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
 	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
+
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<std::unique_ptr<Param>> ParseParams();
 	std::unique_ptr<Param> ParseParam();
@@ -53,7 +54,7 @@ private:
 	std::unique_ptr<Multiplicative> ParseMultiplicative();
 	std::unique_ptr<Additive> ParseAdditive();
 	std::unique_ptr<Factor> ParseFactor();
-	std::unique_ptr<Literal> ParseLiteral();
+	std::optional<Literal> ParseLiteral();
 
 	std::unique_ptr<FuncExpression> ParseFuncExpression();
 	std::unique_ptr<Composable> ParseComposable();

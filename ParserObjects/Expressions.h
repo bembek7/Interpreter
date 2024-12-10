@@ -23,8 +23,8 @@ struct Factor
 {
 	Factor() = default;
 
-	Factor(std::unique_ptr<Literal> literal, bool logicallyNegated = false)
-		: factor(std::move(literal)), logicallyNegated(logicallyNegated) {}
+	Factor(const Literal& literal, bool logicallyNegated = false)
+		: factor(literal), logicallyNegated(logicallyNegated) {}
 
 	Factor(std::unique_ptr<Expression> expression, bool logicallyNegated = false)
 		: factor(std::move(expression)), logicallyNegated(logicallyNegated) {}
@@ -32,11 +32,11 @@ struct Factor
 	Factor(std::unique_ptr<FunctionCall> functionCall, bool logicallyNegated = false)
 		: factor(std::move(functionCall)), logicallyNegated(logicallyNegated) {}
 
-	Factor(std::wstring string, bool logicallyNegated = false)
-		: factor(std::move(string)), logicallyNegated(logicallyNegated) {}
+	Factor(const std::wstring& string, bool logicallyNegated = false)
+		: factor(string), logicallyNegated(logicallyNegated) {}
 
 	bool logicallyNegated = false;
-	std::variant<std::unique_ptr<Literal>, std::unique_ptr<Expression>, std::unique_ptr<FunctionCall>, std::wstring> factor;
+	std::variant<std::wstring, Literal, std::unique_ptr<Expression>, std::unique_ptr<FunctionCall>> factor;
 };
 
 struct Multiplicative
