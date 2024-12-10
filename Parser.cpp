@@ -66,14 +66,14 @@ bool Parser::ConsumeToken(const LexToken::TokenType expectedToken, std::optional
 }
 
 // program = { function_definition };
-Program Parser::ParseProgram()
+std::unique_ptr<Program> Parser::ParseProgram()
 {
-	Program program;
+	auto program = std::make_unique<Program>();
 	try
 	{
 		while (auto funDef = ParseFunctionDefinition())
 		{
-			program.funDefs.push_back(std::move(funDef));
+			program->funDefs.push_back(std::move(funDef));
 		}
 	}
 	catch (const ParserException& pe)

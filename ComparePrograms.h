@@ -313,12 +313,12 @@ static void CompareFunDefs(const FunctionDefiniton* const funDef, const Function
 	CompareBlocks(funDef->block.get(), expectedFunDef->block.get());
 }
 
-static void ComparePrograms(const Program& program, const Program& expectedProgram)
+static void ComparePrograms(const Program* const program, const Program* const expectedProgram)
 {
-	ASSERT_EQ(program.funDefs.size(), expectedProgram.funDefs.size());
+	ASSERT_EQ(program->funDefs.size(), expectedProgram->funDefs.size());
 
-	for (size_t i = 0; i < program.funDefs.size(); ++i)
+	for (size_t i = 0; i < program->funDefs.size(); ++i)
 	{
-		CompareFunDefs(program.funDefs[i].get(), expectedProgram.funDefs[i].get());
+		CompareFunDefs(program->funDefs[i].get(), expectedProgram->funDefs[i].get());
 	}
 }

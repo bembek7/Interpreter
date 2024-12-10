@@ -88,7 +88,7 @@ TEST_F(ParserTest, SimpleMainFunction)
 
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionWithParameters)
@@ -110,7 +110,7 @@ TEST_F(ParserTest, FunctionWithParameters)
 	exFunDef->block = std::make_unique<Block>(std::vector<std::unique_ptr<Statement>>{});
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionWithDeclaration)
@@ -137,7 +137,7 @@ TEST_F(ParserTest, FunctionWithDeclaration)
 
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, Conditional)
@@ -161,7 +161,7 @@ TEST_F(ParserTest, Conditional)
 	exFunDef->block->statements.push_back(std::move(conditional));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, WhileLoop)
@@ -185,7 +185,7 @@ TEST_F(ParserTest, WhileLoop)
 	exFunDef->block->statements.push_back(std::move(loop));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, NestedBlock)
@@ -207,7 +207,7 @@ TEST_F(ParserTest, NestedBlock)
 	exFunDef->block->statements.push_back(std::move(block));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionCallWithoutArguments)
@@ -229,7 +229,7 @@ TEST_F(ParserTest, FunctionCallWithoutArguments)
 	exFunDef->block->statements.push_back(std::make_unique<FunctionCallStatement>(std::move(funcCall)));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionCallWithArguments)
@@ -257,7 +257,7 @@ TEST_F(ParserTest, FunctionCallWithArguments)
 	exFunDef->block->statements.push_back(std::make_unique<FunctionCallStatement>(std::move(funcCall)));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, EmptyReturn)
@@ -279,7 +279,7 @@ TEST_F(ParserTest, EmptyReturn)
 	exFunDef->block->statements.push_back(std::move(returnStatement));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, ReturnSomething)
@@ -301,7 +301,7 @@ TEST_F(ParserTest, ReturnSomething)
 	exFunDef->block->statements.push_back(std::move(returnStatement));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, MultipleFunDefs)
@@ -326,7 +326,7 @@ TEST_F(ParserTest, MultipleFunDefs)
 	exFunDefs.push_back(std::move(exFunDef1));
 	exFunDefs.push_back(std::move(exFunDef2));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, SampleFunctionalCode)
@@ -361,7 +361,7 @@ TEST_F(ParserTest, SampleFunctionalCode)
 
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, Compose)
@@ -388,7 +388,7 @@ TEST_F(ParserTest, Compose)
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, Bind)
@@ -420,7 +420,7 @@ TEST_F(ParserTest, Bind)
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionLiteral)
@@ -454,7 +454,7 @@ TEST_F(ParserTest, FunctionLiteral)
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, NestedConditionalAndLoops)
@@ -508,7 +508,7 @@ TEST_F(ParserTest, NestedConditionalAndLoops)
 
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
@@ -540,7 +540,7 @@ TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionLiteralWithParameters)
@@ -582,7 +582,7 @@ TEST_F(ParserTest, FunctionLiteralWithParameters)
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
 
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }
 
 TEST_F(ParserTest, FunctionExpressionWithComposition)
@@ -610,5 +610,5 @@ TEST_F(ParserTest, FunctionExpressionWithComposition)
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
-	ComparePrograms(program, expectedProgram);
+	ComparePrograms(program.get(), &expectedProgram);
 }

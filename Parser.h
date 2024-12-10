@@ -27,7 +27,7 @@ public:
 	Parser(Lexer* const lexer) noexcept;
 	void SetLexer(Lexer* const newLexer) noexcept;
 
-	Program ParseProgram();
+	std::unique_ptr<Program> ParseProgram();
 
 private:
 	LexToken GetNextToken();
