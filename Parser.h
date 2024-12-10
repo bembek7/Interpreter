@@ -3,21 +3,24 @@
 #include "Lexer.h"
 #include "ParserObjects.h"
 #include <queue>
-
+#include <sstream>
 class Parser
 {
 	class ParserException : public std::exception {
 	private:
 		std::string message;
+		Position position;
 
 	public:
-		ParserException(const char* msg)
-			: message(msg)
+		ParserException(const char* msg, const Position pos)
+			: message(msg), position(pos)
 		{}
 
 		const char* what() const throw()
 		{
-			return message.c_str();
+			std::stringstream ss;
+			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << message << std::endl;
+			return ss.str().c_str();
 		}
 	};
 public:
@@ -60,4 +63,5 @@ private:
 private:
 	std::queue<LexToken> unusedTokens = {};
 	Lexer* lexer = nullptr;
+	Position currentPosition = Position(0, 0);
 };

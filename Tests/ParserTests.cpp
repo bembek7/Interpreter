@@ -510,3 +510,105 @@ TEST_F(ParserTest, NestedConditionalAndLoops)
 	expectedProgram.funDefs = std::move(exFunDefs);
 	ComparePrograms(program, expectedProgram);
 }
+
+TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
+{
+	std::wstringstream input(L"func Test()\n{\nf = [() { return 42; }];\n}");
+	auto lexer = Lexer(&input);
+	Parser parser = Parser(&lexer);
+
+	const auto program = parser.ParseProgram();
+
+	Program expectedProgram;
+	vecUni<FunctionDefiniton> exFunDefs;
+
+	auto exFunDef = std::make_unique<FunctionDefiniton>();
+	exFunDef->identifier = L"Test";
+	exFunDef->block = std::make_unique<Block>();
+
+	auto funcLiteral = std::make_unique<FunctionLit>();
+	funcLiteral->block = std::make_unique<Block>();
+	funcLiteral->block->statements.push_back(
+		std::make_unique<Return>(MakeExprFromLiteral(std::make_unique<Literal>(42))));
+
+	auto funcExpr = std::make_unique<FuncExpression>();
+	
+	funcExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(funcLiteral)));
+
+	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(funcExpr)));
+
+	exFunDef->block->statements.push_back(std::move(assignment));
+	exFunDefs.push_back(std::move(exFunDef));
+	expectedProgram.funDefs = std::move(exFunDefs);
+	ComparePrograms(program, expectedProgram);
+}
+
+TEST_F(ParserTest, FunctionLiteralWithParameters)
+{
+	std::wstringstream input(L"func Test()\n{\nf = [(a, b) { return a + b; }];\n}");
+	auto lexer = Lexer(&input);
+	Parser parser = Parser(&lexer);
+
+	const auto program = parser.ParseProgram();
+
+	Program expectedProgram;
+	vecUni<FunctionDefiniton> exFunDefs;
+
+	auto exFunDef = std::make_unique<FunctionDefiniton>();
+	exFunDef->identifier = L"Test";
+	exFunDef->block = std::make_unique<Block>();
+
+	auto funcLiteral = std::make_unique<FunctionLit>();
+
+	funcLiteral->parameters.push_back(std::make_unique<Param>(L"a", false));
+	funcLiteral->parameters.push_back(std::make_unique<Param>(L"b", false));
+	funcLiteral->block = std::make_unique<Block>();
+
+	auto expr = MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")));
+	auto additive = std::make_unique<Additive>();
+	additive->multiplicatives.push_back(MakeMultiplicativeFromFactor(std::make_unique<Factor>(std::wstring(L"a"))));
+	additive->multiplicatives.push_back(MakeMultiplicativeFromFactor(std::make_unique<Factor>(std::wstring(L"b"))));
+	additive->operators.push_back(AdditionOperator::Plus);
+	std::get<vecUni<Conjunction>>(expr->expression)[0]->relations[0]->firstAdditive = std::move(additive);
+
+	funcLiteral->block->statements.push_back(std::make_unique<Return>(std::move(expr)));
+
+	auto funcExpr = std::make_unique<FuncExpression>();
+	funcExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(funcLiteral)));
+
+	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(funcExpr)));
+
+	exFunDef->block->statements.push_back(std::move(assignment));
+	exFunDefs.push_back(std::move(exFunDef));
+	expectedProgram.funDefs = std::move(exFunDefs);
+
+	ComparePrograms(program, expectedProgram);
+}
+
+TEST_F(ParserTest, FunctionExpressionWithComposition)
+{
+	std::wstringstream input(L"func Test()\n{\nf = [a >> b];\n}");
+	auto lexer = Lexer(&input);
+	Parser parser = Parser(&lexer);
+
+	const auto program = parser.ParseProgram();
+
+	Program expectedProgram;
+	vecUni<FunctionDefiniton> exFunDefs;
+
+	auto exFunDef = std::make_unique<FunctionDefiniton>();
+	exFunDef->identifier = L"Test";
+	exFunDef->block = std::make_unique<Block>();
+
+	auto funcExpr = std::make_unique<FuncExpression>();
+	funcExpr->composables.push_back(MakeComposableFromString(L"a"));
+	funcExpr->composables.push_back(MakeComposableFromString(L"b"));
+
+	auto assignment = std::make_unique<Assignment>(
+		L"f", std::make_unique<Expression>(std::move(funcExpr)));
+
+	exFunDef->block->statements.push_back(std::move(assignment));
+	exFunDefs.push_back(std::move(exFunDef));
+	expectedProgram.funDefs = std::move(exFunDefs);
+	ComparePrograms(program, expectedProgram);
+}

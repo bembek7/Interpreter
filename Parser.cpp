@@ -21,13 +21,19 @@ LexToken Parser::GetNextToken()
 			lexOut = lexer->ResolveNext();
 			token = lexOut.first;
 		}
-		// errors check
+		for (const auto& lexError : lexOut.second)
+		{
+			std::cout << "Lexical Error [line: " << lexError.GetPosition().line << ", column : " <<
+				lexError.GetPosition().column << "] " << lexError.GetMessage() << std::endl;
+		}
+
 		return token;
 	}
 	else
 	{
 		const auto out = std::move(unusedTokens.front());
 		unusedTokens.pop();
+		currentPosition = out.GetPosition();
 		return out;
 	}
 }
@@ -72,7 +78,7 @@ Program Parser::ParseProgram()
 	}
 	catch (const ParserException& pe)
 	{
-		std::cout << "Error when parsing: " << pe.what() << "\n";
+		std::cout << pe.what();
 	}
 
 	return program;
@@ -90,7 +96,7 @@ std::unique_ptr<FunctionDefiniton> Parser::ParseFunctionDefinition()
 	const auto idToken = GetExpectedToken(LT::Identifier);
 	if (!idToken)
 	{
-		throw ParserException("Expected idenitfier after \"func\" keyword.");
+		throw ParserException("Expected idenitfier after \"func\" keyword.", currentPosition);
 	}
 
 	auto functionDefinition = std::make_unique<FunctionDefiniton>();
@@ -99,13 +105,13 @@ std::unique_ptr<FunctionDefiniton> Parser::ParseFunctionDefinition()
 
 	if (!ConsumeToken(LT::LParenth))
 	{
-		throw ParserException("Expected \"(\" after identifier.");
+		throw ParserException("Expected \"(\" after identifier.", currentPosition);
 	}
 	functionDefinition->parameters = ParseParams();
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		throw ParserException("Expected \")\" to close the params list.");
+		throw ParserException("Expected \")\" to close the params list.", currentPosition);
 	}
 
 	functionDefinition->block = ParseBlock();
@@ -131,7 +137,7 @@ std::vector<std::unique_ptr<Param>> Parser::ParseParams()
 		param = ParseParam();
 		if (!param)
 		{
-			throw ParserException("Expected parameter after coma.");
+			throw ParserException("Expected parameter after coma.", currentPosition);
 		}
 		params.push_back(std::move(param));
 	}
@@ -152,7 +158,7 @@ std::unique_ptr<Param> Parser::ParseParam()
 	{
 		if (param->paramMutable)
 		{
-			throw ParserException("Expected identifier after \"mut\" keyword.");
+			throw ParserException("Expected identifier after \"mut\" keyword.", currentPosition);
 		}
 		return nullptr;
 	}
@@ -179,7 +185,7 @@ std::unique_ptr<Block> Parser::ParseBlock()
 
 	if (!ConsumeToken(LT::RBracket))
 	{
-		throw ParserException("Expected block closing bracket.");
+		throw ParserException("Expected block closing bracket.", currentPosition);
 	}
 	return std::make_unique<Block>(std::move(statements));
 }
@@ -197,7 +203,7 @@ std::unique_ptr<Statement> Parser::ParseStatement()
 	{
 		if (!ConsumeToken(LexToken::TokenType::Semicolon))
 		{
-			throw ParserException("Expected semicolon at the end");
+			throw ParserException("Expected semicolon at the end", currentPosition);
 		}
 		return funcCall;
 	}
@@ -249,7 +255,7 @@ std::unique_ptr<FunctionCall> Parser::ParseFunctionCall()
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		throw ParserException("Expected closing parentheses in the function call.");
+		throw ParserException("Expected closing parentheses in the function call.", currentPosition);
 	}
 
 	return std::make_unique<FunctionCall>(std::get<std::wstring>(idToken->GetValue()), std::move(arguments));
@@ -266,7 +272,7 @@ std::unique_ptr<Conditional> Parser::ParseConditional()
 
 	if (!ConsumeToken(LT::LParenth))
 	{
-		throw ParserException("Expected opening parentheses after if.");
+		throw ParserException("Expected opening parentheses after if.", currentPosition);
 	}
 	auto conditional = std::make_unique<Conditional>();
 
@@ -274,7 +280,7 @@ std::unique_ptr<Conditional> Parser::ParseConditional()
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		throw ParserException("Expected closing parentheses after condition.");
+		throw ParserException("Expected closing parentheses after condition.", currentPosition);
 	}
 
 	conditional->ifBlock = ParseBlock();
@@ -298,7 +304,7 @@ std::unique_ptr<WhileLoop> Parser::ParseLoop()
 
 	if (!ConsumeToken(LT::LParenth))
 	{
-		throw ParserException("Expected opening parentheses after while.");
+		throw ParserException("Expected opening parentheses after while.", currentPosition);
 	}
 
 	auto whileLoop = std::make_unique<WhileLoop>();
@@ -307,7 +313,7 @@ std::unique_ptr<WhileLoop> Parser::ParseLoop()
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		throw ParserException("Expected closing parentheses after condition.");
+		throw ParserException("Expected closing parentheses after condition.", currentPosition);
 	}
 
 	whileLoop->block = ParseBlock();
@@ -328,7 +334,7 @@ std::unique_ptr<Return> Parser::ParseReturn()
 
 	if (!ConsumeToken(LT::Semicolon))
 	{
-		throw ParserException("Expected semicolon after return statement.");
+		throw ParserException("Expected semicolon after return statement.", currentPosition);
 	}
 	return returnStatement;
 }
@@ -346,7 +352,7 @@ std::unique_ptr<Declaration> Parser::ParseDeclaration()
 	{
 		if (declaration->varMutable)
 		{
-			throw ParserException("Expected var keyword after mut keyword in declaration.");
+			throw ParserException("Expected var keyword after mut keyword in declaration.", currentPosition);
 		}
 		return nullptr;
 	}
@@ -354,7 +360,7 @@ std::unique_ptr<Declaration> Parser::ParseDeclaration()
 	const auto idToken = GetExpectedToken(LT::Identifier);
 	if (!idToken)
 	{
-		throw ParserException("Expected identifier after var keyword.");
+		throw ParserException("Expected identifier after var keyword.", currentPosition);
 	}
 	declaration->identifier = std::get<std::wstring>(idToken->GetValue());
 
@@ -363,13 +369,13 @@ std::unique_ptr<Declaration> Parser::ParseDeclaration()
 		declaration->expression = ParseExpression();
 		if (!declaration->expression)
 		{
-			throw ParserException("Expected expression after = in assignment.");
+			throw ParserException("Expected expression after = in assignment.", currentPosition);
 		}
 	}
 
 	if (!ConsumeToken(LT::Semicolon))
 	{
-		throw ParserException("Expected semicolon at the end of declaration.");
+		throw ParserException("Expected semicolon at the end of declaration.", currentPosition);
 	}
 
 	return declaration;
@@ -395,7 +401,7 @@ std::unique_ptr<Assignment> Parser::ParseAssignment()
 
 	if (!ConsumeToken(LT::Semicolon))
 	{
-		throw ParserException("Expected semicolon at the end of assignment.");
+		throw ParserException("Expected semicolon at the end of assignment.", currentPosition);
 	}
 	return std::make_unique<Assignment>(std::get<std::wstring>(idToken->GetValue()), std::move(expression));
 }
@@ -417,7 +423,7 @@ std::vector<std::unique_ptr<Expression>> Parser::ParseArguments()
 
 		if (!expression)
 		{
-			throw ParserException("Expected expression after comma in the arguments list.");
+			throw ParserException("Expected expression after comma in the arguments list.", currentPosition);
 		}
 		expressions.push_back(std::move(expression));
 	}
@@ -441,7 +447,7 @@ std::unique_ptr<Expression> Parser::ParseExpression()
 			auto conjunction = ParseConjunction();
 			if (!conjunction)
 			{
-				throw ParserException("Expected expression after \"||\".");
+				throw ParserException("Expected expression after \"||\".", currentPosition);
 			}
 
 			conjunctions.push_back(std::move(conjunction));
@@ -455,11 +461,11 @@ std::unique_ptr<Expression> Parser::ParseExpression()
 			auto fExpr = ParseFuncExpression();
 			if (!fExpr)
 			{
-				throw ParserException("Expected function expression after \"[\".");
+				throw ParserException("Expected function expression after \"[\".", currentPosition);
 			}
 			if (!ConsumeToken(LT::RSquareBracket))
 			{
-				throw ParserException("Expected \"]\" after function expression.");
+				throw ParserException("Expected \"]\" after function expression.", currentPosition);
 			}
 			return std::make_unique<Expression>(std::move(fExpr));
 		}
@@ -483,7 +489,7 @@ std::unique_ptr<Conjunction> Parser::ParseConjunction()
 		auto relation = ParseRelation();
 		if (!relation)
 		{
-			throw ParserException("Expected expression after \"&&\".");
+			throw ParserException("Expected expression after \"&&\".", currentPosition);
 		}
 
 		conjunction->relations.push_back(std::move(relation));
@@ -541,7 +547,7 @@ std::unique_ptr<Relation> Parser::ParseRelation()
 		auto nextAdditive = ParseAdditive();
 		if (!nextAdditive)
 		{
-			throw ParserException("Expected expression after relation operator.");
+			throw ParserException("Expected expression after relation operator.", currentPosition);
 		}
 		relation->secondAdditive = std::move(nextAdditive);
 	}
@@ -587,7 +593,7 @@ std::unique_ptr<Additive> Parser::ParseAdditive()
 		multiplicative = ParseMultiplicative();
 		if (!multiplicative)
 		{
-			throw ParserException("Expected expression after addition operator.");
+			throw ParserException("Expected expression after addition operator.", currentPosition);
 		}
 
 		additive->multiplicatives.push_back(std::move(multiplicative));
@@ -631,7 +637,7 @@ std::unique_ptr<Multiplicative> Parser::ParseMultiplicative()
 		factor = ParseFactor();
 		if (!factor)
 		{
-			throw ParserException("Expected expression after muliplication operator.");
+			throw ParserException("Expected expression after muliplication operator.", currentPosition);
 		}
 
 		multiplicative->factors.push_back(std::move(factor));
@@ -661,7 +667,7 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 		factor->factor = std::move(expression);
 		if (!ConsumeToken(LT::RParenth))
 		{
-			// error
+			throw ParserException("Expected closing parentheses after expression", currentPosition);
 		}
 		return factor;
 	}
@@ -682,7 +688,7 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 
 	if (factor->logicallyNegated)
 	{
-		throw ParserException("Expected expression after logical negation.");
+		throw ParserException("Expected expression after logical negation.", currentPosition);
 	}
 
 	return nullptr;
@@ -736,7 +742,7 @@ std::unique_ptr<FuncExpression> Parser::ParseFuncExpression()
 		composable = ParseComposable();
 		if (!composable)
 		{
-			throw;// error
+			throw ParserException("Expected composable after compose operator.", currentPosition);
 		}
 
 		composables.push_back(std::move(composable));
@@ -763,14 +769,14 @@ std::unique_ptr<Composable> Parser::ParseComposable()
 	{
 		if (!ConsumeToken(LT::LParenth))
 		{
-			// error
+			throw ParserException("Expected opening bracket after bind operator.", currentPosition);
 		}
 
 		composable->arguments = ParseArguments();
 
 		if (!ConsumeToken(LT::RParenth))
 		{
-			// error
+			throw ParserException("Expected closing bracket for arguments list when binding.", currentPosition);
 		}
 	}
 
@@ -807,12 +813,12 @@ std::unique_ptr<Bindable> Parser::ParseBindable()
 	auto bindable = std::make_unique<Bindable>(ParseFuncExpression());
 	if (!bindable)
 	{
-		// error
+		throw ParserException("Expected function expression after opening parentheses.", currentPosition);
 	}
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		// error
+		throw ParserException("Expected closing parentheses after function expression", currentPosition);
 	}
 
 	return bindable;
@@ -832,7 +838,7 @@ std::unique_ptr<FunctionLit> Parser::ParseFunctionLit()
 
 	if (!ConsumeToken(LT::RParenth))
 	{
-		// error
+		throw ParserException("Expected closing parentheses after parameters list", currentPosition);
 	}
 
 	functionLit->block = ParseBlock();
