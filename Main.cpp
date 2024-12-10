@@ -7,6 +7,7 @@
 #include <fstream>
 #include "PathConfig.h"
 #include "Parser.h"
+#include "Interpreter.h"
 
 int main()
 {
@@ -32,7 +33,10 @@ int main()
 
 	Parser parser = Parser(&lexer);
 
-	parser.ParseProgram();
+	auto program = parser.ParseProgram();
+
+	Interpreter interpreter;
+	interpreter.Interpret(program.get());
 
 	codeFile.close();
 	return 0;
