@@ -1,52 +1,11 @@
 #pragma once
-
 #include<variant>
 #include<memory>
-#include<vector>
 #include<string>
-#include<optional>
 
-struct Statement
-{
-	virtual ~Statement() = default;
-};
-
-struct Block;
-struct Param;
-struct FunctionLit
-{
-	std::vector<std::unique_ptr<Param>> parameters;
-	std::unique_ptr<Block> block;
-};
-
-struct FunctionCall;
 struct FuncExpression;
-struct Bindable
-{
-	Bindable(std::unique_ptr<FunctionLit> bindable) :
-		bindable(std::move(bindable)) {}
-	Bindable(std::unique_ptr<FuncExpression> bindable) :
-		bindable(std::move(bindable)) {}
-	Bindable(std::unique_ptr<FunctionCall> bindable) :
-		bindable(std::move(bindable)) {}
-	Bindable(const std::wstring& bindable) :
-		bindable(bindable) {}
-	std::variant<std::unique_ptr<FunctionLit>, std::unique_ptr<FuncExpression>, std::unique_ptr<FunctionCall>, std::wstring> bindable;
-};
-
 struct Expression;
-struct Composable
-{
-	std::unique_ptr<Bindable> bindable;
-	std::vector<std::unique_ptr<Expression>> arguments;
-};
-
-struct FuncExpression
-{
-	FuncExpression(std::vector<std::unique_ptr<Composable>> composables = {}) :
-		composables(std::move(composables)) {}
-	std::vector<std::unique_ptr<Composable>> composables;
-};
+struct FunctionCall;
 
 struct Literal
 {
@@ -60,8 +19,6 @@ enum class MultiplicationOperator
 	Divide
 };
 
-struct Expression;
-struct FunctionCall;
 struct Factor
 {
 	Factor() = default;
@@ -143,76 +100,4 @@ struct Expression
 	Expression(std::vector<std::unique_ptr<Conjunction>> conjunctions) noexcept :
 		expression(std::move(conjunctions)) {}
 	std::variant<std::unique_ptr<FuncExpression>, std::vector<std::unique_ptr<Conjunction>>> expression;
-};
-
-struct Param
-{
-	Param() = default;
-	Param(const std::wstring& identifier, bool paramMutable = false) noexcept :
-		identifier(identifier), paramMutable(paramMutable) {}
-	bool paramMutable = false;
-	std::wstring identifier;
-};
-
-struct Block : Statement
-{
-	Block(std::vector<std::unique_ptr<Statement>> statements = {}) noexcept :
-		statements(std::move(statements)) {}
-	std::vector<std::unique_ptr<Statement>> statements;
-};
-
-struct FunctionCall : Statement
-{
-	FunctionCall(const std::wstring& identifier, std::vector<std::unique_ptr<Expression>> arguments = {}) noexcept :
-		identifier(identifier), arguments(std::move(arguments)) {}
-	std::wstring identifier;
-	std::vector<std::unique_ptr<Expression>> arguments;
-};
-
-struct Conditional : Statement
-{
-	std::unique_ptr<Expression> condition;
-	std::unique_ptr<Block> ifBlock;
-	std::unique_ptr<Block> elseBlock;
-};
-
-struct WhileLoop : Statement
-{
-	std::unique_ptr<Expression> condition;
-	std::unique_ptr<Block> block;
-};
-
-struct Return : Statement
-{
-	Return(std::unique_ptr<Expression> expression = nullptr) noexcept :
-		expression(std::move(expression)) {}
-	std::unique_ptr<Expression> expression;
-};
-
-struct Declaration : Statement
-{
-	bool varMutable = false;
-	std::wstring identifier;
-	std::unique_ptr<Expression> expression;
-};
-
-struct Assignment : Statement
-{
-	Assignment(const std::wstring& identifier, std::unique_ptr<Expression> expression) noexcept :
-		identifier(identifier), expression(std::move(expression)) {}
-
-	std::wstring identifier;
-	std::unique_ptr<Expression> expression;
-};
-
-struct FunctionDefiniton
-{
-	std::wstring identifier;
-	std::vector<std::unique_ptr<Param>> parameters;
-	std::unique_ptr<Block> block;
-};
-
-struct Program
-{
-	std::vector<std::unique_ptr<FunctionDefiniton>> funDefs;
 };
