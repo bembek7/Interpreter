@@ -190,7 +190,7 @@ std::unique_ptr<Block> Parser::ParseBlock()
 	return std::make_unique<Block>(std::move(statements));
 }
 
-//statement = function_call, ";"
+//statement = function_call_statement
 //			| conditional
 //			| loop
 //			| return_statement
@@ -231,6 +231,7 @@ std::unique_ptr<Statement> Parser::ParseStatement()
 	return nullptr;
 }
 
+// function_call_statement = function_call, ";";
 std::unique_ptr<FunctionCallStatement> Parser::ParseFunctionCallStatement()
 {
 	if (auto funcCall = ParseFunctionCall())
@@ -285,7 +286,7 @@ std::unique_ptr<Conditional> Parser::ParseConditional()
 	}
 	auto conditional = std::make_unique<Conditional>();
 
-	conditional->condition = ParseExpression();
+	conditional->condition = ParseStandardExpression();
 
 	if (!ConsumeToken(LT::RParenth))
 	{
@@ -318,7 +319,7 @@ std::unique_ptr<WhileLoop> Parser::ParseLoop()
 
 	auto whileLoop = std::make_unique<WhileLoop>();
 
-	whileLoop->condition = ParseExpression();
+	whileLoop->condition = ParseStandardExpression();
 
 	if (!ConsumeToken(LT::RParenth))
 	{
@@ -440,8 +441,8 @@ std::vector<std::unique_ptr<Expression>> Parser::ParseArguments()
 	return expressions;
 }
 
-// expression = conjunction, { "||", conjunction }
-//			 | "[", func_expression ,"]";
+// expression = standard_expression
+//			  | "[", func_expression, "]";
 std::unique_ptr<Expression> Parser::ParseExpression()
 {
 	using LT = LexToken::TokenType;
@@ -466,6 +467,7 @@ std::unique_ptr<Expression> Parser::ParseExpression()
 	return nullptr;
 }
 
+// standard_expression   = conjunction, { "||", conjunction }   
 std::unique_ptr<StandardExpression> Parser::ParseStandardExpression()
 {
 	auto conjunction = ParseConjunction();
@@ -661,7 +663,7 @@ std::unique_ptr<Multiplicative> Parser::ParseMultiplicative()
 	return multiplicative;
 }
 
-// factor = ["!"], (literal | "(", expression, ")" | identifier | function_call);
+// factor = ["!"], (literal | "(", standard_expression, ")" | identifier | function_call);
 std::unique_ptr<Factor> Parser::ParseFactor()
 {
 	using LT = LexToken::TokenType;

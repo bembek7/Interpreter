@@ -156,7 +156,7 @@ TEST_F(ParserTest, Conditional)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto conditional = std::make_unique<Conditional>();
-	conditional->condition = std::make_unique<Expression>(MakeExprFromLiteral(Literal(true)));
+	conditional->condition = MakeExprFromLiteral(Literal(true));
 	conditional->ifBlock = std::make_unique<Block>();
 	exFunDef->block->statements.push_back(std::move(conditional));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -180,7 +180,7 @@ TEST_F(ParserTest, WhileLoop)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto loop = std::make_unique<WhileLoop>();
-	loop->condition = std::make_unique<Expression>(MakeExprFromLiteral(Literal(true)));
+	loop->condition =MakeExprFromLiteral(Literal(true));
 	loop->block = std::make_unique<Block>();
 	exFunDef->block->statements.push_back(std::move(loop));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -485,18 +485,18 @@ TEST_F(ParserTest, NestedConditionalAndLoops)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto ifConditional = std::make_unique<Conditional>();
-	ifConditional->condition = std::make_unique<Expression>(MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"a")), RelationOperator::Greater,
-		std::make_unique<Factor>(Literal(10))));
+	ifConditional->condition = MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"a")), RelationOperator::Greater,
+		std::make_unique<Factor>(Literal(10)));
 	ifConditional->ifBlock = std::make_unique<Block>();
 
 	auto whileLoop = std::make_unique<WhileLoop>();
-	whileLoop->condition = std::make_unique<Expression>(MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"b")), RelationOperator::Less,
-		std::make_unique<Factor>(Literal(20))));
+	whileLoop->condition = MakeRelationExpression(std::make_unique<Factor>(std::wstring(L"b")), RelationOperator::Less,
+		std::make_unique<Factor>(Literal(20)));
 	whileLoop->block = std::make_unique<Block>();
 
 	auto nestedIf = std::make_unique<Conditional>();
-	nestedIf->condition = std::make_unique<Expression>(MakeRelationExpression(std::make_unique<Factor>(L"c"), RelationOperator::Equal,
-		std::make_unique<Factor>(Literal(0))));
+	nestedIf->condition = MakeRelationExpression(std::make_unique<Factor>(L"c"), RelationOperator::Equal,
+		std::make_unique<Factor>(Literal(0)));
 	nestedIf->ifBlock = std::make_unique<Block>();
 
 	auto returnStmt = std::make_unique<Return>();

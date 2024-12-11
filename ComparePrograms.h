@@ -199,7 +199,7 @@ static void CompareLiterals(const Literal* const literal, const Literal* const e
 
 static void CompareConditionals(const Conditional* const conditional, const Conditional* const expectedConditional)
 {
-	CompareExpressions(conditional->condition.get(), expectedConditional->condition.get());
+	CompareStandardExpressions(conditional->condition.get(), expectedConditional->condition.get());
 	CompareBlocks(conditional->ifBlock.get(), expectedConditional->ifBlock.get());
 	if (conditional->elseBlock != expectedConditional->elseBlock)
 	{
@@ -209,7 +209,7 @@ static void CompareConditionals(const Conditional* const conditional, const Cond
 
 static void CompareWhileLoops(const WhileLoop* const whileLoop, const WhileLoop* const expectedWhileLoop)
 {
-	CompareExpressions(whileLoop->condition.get(), expectedWhileLoop->condition.get());
+	CompareStandardExpressions(whileLoop->condition.get(), expectedWhileLoop->condition.get());
 	CompareBlocks(whileLoop->block.get(), expectedWhileLoop->block.get());
 }
 
