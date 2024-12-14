@@ -16,7 +16,7 @@ class Parser
 			: std::runtime_error(msg), position(pos)
 		{
 			std::stringstream ss;
-			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << message << std::endl;
+			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << msg << std::endl;
 			message = ss.str();
 		}
 
@@ -34,7 +34,7 @@ public:
 private:
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
-	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
+	bool ConsumeToken(const LexToken::TokenType expectedToken);
 	bool CheckToken(const LexToken::TokenType expectedToken);
 
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
@@ -43,15 +43,14 @@ private:
 
 	std::unique_ptr<Block> ParseBlock();
 	std::unique_ptr<Statement> ParseStatement();
-	std::unique_ptr<FunctionCallStatement> ParseFunctionCallStatement();
 	std::unique_ptr<Conditional> ParseConditional();
 	std::unique_ptr<WhileLoop> ParseLoop();
 	std::unique_ptr<Return> ParseReturn();
 	std::unique_ptr<Declaration> ParseDeclaration();
-	std::unique_ptr<Assignment> ParseAssignment();
+	std::unique_ptr<Assignment> ParseRestOfAssignment(const std::wstring& identifier);
 	std::vector<std::unique_ptr<Expression>> ParseArguments();
-
-	std::unique_ptr<FunctionCall> ParseFunctionCall();
+	std::unique_ptr<FunctionCallStatement> ParseRestOfFunctionCallStatement(const std::wstring& identifier);
+	std::unique_ptr<FunctionCall> ParseRestOfFunctionCall(const std::wstring& identifier);
 
 	std::unique_ptr<Expression> ParseExpression();
 	std::unique_ptr<StandardExpression> ParseStandardExpression();
@@ -68,7 +67,7 @@ private:
 	std::unique_ptr<FunctionLiteral> ParseFunctionLit();
 
 private:
-	std::queue<LexToken> unusedTokens = {};
+	std::optional<LexToken> lastUnusedToken;
 	Lexer* lexer = nullptr;
 	Position currentPosition = Position(0, 0);
 };

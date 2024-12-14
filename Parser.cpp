@@ -17,7 +17,7 @@ void Parser::SetLexer(Lexer* const newLexer)
 
 LexToken Parser::GetNextToken()
 {
-	if (unusedTokens.empty())
+	if (!lastUnusedToken)
 	{
 		auto lexOut = lexer->ResolveNext();
 		auto& token = lexOut.first;
@@ -40,8 +40,8 @@ LexToken Parser::GetNextToken()
 	}
 	else
 	{
-		const auto out = std::move(unusedTokens.front());
-		unusedTokens.pop();
+		const auto out = std::move(*lastUnusedToken);
+		lastUnusedToken = std::nullopt;
 		currentPosition = out.GetPosition();
 		return out;
 	}
@@ -49,36 +49,24 @@ LexToken Parser::GetNextToken()
 
 std::optional<LexToken> Parser::GetExpectedToken(const LexToken::TokenType expectedToken)
 {
-	const auto token = GetNextToken();
+	auto token = GetNextToken();
 	if (token.GetType() != expectedToken)
 	{
-		unusedTokens.push(token);
+		lastUnusedToken = std::move(token);
 		return std::nullopt;
 	}
 	return token;
 }
 
-bool Parser::ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset)
+bool Parser::ConsumeToken(const LexToken::TokenType expectedToken)
 {
-	const auto token = GetNextToken();
-	if (token.GetType() != expectedToken)
-	{
-		if (boundTokenToReset)
-		{
-			unusedTokens.push(*boundTokenToReset);
-		}
-		unusedTokens.push(token);
-
-		return false;
-	}
-	return true;
+	return GetExpectedToken(expectedToken).has_value();
 }
 
 bool Parser::CheckToken(const LexToken::TokenType expectedToken)
 {
-	const auto token = GetNextToken();
-	unusedTokens.push(token);
-	return token.GetType() == expectedToken;
+	lastUnusedToken = GetNextToken();
+	return lastUnusedToken->GetType() == expectedToken;
 }
 
 // program = { function_definition };
@@ -226,10 +214,6 @@ std::unique_ptr<Block> Parser::ParseBlock()
 //			| assignment
 std::unique_ptr<Statement> Parser::ParseStatement()
 {
-	if (auto funcCall = ParseFunctionCallStatement())
-	{
-		return funcCall;
-	}
 	if (auto conditional = ParseConditional())
 	{
 		return conditional;
@@ -250,18 +234,28 @@ std::unique_ptr<Statement> Parser::ParseStatement()
 	{
 		return declaration;
 	}
-	if (auto assignment = ParseAssignment())
+
+	auto idToken = GetExpectedToken(LexToken::TokenType::Identifier);
+	if (idToken)
 	{
-		return assignment;
+		const auto identifier = std::get<std::wstring>(idToken->GetValue());
+		if (auto assignment = ParseRestOfAssignment(identifier))
+		{
+			return assignment;
+		}
+		if (auto funcCall = ParseRestOfFunctionCallStatement(identifier))
+		{
+			return funcCall;
+		}
 	}
 
 	return nullptr;
 }
 
 // function_call_statement = function_call, ";";
-std::unique_ptr<FunctionCallStatement> Parser::ParseFunctionCallStatement()
+std::unique_ptr<FunctionCallStatement> Parser::ParseRestOfFunctionCallStatement(const std::wstring& identifier)
 {
-	if (auto funcCall = ParseFunctionCall())
+	if (auto funcCall = ParseRestOfFunctionCall(identifier))
 	{
 		if (!ConsumeToken(LexToken::TokenType::Semicolon))
 		{
@@ -272,18 +266,11 @@ std::unique_ptr<FunctionCallStatement> Parser::ParseFunctionCallStatement()
 	return nullptr;
 }
 
-// function_call = identifier, "(", arguments, ")";
-std::unique_ptr<FunctionCall> Parser::ParseFunctionCall()
+std::unique_ptr<FunctionCall> Parser::ParseRestOfFunctionCall(const std::wstring& identifier)
 {
 	using LT = LexToken::TokenType;
 
-	auto idToken = GetExpectedToken(LT::Identifier);
-	if (!idToken)
-	{
-		return nullptr;
-	}
-
-	if (!ConsumeToken(LT::LParenth, idToken))
+	if (!ConsumeToken(LT::LParenth))
 	{
 		return nullptr;
 	}
@@ -295,7 +282,7 @@ std::unique_ptr<FunctionCall> Parser::ParseFunctionCall()
 		throw ParserException("Expected closing parentheses in the function call.", currentPosition);
 	}
 
-	return std::make_unique<FunctionCall>(std::get<std::wstring>(idToken->GetValue()), std::move(arguments));
+	return std::make_unique<FunctionCall>(identifier, std::move(arguments));
 }
 
 // conditional = "if", "(", expression, ")", block, ["else", block];
@@ -419,17 +406,11 @@ std::unique_ptr<Declaration> Parser::ParseDeclaration()
 }
 
 // assignment = identifier, "=", expression, ";";
-std::unique_ptr<Assignment> Parser::ParseAssignment()
+std::unique_ptr<Assignment> Parser::ParseRestOfAssignment(const std::wstring& identifier)
 {
 	using LT = LexToken::TokenType;
 
-	auto idToken = GetExpectedToken(LT::Identifier);
-	if (!idToken)
-	{
-		return nullptr;
-	}
-
-	if (!ConsumeToken(LT::Assign, idToken))
+	if (!ConsumeToken(LT::Assign))
 	{
 		return nullptr;
 	}
@@ -440,7 +421,7 @@ std::unique_ptr<Assignment> Parser::ParseAssignment()
 	{
 		throw ParserException("Expected semicolon at the end of assignment.", currentPosition);
 	}
-	return std::make_unique<Assignment>(std::get<std::wstring>(idToken->GetValue()), std::move(expression));
+	return std::make_unique<Assignment>(identifier, std::move(expression));
 }
 
 // arguments = [expression, { ",", expression }];
@@ -720,16 +701,20 @@ std::unique_ptr<Factor> Parser::ParseFactor()
 		return factor;
 	}
 
-	if (auto functionCall = ParseFunctionCall())
+	auto idToken = GetExpectedToken(LT::Identifier);
+	if (idToken)
 	{
-		factor->factor = std::move(functionCall);
-		return factor;
-	}
-
-	if (const auto idToken = GetExpectedToken(LT::Identifier))
-	{
-		factor->factor = std::get<std::wstring>(idToken->GetValue());
-		return factor;
+		const auto identifier = std::get<std::wstring>(idToken->GetValue());
+		if (auto functionCall = ParseRestOfFunctionCall(identifier))
+		{
+			factor->factor = std::move(functionCall);
+			return factor;
+		}
+		else
+		{
+			factor->factor = identifier;
+			return factor;
+		}
 	}
 
 	if (factor->logicallyNegated)
@@ -836,14 +821,18 @@ std::unique_ptr<Bindable> Parser::ParseBindable()
 		return std::make_unique<Bindable>(std::move(funcLit));
 	}
 
-	if (auto functionCall = ParseFunctionCall())
+	auto idToken = GetExpectedToken(LT::Identifier);
+	if (idToken)
 	{
-		return std::make_unique<Bindable>(std::move(functionCall));
-	}
-
-	if (const auto idToken = GetExpectedToken(LT::Identifier))
-	{
-		return std::make_unique<Bindable>(std::get<std::wstring>(idToken->GetValue()));
+		const auto identifier = std::get<std::wstring>(idToken->GetValue());
+		if (auto functionCall = ParseRestOfFunctionCall(identifier))
+		{
+			return std::make_unique<Bindable>(std::move(functionCall));
+		}
+		else
+		{
+			return std::make_unique<Bindable>(identifier);
+		}
 	}
 
 	if (!ConsumeToken(LT::LParenth))
