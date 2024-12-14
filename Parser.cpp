@@ -15,28 +15,33 @@ void Parser::SetLexer(Lexer* const newLexer)
 	lexer = newLexer;
 }
 
+LexToken Parser::GetTokenFromLexer()
+{
+	auto lexOut = lexer->ResolveNext();
+	auto& token = lexOut.first;
+	while (token.GetType() == LexToken::TokenType::Comment)
+	{
+		lexOut = lexer->ResolveNext();
+		token = lexOut.first;
+	}
+	for (const auto& lexError : lexOut.second)
+	{
+		std::cout << "Lexical Error [line: " << lexError.GetPosition().line << ", column : " <<
+			lexError.GetPosition().column << "] " << lexError.GetMessage() << std::endl;
+		if (lexError.IsTerminating())
+		{
+			throw ParserException("Could not get token, terminating lexer error occured.", currentPosition);
+		}
+	}
+
+	return token;
+}
+
 LexToken Parser::GetNextToken()
 {
 	if (!lastUnusedToken)
 	{
-		auto lexOut = lexer->ResolveNext();
-		auto& token = lexOut.first;
-		while (token.GetType() == LexToken::TokenType::Comment)
-		{
-			lexOut = lexer->ResolveNext();
-			token = lexOut.first;
-		}
-		for (const auto& lexError : lexOut.second)
-		{
-			std::cout << "Lexical Error [line: " << lexError.GetPosition().line << ", column : " <<
-				lexError.GetPosition().column << "] " << lexError.GetMessage() << std::endl;
-			if (lexError.IsTerminating())
-			{
-				throw ParserException("Could not get token, terminating lexer error occured.", currentPosition);
-			}
-		}
-
-		return token;
+		return GetTokenFromLexer();
 	}
 	else
 	{

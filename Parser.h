@@ -32,6 +32,7 @@ public:
 	std::unique_ptr<Program> ParseProgram();
 
 private:
+	LexToken GetTokenFromLexer();
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
 	bool ConsumeToken(const LexToken::TokenType expectedToken);
