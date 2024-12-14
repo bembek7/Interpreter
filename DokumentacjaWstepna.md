@@ -227,7 +227,7 @@ parameters            = [ parameter, { ",", parameter } ];
 parameter             = ["mut"], identifier 
 
 block                 = "{", { statement }, "}";
-statement             = function_call, ";"
+statement             = function_call_statement
                       | conditional
                       | loop
                       | return_statement
@@ -235,25 +235,29 @@ statement             = function_call, ";"
                       | declaration
                       | assignment
 
+function_call_statement = function_call, ";";
+
 declaration           = ["mut"], "var", identifier, [ "=", expression ], ";";
 assignment            = identifier, "=", expression, ";";
 
 function_call         = identifier, "(", arguments, ")";
 arguments             = [ expression, { ",", expression } ];
 
-conditional           = "if", "(", expression, ")", block,
+conditional           = "if", "(", standard_expression, ")", block,
                         [ "else", block ];
 
-loop                  = "while", "(", expression, ")", block;
+loop                  = "while", "(", standard_expression, ")", block;
 return_statement      = "return", [ expression ], ";";
 
-expression            = conjunction, { "||", conjunction } 
-                      | func_expression;
+expression            = standard_expression 
+                      | "[", func_expression, "]";
+
+standard_expression   = conjunction, { "||", conjunction }       
 conjunction           = relation_term, { "&&", relation_term };
 relation_term         = additive_term, [ relation_operator, additive_term ];
 additive_term         = ["-"], (multiplicative_term, { ("+" | "-"), multiplicative_term });
 multiplicative_term   = factor, { ("*" | "/"), factor };
-factor                = [ "!" ], (literal | "(", expression, ")" | identifier | function_call);
+factor                = [ "!" ], (literal | "(", standard_expression, ")" | identifier | function_call);
 
 func_expression       = composable, { ">>", composable };
 composable            = bindable, [ "<<", "(", arguments, ")" ];

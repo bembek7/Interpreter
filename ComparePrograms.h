@@ -7,7 +7,7 @@ static void CompareFunctionCallStatements(const FunctionCallStatement* const fun
 static void CompareFuncExpressions(const FuncExpression* const funcExpr, const FuncExpression* const expectedFuncExpr);
 static void CompareComposables(const Composable* const composable, const Composable* const expectedComposable);
 static void CompareBindables(const Bindable* const bindable, const Bindable* const expectedBindable);
-static void CompareFunctionLits(const FunctionLit* const funcLit, const FunctionLit* const expectedFuncLit);
+static void CompareFunctionLits(const FunctionLiteral* const funcLit, const FunctionLiteral* const expectedFuncLit);
 static void CompareMultiplicatives(const Multiplicative* const multiplicative, const Multiplicative* const expectedMultiplicative);
 static void CompareAdditives(const Additive* const additive, const Additive* const expectedAdditive);
 static void CompareRelations(const Relation* const relation, const Relation* const expectedRelation);
@@ -26,17 +26,21 @@ static void CompareFunDefs(const FunctionDefiniton* const funDef, const Function
 
 static void CompareExpressions(const Expression* const expression, const Expression* const expectedExpression)
 {
-	if (auto* funcExpr = std::get_if<std::unique_ptr<FuncExpression>>(&expression->expression))
+	if (auto* funcExpr = dynamic_cast<const FuncExpression*>(expression))
 	{
-		auto* expectedFuncExpr = std::get_if<std::unique_ptr<FuncExpression>>(&expectedExpression->expression);
+		auto* expectedFuncExpr = dynamic_cast<const FuncExpression*>(expectedExpression);
 		ASSERT_TRUE(expectedFuncExpr != nullptr);
-		CompareFuncExpressions(funcExpr->get(), expectedFuncExpr->get());
+		CompareFuncExpressions(funcExpr, expectedFuncExpr);
 	}
-	else if (auto* stdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expression->expression))
+	else if (auto* stdExpr = dynamic_cast<const StandardExpression*>(expression))
 	{
-		auto* expectedStdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expectedExpression->expression);
+		auto* expectedStdExpr = dynamic_cast<const StandardExpression*>(expectedExpression);
 		ASSERT_TRUE(expectedStdExpr != nullptr);
-		CompareStandardExpressions(stdExpr->get(), expectedStdExpr->get());
+		CompareStandardExpressions(stdExpr, expectedStdExpr);
+	}
+	else
+	{
+		FAIL() << "Expressions do not match expected types.";
 	}
 }
 
@@ -86,9 +90,9 @@ static void CompareComposables(const Composable* const composable, const Composa
 
 static void CompareBindables(const Bindable* const bindable, const Bindable* const expectedBindable)
 {
-	if (auto* funcLit = std::get_if<std::unique_ptr<FunctionLit>>(&bindable->bindable))
+	if (auto* funcLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&bindable->bindable))
 	{
-		auto* expectedFuncLit = std::get_if<std::unique_ptr<FunctionLit>>(&expectedBindable->bindable);
+		auto* expectedFuncLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&expectedBindable->bindable);
 		ASSERT_TRUE(expectedFuncLit != nullptr);
 		CompareFunctionLits(funcLit->get(), expectedFuncLit->get());
 	}
@@ -112,7 +116,7 @@ static void CompareBindables(const Bindable* const bindable, const Bindable* con
 	}
 }
 
-static void CompareFunctionLits(const FunctionLit* const funcLit, const FunctionLit* const expectedFuncLit)
+static void CompareFunctionLits(const FunctionLiteral* const funcLit, const FunctionLiteral* const expectedFuncLit)
 {
 	ASSERT_EQ(funcLit->parameters.size(), expectedFuncLit->parameters.size());
 	for (size_t i = 0; i < funcLit->parameters.size(); ++i)
@@ -199,7 +203,7 @@ static void CompareLiterals(const Literal* const literal, const Literal* const e
 
 static void CompareConditionals(const Conditional* const conditional, const Conditional* const expectedConditional)
 {
-	CompareExpressions(conditional->condition.get(), expectedConditional->condition.get());
+	CompareStandardExpressions(conditional->condition.get(), expectedConditional->condition.get());
 	CompareBlocks(conditional->ifBlock.get(), expectedConditional->ifBlock.get());
 	if (conditional->elseBlock != expectedConditional->elseBlock)
 	{
@@ -209,7 +213,7 @@ static void CompareConditionals(const Conditional* const conditional, const Cond
 
 static void CompareWhileLoops(const WhileLoop* const whileLoop, const WhileLoop* const expectedWhileLoop)
 {
-	CompareExpressions(whileLoop->condition.get(), expectedWhileLoop->condition.get());
+	CompareStandardExpressions(whileLoop->condition.get(), expectedWhileLoop->condition.get());
 	CompareBlocks(whileLoop->block.get(), expectedWhileLoop->block.get());
 }
 

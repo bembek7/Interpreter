@@ -34,14 +34,14 @@ struct FunctionCallStatement : Statement
 
 struct Conditional : Statement
 {
-	std::unique_ptr<Expression> condition;
+	std::unique_ptr<StandardExpression> condition;
 	std::unique_ptr<Block> ifBlock;
 	std::unique_ptr<Block> elseBlock;
 };
 
 struct WhileLoop : Statement
 {
-	std::unique_ptr<Expression> condition;
+	std::unique_ptr<StandardExpression> condition;
 	std::unique_ptr<Block> block;
 };
 

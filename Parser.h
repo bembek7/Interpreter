@@ -6,33 +6,37 @@
 #include <sstream>
 class Parser
 {
-	class ParserException : public std::exception {
+	class ParserException : public std::runtime_error {
 	private:
 		std::string message;
 		Position position;
 
 	public:
 		ParserException(const char* msg, const Position pos)
-			: message(msg), position(pos)
-		{}
-
-		const char* what() const throw()
+			: std::runtime_error(msg), position(pos)
 		{
 			std::stringstream ss;
-			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << message << std::endl;
-			return ss.str().c_str();
+			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << msg << std::endl;
+			message = ss.str();
+		}
+
+		const char* what() const noexcept override
+		{
+			return message.c_str();
 		}
 	};
 public:
-	Parser(Lexer* const lexer) noexcept;
-	void SetLexer(Lexer* const newLexer) noexcept;
+	Parser(Lexer* const lexer);
+	void SetLexer(Lexer* const newLexer);
 
 	std::unique_ptr<Program> ParseProgram();
 
 private:
+	LexToken GetTokenFromLexer();
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
-	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
+	bool ConsumeToken(const LexToken::TokenType expectedToken);
+	bool CheckToken(const LexToken::TokenType expectedToken);
 
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<Param> ParseParams();
@@ -40,15 +44,14 @@ private:
 
 	std::unique_ptr<Block> ParseBlock();
 	std::unique_ptr<Statement> ParseStatement();
-	std::unique_ptr<FunctionCallStatement> ParseFunctionCallStatement();
 	std::unique_ptr<Conditional> ParseConditional();
 	std::unique_ptr<WhileLoop> ParseLoop();
 	std::unique_ptr<Return> ParseReturn();
 	std::unique_ptr<Declaration> ParseDeclaration();
-	std::unique_ptr<Assignment> ParseAssignment();
+	std::unique_ptr<Assignment> ParseRestOfAssignment(const std::wstring& identifier);
 	std::vector<std::unique_ptr<Expression>> ParseArguments();
-
-	std::unique_ptr<FunctionCall> ParseFunctionCall();
+	std::unique_ptr<FunctionCallStatement> ParseRestOfFunctionCallStatement(const std::wstring& identifier);
+	std::unique_ptr<FunctionCall> ParseRestOfFunctionCall(const std::wstring& identifier);
 
 	std::unique_ptr<Expression> ParseExpression();
 	std::unique_ptr<StandardExpression> ParseStandardExpression();
@@ -62,10 +65,10 @@ private:
 	std::unique_ptr<FuncExpression> ParseFuncExpression();
 	std::unique_ptr<Composable> ParseComposable();
 	std::unique_ptr<Bindable> ParseBindable();
-	std::unique_ptr<FunctionLit> ParseFunctionLit();
+	std::unique_ptr<FunctionLiteral> ParseFunctionLit();
 
 private:
-	std::queue<LexToken> unusedTokens = {};
+	std::optional<LexToken> lastUnusedToken;
 	Lexer* lexer = nullptr;
 	Position currentPosition = Position(0, 0);
 };
