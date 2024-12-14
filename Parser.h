@@ -6,22 +6,23 @@
 #include <sstream>
 class Parser
 {
-	class ParserException : public std::exception {
+	class ParserException : public std::runtime_error {
 	private:
 		std::string message;
 		Position position;
 
 	public:
 		ParserException(const char* msg, const Position pos)
-			: message(msg), position(pos)
-		{
-		}
-
-		const char* what() const throw()
+			: std::runtime_error(msg), position(pos)
 		{
 			std::stringstream ss;
 			ss << "Parser Error [line: " << position.line << ", column : " << position.column << "] " << message << std::endl;
-			return ss.str().c_str();
+			message = ss.str();
+		}
+
+		const char* what() const noexcept override
+		{
+			return message.c_str();
 		}
 	};
 public:
