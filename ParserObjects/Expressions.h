@@ -9,7 +9,6 @@ struct FunctionCall;
 
 struct Literal
 {
-	Literal(const std::variant<bool, int, float, std::wstring>& value) noexcept : value(value) {}
 	std::variant<bool, int, float, std::wstring> value;
 };
 

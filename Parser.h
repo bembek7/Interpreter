@@ -24,8 +24,8 @@ class Parser
 		}
 	};
 public:
-	Parser(Lexer* const lexer) noexcept;
-	void SetLexer(Lexer* const newLexer) noexcept;
+	Parser(Lexer* const lexer);
+	void SetLexer(Lexer* const newLexer);
 
 	std::unique_ptr<Program> ParseProgram();
 

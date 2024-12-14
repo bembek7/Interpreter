@@ -1,12 +1,17 @@
 #include "Parser.h"
 #include <iostream>
 
-Parser::Parser(Lexer* const lexer) noexcept :
-	lexer(lexer)
-{}
-
-void Parser::SetLexer(Lexer* const newLexer) noexcept
+Parser::Parser(Lexer* const lexer)
 {
+	SetLexer(lexer);
+}
+
+void Parser::SetLexer(Lexer* const newLexer)
+{
+	if (!newLexer)
+	{
+		throw std::runtime_error("Passed lexer was a nullptr");
+	}
 	lexer = newLexer;
 }
 
