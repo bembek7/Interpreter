@@ -7,7 +7,7 @@ static void CompareFunctionCallStatements(const FunctionCallStatement* const fun
 static void CompareFuncExpressions(const FuncExpression* const funcExpr, const FuncExpression* const expectedFuncExpr);
 static void CompareComposables(const Composable* const composable, const Composable* const expectedComposable);
 static void CompareBindables(const Bindable* const bindable, const Bindable* const expectedBindable);
-static void CompareFunctionLits(const FunctionLit* const funcLit, const FunctionLit* const expectedFuncLit);
+static void CompareFunctionLits(const FunctionLiteral* const funcLit, const FunctionLiteral* const expectedFuncLit);
 static void CompareMultiplicatives(const Multiplicative* const multiplicative, const Multiplicative* const expectedMultiplicative);
 static void CompareAdditives(const Additive* const additive, const Additive* const expectedAdditive);
 static void CompareRelations(const Relation* const relation, const Relation* const expectedRelation);
@@ -86,9 +86,9 @@ static void CompareComposables(const Composable* const composable, const Composa
 
 static void CompareBindables(const Bindable* const bindable, const Bindable* const expectedBindable)
 {
-	if (auto* funcLit = std::get_if<std::unique_ptr<FunctionLit>>(&bindable->bindable))
+	if (auto* funcLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&bindable->bindable))
 	{
-		auto* expectedFuncLit = std::get_if<std::unique_ptr<FunctionLit>>(&expectedBindable->bindable);
+		auto* expectedFuncLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&expectedBindable->bindable);
 		ASSERT_TRUE(expectedFuncLit != nullptr);
 		CompareFunctionLits(funcLit->get(), expectedFuncLit->get());
 	}
@@ -112,7 +112,7 @@ static void CompareBindables(const Bindable* const bindable, const Bindable* con
 	}
 }
 
-static void CompareFunctionLits(const FunctionLit* const funcLit, const FunctionLit* const expectedFuncLit)
+static void CompareFunctionLits(const FunctionLiteral* const funcLit, const FunctionLiteral* const expectedFuncLit)
 {
 	ASSERT_EQ(funcLit->parameters.size(), expectedFuncLit->parameters.size());
 	for (size_t i = 0; i < funcLit->parameters.size(); ++i)

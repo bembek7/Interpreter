@@ -10,7 +10,7 @@ struct FunctionCall;
 struct Expression;
 struct FuncExpression;
 
-struct FunctionLit
+struct FunctionLiteral
 {
 	std::vector<Param> parameters;
 	std::unique_ptr<Block> block;
@@ -18,7 +18,7 @@ struct FunctionLit
 
 struct Bindable
 {
-	Bindable(std::unique_ptr<FunctionLit> bindable) :
+	Bindable(std::unique_ptr<FunctionLiteral> bindable) :
 		bindable(std::move(bindable)) {}
 	Bindable(std::unique_ptr<FuncExpression> bindable) :
 		bindable(std::move(bindable)) {}
@@ -26,7 +26,7 @@ struct Bindable
 		bindable(std::move(bindable)) {}
 	Bindable(const std::wstring& bindable) :
 		bindable(bindable) {}
-	std::variant<std::unique_ptr<FunctionLit>, std::unique_ptr<FuncExpression>, std::unique_ptr<FunctionCall>, std::wstring> bindable;
+	std::variant<std::unique_ptr<FunctionLiteral>, std::unique_ptr<FuncExpression>, std::unique_ptr<FunctionCall>, std::wstring> bindable;
 };
 
 struct Composable

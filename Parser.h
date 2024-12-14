@@ -62,7 +62,7 @@ private:
 	std::unique_ptr<FuncExpression> ParseFuncExpression();
 	std::unique_ptr<Composable> ParseComposable();
 	std::unique_ptr<Bindable> ParseBindable();
-	std::unique_ptr<FunctionLit> ParseFunctionLit();
+	std::unique_ptr<FunctionLiteral> ParseFunctionLit();
 
 private:
 	std::queue<LexToken> unusedTokens = {};

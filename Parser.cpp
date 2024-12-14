@@ -842,7 +842,7 @@ std::unique_ptr<Bindable> Parser::ParseBindable()
 }
 
 // function_lit = "(", parameters, ")", block;
-std::unique_ptr<FunctionLit> Parser::ParseFunctionLit()
+std::unique_ptr<FunctionLiteral> Parser::ParseFunctionLit()
 {
 	using LT = LexToken::TokenType;
 
@@ -850,7 +850,7 @@ std::unique_ptr<FunctionLit> Parser::ParseFunctionLit()
 	{
 		return nullptr;
 	}
-	auto functionLit = std::make_unique<FunctionLit>();
+	auto functionLit = std::make_unique<FunctionLiteral>();
 	functionLit->parameters = ParseParams();
 
 	if (!ConsumeToken(LT::RParenth))

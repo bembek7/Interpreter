@@ -51,7 +51,7 @@ static std::unique_ptr<Composable> MakeComposableFromString(const std::wstring& 
 	return composable;
 }
 
-static std::unique_ptr<Composable> MakeComposableFromFunctionLit(std::unique_ptr<FunctionLit> fLiteral)
+static std::unique_ptr<Composable> MakeComposableFromFunctionLit(std::unique_ptr<FunctionLiteral> fLiteral)
 {
 	auto composable = std::make_unique<Composable>();
 	auto bindable = std::make_unique<Bindable>(std::move(fLiteral));
@@ -439,7 +439,7 @@ TEST_F(ParserTest, FunctionLiteral)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto fExpr = std::make_unique<FuncExpression>();
-	auto fLiteral = std::make_unique<FunctionLit>();
+	auto fLiteral = std::make_unique<FunctionLiteral>();
 
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"a";
@@ -526,7 +526,7 @@ TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
 	exFunDef->identifier = L"Test";
 	exFunDef->block = std::make_unique<Block>();
 
-	auto funcLiteral = std::make_unique<FunctionLit>();
+	auto funcLiteral = std::make_unique<FunctionLiteral>();
 	funcLiteral->block = std::make_unique<Block>();
 	funcLiteral->block->statements.push_back(
 		std::make_unique<Return>(std::make_unique<Expression>(MakeExprFromLiteral(Literal(42)))));
@@ -558,7 +558,7 @@ TEST_F(ParserTest, FunctionLiteralWithParameters)
 	exFunDef->identifier = L"Test";
 	exFunDef->block = std::make_unique<Block>();
 
-	auto funcLiteral = std::make_unique<FunctionLit>();
+	auto funcLiteral = std::make_unique<FunctionLiteral>();
 
 	funcLiteral->parameters.push_back(Param(L"a", false));
 	funcLiteral->parameters.push_back(Param(L"b", false));
