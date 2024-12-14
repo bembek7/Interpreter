@@ -18,44 +18,50 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef)
 	InterpretBlock(funDef->block.get());
 }
 
+void Interpreter::Print(const std::wstring& msg) const noexcept
+{
+	std::wstring tabulation(currentDepth, L'\t');
+	std::wcout << tabulation << msg << std::endl;
+}
+
 void Interpreter::InterpretBlock(const Block* const block)
 {
-	std::wcout << L"Block: " << std::endl;
+	++currentDepth;
 	for (const auto& statement : block->statements)
 	{
 		statement->InterpretThis(*this);
 	}
-	std::wcout << L"End of Block: " << std::endl;
+	--currentDepth;
 }
 
 void Interpreter::InterpretStatement(const FunctionCallStatement* const functionCallStatement)
 {
-	std::wcout << L"FunctionCallStatement " << std::endl;
+	Print(L"FunctionCallStatement");
 }
 
 void Interpreter::InterpretStatement(const WhileLoop* const whileLoop)
 {
-	std::wcout << L"FunctionCallStatement " << std::endl;
+	Print(L"While");
 }
 
 void Interpreter::InterpretStatement(const Return* const returnStatement)
 {
-	std::wcout << L"Return " << std::endl;
+	Print(L"Return");
 }
 
 void Interpreter::InterpretStatement(const Conditional* const conditional)
 {
-	std::wcout << L"Conditional " << std::endl;
+	Print(L"Conditional");
 }
 
 void Interpreter::InterpretStatement(const Declaration* const declaration)
 {
-	std::wcout << L"Declaration " << std::endl;
+	Print(L"Declaration");
 }
 
 void Interpreter::InterpretStatement(const Assignment* const assignment)
 {
-	std::wcout << L"Assignment " << std::endl;
+	Print(L"Assignment");
 }
 
 void Interpreter::Interpret(const Program* const program)

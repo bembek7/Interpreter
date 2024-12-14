@@ -30,9 +30,10 @@ public:
 	void InterpretStatement(const Assignment* const block);
 private:
 	void InterpretFunDef(const FunctionDefiniton* const funDef);
-	
+	void Print(const std::wstring& msg) const noexcept;
 
 private:
+	unsigned int currentDepth = 0;
 	std::shared_ptr<Scope> currentScope;
 	std::vector<std::wstring> knownFunctions;
 };
