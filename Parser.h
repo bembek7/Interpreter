@@ -14,7 +14,8 @@ class Parser
 	public:
 		ParserException(const char* msg, const Position pos)
 			: message(msg), position(pos)
-		{}
+		{
+		}
 
 		const char* what() const throw()
 		{
@@ -33,6 +34,7 @@ private:
 	LexToken GetNextToken();
 	std::optional<LexToken> GetExpectedToken(const LexToken::TokenType expectedToken);
 	bool ConsumeToken(const LexToken::TokenType expectedToken, std::optional<LexToken> boundTokenToReset = std::nullopt);
+	bool CheckToken(const LexToken::TokenType expectedToken);
 
 	std::unique_ptr<FunctionDefiniton> ParseFunctionDefinition();
 	std::vector<Param> ParseParams();
