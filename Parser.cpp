@@ -486,11 +486,11 @@ std::unique_ptr<Expression> Parser::ParseExpression()
 		{
 			throw ParserException("Expected \"]\" after function expression.", currentPosition);
 		}
-		return std::make_unique<Expression>(std::move(fExpr));
+		return fExpr;
 	}
 	if (auto stdExpr = ParseStandardExpression())
 	{
-		return std::make_unique<Expression>(std::move(stdExpr));
+		return stdExpr;
 	}
 	return nullptr;
 }

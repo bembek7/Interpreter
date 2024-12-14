@@ -131,7 +131,7 @@ TEST_F(ParserTest, FunctionWithDeclaration)
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"a";
 	exDeclaration->varMutable = true;
-	exDeclaration->expression = std::make_unique<Expression>(MakeExprFromLiteral(Literal(10)));
+	exDeclaration->expression = MakeExprFromLiteral(Literal(10));
 
 	exFunDef->block->statements.push_back(std::move(exDeclaration));
 
@@ -180,7 +180,7 @@ TEST_F(ParserTest, WhileLoop)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto loop = std::make_unique<WhileLoop>();
-	loop->condition =MakeExprFromLiteral(Literal(true));
+	loop->condition = MakeExprFromLiteral(Literal(true));
 	loop->block = std::make_unique<Block>();
 	exFunDef->block->statements.push_back(std::move(loop));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -248,11 +248,11 @@ TEST_F(ParserTest, FunctionCallWithArguments)
 	exFunDef->block = std::make_unique<Block>();
 
 	auto arguments = vecUni<Expression>{};
-	arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(10))));
-	arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(5.f))));
-	arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(false))));
-	arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(std::wstring(L"string")))));
-	arguments.push_back(std::make_unique<Expression>(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")))));
+	arguments.push_back(MakeExprFromLiteral(Literal(10)));
+	arguments.push_back(MakeExprFromLiteral(Literal(5.f)));
+	arguments.push_back(MakeExprFromLiteral(Literal(false)));
+	arguments.push_back(MakeExprFromLiteral(Literal(std::wstring(L"string"))));
+	arguments.push_back(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a"))));
 	auto funcCall = std::make_unique<FunctionCall>(std::wstring(L"Buzz"), std::move(arguments));
 	exFunDef->block->statements.push_back(std::make_unique<FunctionCallStatement>(std::move(funcCall)));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -297,7 +297,7 @@ TEST_F(ParserTest, ReturnSomething)
 	exFunDef->identifier = L"Fizz";
 	exFunDef->block = std::make_unique<Block>();
 
-	auto returnStatement = std::make_unique<Return>(std::make_unique<Expression>(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")))));
+	auto returnStatement = std::make_unique<Return>(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a"))));
 	exFunDef->block->statements.push_back(std::move(returnStatement));
 	exFunDefs.push_back(std::move(exFunDef));
 	expectedProgram.funDefs = std::move(exFunDefs);
@@ -347,7 +347,7 @@ TEST_F(ParserTest, SampleFunctionalCode)
 
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"b";
-	exDeclaration->expression = std::make_unique<Expression>(MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a"))));
+	exDeclaration->expression = MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")));
 	exFunDef->block->statements.push_back(std::move(exDeclaration));
 
 	auto a = MakeExprFromFactor(std::make_unique<Factor>(std::wstring(L"a")));
@@ -355,7 +355,7 @@ TEST_F(ParserTest, SampleFunctionalCode)
 
 	auto b = MakeMultiplicativeFromFactor(std::make_unique<Factor>(std::wstring(L"b")));
 	a->conjunctions[0]->relations[0]->firstAdditive->multiplicatives.push_back(std::move(b));
-	auto returnStatement = std::make_unique<Return>(std::make_unique<Expression>(std::move(a)));
+	auto returnStatement = std::make_unique<Return>(std::move(a));
 
 	exFunDef->block->statements.push_back(std::move(returnStatement));
 
@@ -383,7 +383,7 @@ TEST_F(ParserTest, Compose)
 	fExpr->composables.push_back(MakeComposableFromString(L"a"));
 	fExpr->composables.push_back(MakeComposableFromString(L"c"));
 
-	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(fExpr)));
+	auto assignment = std::make_unique<Assignment>(L"f", std::move(fExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -410,12 +410,12 @@ TEST_F(ParserTest, Bind)
 	auto composable = std::make_unique<Composable>();
 	auto bindable = std::make_unique<Bindable>(std::wstring(L"a"));
 	composable->bindable = std::move(bindable);
-	composable->arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(10))));
-	composable->arguments.push_back(std::make_unique<Expression>(MakeExprFromLiteral(Literal(false))));
+	composable->arguments.push_back(MakeExprFromLiteral(Literal(10)));
+	composable->arguments.push_back(MakeExprFromLiteral(Literal(false)));
 
 	fExpr->composables.push_back(std::move(composable));
 
-	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(fExpr)));
+	auto assignment = std::make_unique<Assignment>(L"f", std::move(fExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -443,13 +443,13 @@ TEST_F(ParserTest, FunctionLiteral)
 
 	auto exDeclaration = std::make_unique<Declaration>();
 	exDeclaration->identifier = L"a";
-	exDeclaration->expression = std::make_unique<Expression>(MakeExprFromLiteral(Literal(10)));
+	exDeclaration->expression = MakeExprFromLiteral(Literal(10));
 	fLiteral->block = std::make_unique<Block>();
 	fLiteral->block->statements.push_back(std::move(exDeclaration));
 
 	fExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(fLiteral)));
 
-	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(fExpr)));
+	auto assignment = std::make_unique<Assignment>(L"f", std::move(fExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -529,13 +529,13 @@ TEST_F(ParserTest, FunctionExpressionSimpleLiteral)
 	auto funcLiteral = std::make_unique<FunctionLiteral>();
 	funcLiteral->block = std::make_unique<Block>();
 	funcLiteral->block->statements.push_back(
-		std::make_unique<Return>(std::make_unique<Expression>(MakeExprFromLiteral(Literal(42)))));
+		std::make_unique<Return>(MakeExprFromLiteral(Literal(42))));
 
 	auto funcExpr = std::make_unique<FuncExpression>();
 
 	funcExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(funcLiteral)));
 
-	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(funcExpr)));
+	auto assignment = std::make_unique<Assignment>(L"f", std::move(funcExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -571,12 +571,12 @@ TEST_F(ParserTest, FunctionLiteralWithParameters)
 	additive->operators.push_back(AdditionOperator::Plus);
 	expr->conjunctions[0]->relations[0]->firstAdditive = std::move(additive);
 
-	funcLiteral->block->statements.push_back(std::make_unique<Return>(std::make_unique<Expression>(std::move(expr))));
+	funcLiteral->block->statements.push_back(std::make_unique<Return>(std::move(expr)));
 
 	auto funcExpr = std::make_unique<FuncExpression>();
 	funcExpr->composables.push_back(MakeComposableFromFunctionLit(std::move(funcLiteral)));
 
-	auto assignment = std::make_unique<Assignment>(L"f", std::make_unique<Expression>(std::move(funcExpr)));
+	auto assignment = std::make_unique<Assignment>(L"f", std::move(funcExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));
@@ -605,7 +605,7 @@ TEST_F(ParserTest, FunctionExpressionWithComposition)
 	funcExpr->composables.push_back(MakeComposableFromString(L"b"));
 
 	auto assignment = std::make_unique<Assignment>(
-		L"f", std::make_unique<Expression>(std::move(funcExpr)));
+		L"f", std::move(funcExpr));
 
 	exFunDef->block->statements.push_back(std::move(assignment));
 	exFunDefs.push_back(std::move(exFunDef));

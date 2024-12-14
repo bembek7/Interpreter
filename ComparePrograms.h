@@ -26,17 +26,21 @@ static void CompareFunDefs(const FunctionDefiniton* const funDef, const Function
 
 static void CompareExpressions(const Expression* const expression, const Expression* const expectedExpression)
 {
-	if (auto* funcExpr = std::get_if<std::unique_ptr<FuncExpression>>(&expression->expression))
+	if (auto* funcExpr = dynamic_cast<const FuncExpression*>(expression))
 	{
-		auto* expectedFuncExpr = std::get_if<std::unique_ptr<FuncExpression>>(&expectedExpression->expression);
+		auto* expectedFuncExpr = dynamic_cast<const FuncExpression*>(expectedExpression);
 		ASSERT_TRUE(expectedFuncExpr != nullptr);
-		CompareFuncExpressions(funcExpr->get(), expectedFuncExpr->get());
+		CompareFuncExpressions(funcExpr, expectedFuncExpr);
 	}
-	else if (auto* stdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expression->expression))
+	else if (auto* stdExpr = dynamic_cast<const StandardExpression*>(expression))
 	{
-		auto* expectedStdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&expectedExpression->expression);
+		auto* expectedStdExpr = dynamic_cast<const StandardExpression*>(expectedExpression);
 		ASSERT_TRUE(expectedStdExpr != nullptr);
-		CompareStandardExpressions(stdExpr->get(), expectedStdExpr->get());
+		CompareStandardExpressions(stdExpr, expectedStdExpr);
+	}
+	else
+	{
+		FAIL() << "Expressions do not match expected types.";
 	}
 }
 
