@@ -24,10 +24,10 @@ configure_file(
 include_directories("${CMAKE_BINARY_DIR}")
 
 # Add a library target for sharing with the test executable
-add_library(InterpreterLib "Lexer.cpp" "Lexer.h" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp" "Parser.h" "Parser.cpp" "ParserObjects/ParserObjects.h"  "ComparePrograms.h" "ParserObjects/Core.h" "ParserObjects/Statements.h" "ParserObjects/Expressions.h" "Interpreter.h" "Interpreter.cpp")
+add_library(InterpreterLib "Lexer.cpp" "Lexer.h" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp" "Parser.h" "Parser.cpp" "ParserObjects/ParserObjects.h"  "ComparePrograms.h" "ParserObjects/Core.h" "ParserObjects/Statements.h" "ParserObjects/Expressions.h" "Interpreter.h" "Interpreter.cpp" "ParserObjects/Statements.cpp")
 
 # Add the executable for running the program
-add_executable(Interpreter "Main.cpp" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp" "Parser.h" "Parser.cpp" "ParserObjects/ParserObjects.h"  "ComparePrograms.h" "ParserObjects/Core.h" "ParserObjects/Statements.h" "ParserObjects/Expressions.h" "Interpreter.h" "Interpreter.cpp")
+add_executable(Interpreter "Main.cpp" "Position.h" "LexToken.cpp" "LexToken.h" "LexicalError.h" "LexicalError.cpp" "OverflowChecks.cpp" "Parser.h" "Parser.cpp" "ParserObjects/ParserObjects.h"  "ComparePrograms.h" "ParserObjects/Core.h" "ParserObjects/Statements.h" "ParserObjects/Expressions.h" "Interpreter.h" "Interpreter.cpp" "ParserObjects/Statements.cpp")
 
 # Link the executable to the library
 target_link_libraries(Interpreter PRIVATE InterpreterLib)

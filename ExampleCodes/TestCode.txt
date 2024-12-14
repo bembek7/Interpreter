@@ -1,15 +1,22 @@
 func Fizz()
 {
+	mut var a;
+	a = false;
+
 	return 0;
 }
 
 func Main()
 {
+	var d = 20;
+	var c = 033;
+	var e = 123;
+	var f = -123;
+	var b = "123";
 	return 0;
 }
 
-mut var a;
-a = false;
+
 true;
 falsed;
 0.35;
@@ -17,10 +24,6 @@ falsed;
 "123";
 "0.32";
 00123;
-var d = 20;
-var c = 033;
-var e = 123;
-var f = -123;
-var b = "123";
+
 
 var c = a + b;	# c == 133 prioritizing numbers over strings
