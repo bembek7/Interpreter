@@ -10,30 +10,44 @@ public:
 			isMutable(isMutable), identifier(identifier) {}
 		bool isMutable;
 		std::wstring identifier;
+		std::variant<bool, int, float, std::wstring> value;
 	};
 	struct Scope
 	{
 		std::vector<Variable> variables;
 
 		std::shared_ptr<Scope> higherScope;
+		Variable* GetVariable(const std::wstring& identifier) noexcept;
+		bool VariableAlreadyExists(const std::wstring& identifier) const noexcept;
 	};
 
+	struct Val
+	{
+		bool b;
+	};
 public:
 	void Interpret(const Program* const program);
 
 	void InterpretBlock(const Block* const block);
-	void InterpretStatement(const FunctionCallStatement* const block);
-	void InterpretStatement(const WhileLoop* const block);
-	void InterpretStatement(const Return* const block);
-	void InterpretStatement(const Conditional* const block);
-	void InterpretStatement(const Declaration* const block);
-	void InterpretStatement(const Assignment* const block);
+
+	void InterpretFunctionCallStatement(const FunctionCallStatement* const functionCallStatement);
+
+	void InterpretWhileLoop(const WhileLoop* const whileLoop);
+	void InterpretReturn(const Return* const returnStatement);
+	void InterpretConditional(const Conditional* const conditional);
+	void InterpretDeclaration(const Declaration* const declaration);
+	void InterpretAssignment(const Assignment* const assignment);
 private:
-	void InterpretFunDef(const FunctionDefiniton* const funDef);
+	void InterpretFunDef(const FunctionDefiniton* const funDef, bool valueExpected, std::vector<Val> arguments = {});
+	
 	void Print(const std::wstring& msg) const noexcept;
+	void InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected);
+	const FunctionDefiniton* GetFunctionDefintion(const std::wstring& identifier)const noexcept;
+	std::variant<bool, int, float, std::wstring> EvaluateExpression(const Expression* const expression);
 
 private:
 	unsigned int currentDepth = 0;
+	bool valueExpectedInCurrentFunction;
 	std::shared_ptr<Scope> currentScope;
-	std::vector<std::wstring> knownFunctions;
+	std::vector<const FunctionDefiniton*> knownFunctions;
 };

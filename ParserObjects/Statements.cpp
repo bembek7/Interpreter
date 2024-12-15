@@ -8,30 +8,30 @@ void Block::InterpretThis(Interpreter& interpreter) const
 
 void FunctionCallStatement::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretFunctionCallStatement(this);
 }
 
 void Conditional::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretConditional(this);
 }
 
 void WhileLoop::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretWhileLoop(this);
 }
 
 void Return::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretReturn(this);
 }
 
 void Declaration::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretDeclaration(this);
 }
 
 void Assignment::InterpretThis(Interpreter& interpreter) const
 {
-	interpreter.InterpretStatement(this);
+	interpreter.InterpretAssignment(this);
 }
