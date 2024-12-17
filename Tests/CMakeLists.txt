@@ -1,5 +1,5 @@
 # Create a test executable
-add_executable(InterpreterTest "LexerTest.cpp" "ParserTests.cpp")
+add_executable(InterpreterTest "LexerTest.cpp" "ParserTests.cpp" "ValueTests.cpp")
 
 target_include_directories(InterpreterTest PRIVATE "${CMAKE_SOURCE_DIR}")
 

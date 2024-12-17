@@ -3,14 +3,20 @@
 #include<memory>
 #include<string>
 #include<optional>
+#include<vector>
 
+class Interpreter;
 struct FuncExpression;
 struct StandardExpression;
 struct FunctionCall;
+struct Param;
+struct Block;
+struct Value;
 
 struct Expression
 {
 	virtual ~Expression() = default;
+	virtual Value EvaluateThis(Interpreter& interpreter) const = 0;
 };
 
 struct Literal
@@ -112,6 +118,7 @@ struct StandardExpression : Expression
 		conjunctions(std::move(conjunctions)) {
 	}
 	std::vector<std::unique_ptr<Conjunction>> conjunctions;
+	virtual Value EvaluateThis(Interpreter& interpreter) const override;
 };
 
 struct FunctionLiteral
@@ -149,4 +156,5 @@ struct FuncExpression : Expression
 		composables(std::move(composables)) {
 	}
 	std::vector<std::unique_ptr<Composable>> composables;
+	virtual Value EvaluateThis(Interpreter& interpreter) const override;
 };

@@ -11,7 +11,6 @@ void Interpreter::Interpret(const Program* const program)
 			mainFunction = funDef.get();
 		}
 		knownFunctions.push_back(funDef.get());
-		
 	}
 	if (mainFunction)
 	{
@@ -23,7 +22,7 @@ void Interpreter::Interpret(const Program* const program)
 	}
 }
 
-void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, bool valueExpected, std::vector<Val> arguments)
+void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, bool valueExpected, std::vector<Value> arguments)
 {
 	Print(L"Function: " + funDef->identifier + L" Arguments: ");
 	auto newScope = std::make_shared<Scope>();
@@ -36,7 +35,7 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, bool va
 	}
 	for (size_t i = 0; i < arguments.size(); ++i)
 	{
-		currentScope->variables.push_back({ funDef->parameters[i].paramMutable, funDef->parameters[i].identifier /*argumnent*/});
+		currentScope->variables.push_back({ funDef->parameters[i].paramMutable, funDef->parameters[i].identifier /*argumnent*/ });
 	}
 
 	InterpretBlock(funDef->block.get());
@@ -80,16 +79,9 @@ void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 {
 	Print(L"While");
 	auto conditionExpression = EvaluateExpression(whileLoop->condition.get());
-	if (auto condition = std::get_if<bool>(&conditionExpression))
+	while (conditionExpression)
 	{
-		while(*condition)
-		{
-			InterpretBlock(whileLoop->block.get());
-		}
-	}
-	else
-	{
-		throw; // error
+		InterpretBlock(whileLoop->block.get());
 	}
 }
 
@@ -113,20 +105,13 @@ void Interpreter::InterpretConditional(const Conditional* const conditional)
 {
 	Print(L"Conditional");
 	auto conditionExpression = EvaluateExpression(conditional->condition.get());
-	if (auto condition = std::get_if<bool>(&conditionExpression))
+	if (conditionExpression)
 	{
-		if (*condition)
-		{
-			InterpretBlock(conditional->ifBlock.get());
-		}
-		else
-		{
-			InterpretBlock(conditional->elseBlock.get());
-		}
+		InterpretBlock(conditional->ifBlock.get());
 	}
 	else
 	{
-		throw; // error
+		InterpretBlock(conditional->elseBlock.get());
 	}
 }
 
@@ -149,7 +134,7 @@ void Interpreter::InterpretAssignment(const Assignment* const assignment)
 {
 	Print(L"Assignment");
 	auto variable = currentScope->GetVariable(assignment->identifier);
-	if(!variable)
+	if (!variable)
 	{
 		throw; // error
 	}
@@ -200,9 +185,113 @@ const FunctionDefiniton* Interpreter::GetFunctionDefintion(const std::wstring& i
 	return nullptr;
 }
 
-std::variant<bool, int, float, std::wstring> Interpreter::EvaluateExpression(const Expression* const expression)
+Value Interpreter::EvaluateExpression(const Expression* const expression)
 {
-	return false;
+	return expression->EvaluateThis(*this);
+}
+
+Value Interpreter::EvaluateStandardExpression(const StandardExpression* const expression)
+{
+	Print(L"Standard expression being evaluated");
+	Value currentValue = false;
+	for (const auto& conjunction : expression->conjunctions)
+	{
+		if (expression->conjunctions.size() > 0)
+		{
+			currentValue |= EvaluateConjunction(conjunction.get());
+			if (currentValue)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			currentValue = EvaluateConjunction(conjunction.get());
+		}
+	}
+	return currentValue;
+}
+
+Value Interpreter::EvaluateConjunction(const Conjunction* const conjunction)
+{
+	Value currentValue = true;
+	for (const auto& relation : conjunction->relations)
+	{
+		if (conjunction->relations.size() > 0)
+		{
+			currentValue &= EvaluateRelation(relation.get());
+			if (!currentValue)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			currentValue = EvaluateRelation(relation.get());
+		}
+	}
+	return currentValue;
+}
+
+Value Interpreter::EvaluateRelation(const Relation* const relation)
+{
+	auto first = EvaluateAdditive(relation->firstAdditive.get());
+	if (relation->relationOperator)
+	{
+		auto second = EvaluateAdditive(relation->secondAdditive.get());
+		switch (*relation->relationOperator)
+		{
+		case RelationOperator::Equal:
+			return first == second;
+			break;
+		case RelationOperator::NotEqual:
+			return first != second;
+			break;
+		case RelationOperator::Greater:
+			return first > second;
+			break;
+		case RelationOperator::GreaterEqual:
+			return first >= second;
+			break;
+		case RelationOperator::Less:
+			return first < second;
+			break;
+		case RelationOperator::LessEqual:
+			return first <= second;
+			break;
+		default:
+			throw; // error
+			break;
+		}
+	}
+	return first;
+}
+
+Value Interpreter::EvaluateAdditive(const Additive* const additive)
+{
+	auto first = EvaluateMultiplicative(additive->multiplicatives.front().get());
+	auto currentValue = first;
+	for (size_t i = 0; i < additive->operators.size(); ++i)
+	{
+		switch (additive->operators[i])
+		{
+		case AdditionOperator::Plus:
+			currentValue += EvaluateMultiplicative(additive->multiplicatives[i + 1].get());
+			break;
+		case AdditionOperator::Minus:
+			currentValue -= EvaluateMultiplicative(additive->multiplicatives[i + 1].get());
+			break;
+		default:
+			throw; // error
+			break;
+		}
+	}
+	return (additive->negated) ? -currentValue : currentValue;
+}
+
+Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplicative)
+{
+	return Value();
 }
 
 void Interpreter::Print(const std::wstring& msg) const noexcept
