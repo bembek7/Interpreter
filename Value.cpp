@@ -20,13 +20,19 @@ Value::Value(const std::wstring& val) noexcept :
 {
 }
 
-Value::operator bool() const
+bool Value::ToBool() const
 {
 	if (std::holds_alternative<bool>(value))
 	{
 		return std::get<bool>(value);
 	}
-
+	else if (std::holds_alternative<std::wstring>(value))
+	{
+		if (std::get<std::wstring>(value) == L"true" || std::get<std::wstring>(value) == L"false")
+		{
+			return std::get<std::wstring>(value) == L"true";
+		}
+	}
 	throw; // error
 }
 
@@ -43,26 +49,31 @@ Value Value::operator-() const
 	throw; // error
 }
 
-Value Value::operator&&(const Value& other) const
+Value Value::operator!() const
 {
-	return Value(this && other);
+	return Value(!this->ToBool());
 }
 
-Value Value::operator&=(const Value& other) const
+Value Value::operator&&(const Value& other) const
 {
-	Value val = this && other;
-	return val;
+	return this->ToBool() && other.ToBool();
+}
+
+Value Value::operator&=(const Value& other)
+{
+	*this = *this && other;
+	return *this;
 }
 
 Value Value::operator||(const Value& other) const
 {
-	return Value(this || other);
+	return this->ToBool() || other.ToBool();
 }
 
-Value Value::operator|=(const Value& other) const
+Value Value::operator|=(const Value& other)
 {
-	Value val = this || other;
-	return val;
+	*this = *this || other;
+	return *this;
 }
 
 Value Value::operator+(const Value& other) const
@@ -115,7 +126,6 @@ Value Value::operator+(const Value& other) const
 		{
 			return Value(floatVal + *floatValue);
 		}
-		return Value(std::to_wstring(floatVal) + str);
 	}
 	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<float>(other.value))
 	{
@@ -129,7 +139,6 @@ Value Value::operator+(const Value& other) const
 		{
 			return Value(floatVal + *floatValue);
 		}
-		return Value(str + std::to_wstring(floatVal));
 	}
 	else if (std::holds_alternative<bool>(value) && std::holds_alternative<std::wstring>(other.value))
 	{
@@ -142,28 +151,39 @@ Value Value::operator+(const Value& other) const
 	throw; // error
 }
 
-Value Value::operator+=(const Value& other) const
+Value Value::operator+=(const Value& other)
 {
-	Value val = this + other;
-	return val;
+	*this = *this + other;
+	return *this;
 }
 
 Value Value::operator-(const Value& other) const
 {
-	return Value();
+	return Value(false);
 }
 
-Value Value::operator-=(const Value& other) const
+Value Value::operator-=(const Value& other)
 {
-	return Value();
+	return Value(false);
 }
 
 bool Value::operator==(const Value& other) const
 {
-	if ((std::holds_alternative<int>(value) || std::holds_alternative<float>(value)) &&
-		(std::holds_alternative<int>(other.value) || std::holds_alternative<float>(other.value)))
+	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
 	{
-		return value == other.value;
+		return std::get<int>(value) == std::get<int>(other.value);
+	}
+	if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<int>(value) == std::get<float>(other.value);
+	}
+	if (std::holds_alternative<float>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<float>(value) == std::get<float>(other.value);
+	}
+	if (std::holds_alternative<float>(value) && std::holds_alternative<int>(other.value))
+	{
+		return std::get<float>(value) == std::get<int>(other.value);
 	}
 	else if (std::holds_alternative<int>(value) && std::holds_alternative<std::wstring>(other.value))
 	{
@@ -183,18 +203,26 @@ bool Value::operator==(const Value& other) const
 	}
 	else if (std::holds_alternative<bool>(value) && std::holds_alternative<std::wstring>(other.value))
 	{
-		return Compare(std::get<bool>(value), std::get<std::wstring>(other.value));
+		return std::get<bool>(value) == other.ToBool();
 	}
 	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<bool>(other.value))
 	{
-		return Compare(std::get<bool>(other.value), std::get<std::wstring>(value));
+		return std::get<bool>(other.value) == this->ToBool();
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		return std::get<std::wstring>(other.value) == std::get<std::wstring>(value);
+	}
+	else if (std::holds_alternative<bool>(value) && std::holds_alternative<bool>(other.value))
+	{
+		return std::get<bool>(other.value) == std::get<bool>(value);
 	}
 	throw; // error
 }
 
 bool Value::operator!=(const Value& other) const
 {
-	return !(this == other);
+	return !(*this == other);
 }
 
 std::optional<int> Value::TryConvertToInt(const std::wstring& str)

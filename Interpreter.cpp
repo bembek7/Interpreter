@@ -79,7 +79,7 @@ void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 {
 	Print(L"While");
 	auto conditionExpression = EvaluateExpression(whileLoop->condition.get());
-	while (conditionExpression)
+	while (conditionExpression.ToBool())
 	{
 		InterpretBlock(whileLoop->block.get());
 	}
@@ -105,7 +105,7 @@ void Interpreter::InterpretConditional(const Conditional* const conditional)
 {
 	Print(L"Conditional");
 	auto conditionExpression = EvaluateExpression(conditional->condition.get());
-	if (conditionExpression)
+	if (conditionExpression.ToBool())
 	{
 		InterpretBlock(conditional->ifBlock.get());
 	}
@@ -199,7 +199,7 @@ Value Interpreter::EvaluateStandardExpression(const StandardExpression* const ex
 		if (expression->conjunctions.size() > 0)
 		{
 			currentValue |= EvaluateConjunction(conjunction.get());
-			if (currentValue)
+			if (currentValue.ToBool())
 			{
 				return true;
 			}
@@ -220,7 +220,7 @@ Value Interpreter::EvaluateConjunction(const Conjunction* const conjunction)
 		if (conjunction->relations.size() > 0)
 		{
 			currentValue &= EvaluateRelation(relation.get());
-			if (!currentValue)
+			if (!currentValue.ToBool())
 			{
 				return false;
 			}
@@ -239,30 +239,30 @@ Value Interpreter::EvaluateRelation(const Relation* const relation)
 	if (relation->relationOperator)
 	{
 		auto second = EvaluateAdditive(relation->secondAdditive.get());
-		switch (*relation->relationOperator)
-		{
-		case RelationOperator::Equal:
-			return first == second;
-			break;
-		case RelationOperator::NotEqual:
-			return first != second;
-			break;
-		case RelationOperator::Greater:
-			return first > second;
-			break;
-		case RelationOperator::GreaterEqual:
-			return first >= second;
-			break;
-		case RelationOperator::Less:
-			return first < second;
-			break;
-		case RelationOperator::LessEqual:
-			return first <= second;
-			break;
-		default:
-			throw; // error
-			break;
-		}
+		//switch (*relation->relationOperator)
+		//{
+		//case RelationOperator::Equal:
+		//	return first == second;
+		//	break;
+		//case RelationOperator::NotEqual:
+		//	return first != second;
+		//	break;
+		//case RelationOperator::Greater:
+		//	return first > second;
+		//	break;
+		//case RelationOperator::GreaterEqual:
+		//	return first >= second;
+		//	break;
+		//case RelationOperator::Less:
+		//	return first < second;
+		//	break;
+		//case RelationOperator::LessEqual:
+		//	return first <= second;
+		//	break;
+		//default:
+		//	throw; // error
+		//	break;
+		//}
 	}
 	return first;
 }
@@ -291,7 +291,7 @@ Value Interpreter::EvaluateAdditive(const Additive* const additive)
 
 Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplicative)
 {
-	return Value();
+	return Value(false);
 }
 
 void Interpreter::Print(const std::wstring& msg) const noexcept

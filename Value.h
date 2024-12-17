@@ -3,26 +3,26 @@
 #include <string>
 #include <optional>
 
-struct Function { bool b = false; };
+struct Function { std::string b = "Function"; };
 struct Value
 {
-	Value() = default;
 	Value(const bool val) noexcept;
 	Value(const int val) noexcept;
 	Value(const float val) noexcept;
 	Value(const std::wstring& val) noexcept;
 	std::variant<bool, int, float, std::wstring, Function> value;
 
-	operator bool() const;
+	bool ToBool() const;
 	Value operator-() const;
+	Value operator!() const;
 	Value operator&&(const Value& other) const;
-	Value operator&=(const Value& other) const;
+	Value operator&=(const Value& other) ;
 	Value operator||(const Value& other) const;
-	Value operator|=(const Value& other) const;
+	Value operator|=(const Value& other) ;
 	Value operator+(const Value& other) const;
-	Value operator+=(const Value& other) const;
+	Value operator+=(const Value& other) ;
 	Value operator-(const Value& other) const;
-	Value operator-=(const Value& other) const;
+	Value operator-=(const Value& other) ;
 	bool operator==(const Value& other) const;
 	bool operator!=(const Value& other) const;
 

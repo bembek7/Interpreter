@@ -8,7 +8,7 @@ public:
 	struct Variable
 	{
 		Variable(const bool isMutable, const std::wstring& identifier) noexcept :
-			isMutable(isMutable), identifier(identifier) {
+			isMutable(isMutable), identifier(identifier), value(false) {
 		}
 		bool isMutable;
 		std::wstring identifier;
