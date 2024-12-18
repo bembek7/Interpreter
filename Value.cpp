@@ -1,4 +1,5 @@
 #include "Value.h"
+#include <stdexcept>
 
 Value::Value(const bool val) noexcept :
 	value(val)
@@ -33,7 +34,7 @@ bool Value::ToBool() const
 			return std::get<std::wstring>(value) == L"true";
 		}
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
 }
 
 Value Value::operator-() const
@@ -46,7 +47,7 @@ Value Value::operator-() const
 	{
 		return Value(-std::get<float>(value));
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
 }
 
 Value Value::operator!() const
@@ -78,7 +79,15 @@ Value Value::operator|=(const Value& other)
 
 Value Value::operator+(const Value& other) const
 {
-	if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
+	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
+	{
+		return std::get<int>(value) + std::get<int>(other.value);
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<float>(value) + std::get<float>(other.value);
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
 	{
 		return Value(static_cast<float>(std::get<int>(value)) + std::get<float>(other.value));
 	}
@@ -148,7 +157,8 @@ Value Value::operator+(const Value& other) const
 	{
 		return Value(std::get<std::wstring>(value) + (std::get<bool>(value) ? L"true" : L"false"));
 	}
-	throw; // error
+	//implement both strings
+	throw std::runtime_error(""); // error
 }
 
 Value Value::operator+=(const Value& other)
@@ -159,13 +169,247 @@ Value Value::operator+=(const Value& other)
 
 Value Value::operator-(const Value& other) const
 {
-	return Value(false);
+	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
+	{
+		return std::get<int>(value) - std::get<int>(other.value);
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<float>(value) - std::get<float>(other.value);
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
+	{
+		return Value(static_cast<float>(std::get<int>(value)) - std::get<float>(other.value));
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<int>(other.value))
+	{
+		return Value(std::get<float>(value) - static_cast<float>(std::get<int>(other.value)));
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto integerValue = std::get<int>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue - *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue - *floatValue);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<int>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto integerValue = std::get<int>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue - *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue - *floatValue);
+		}
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto floatVal = std::get<float>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal - *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal - *floatValue);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<float>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto floatVal = std::get<float>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal - *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal - *floatValue);
+		}
+	}
+
+	//implement both strings
+	throw std::runtime_error(""); // error
 }
 
 Value Value::operator-=(const Value& other)
 {
-	return Value(false);
+	*this = *this - other;
+	return *this;
 }
+
+Value Value::operator*(const Value& other) const
+{
+	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
+	{
+		return std::get<int>(value) * std::get<int>(other.value);
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<float>(value) * std::get<float>(other.value);
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
+	{
+		return Value(std::get<int>(value) * std::get<float>(other.value));
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<int>(other.value))
+	{
+		return Value(std::get<float>(value) * std::get<int>(other.value));
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto integerValue = std::get<int>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue * *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue * *floatValue);
+		}
+		return Value(MultiplyString(integerValue, str));
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<int>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto integerValue = std::get<int>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue * *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue * *floatValue);
+		}
+		return Value(MultiplyString(integerValue, str));
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto floatVal = std::get<float>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal * *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal * *floatValue);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<float>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto floatVal = std::get<float>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal * *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal * *floatValue);
+		}
+	}
+	//implement both strings
+	throw std::runtime_error(""); // error
+}
+
+Value Value::operator*=(const Value& other)
+{
+	*this = *this * other;
+	return *this;
+}
+
+Value Value::operator/(const Value& other) const
+{
+	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
+	{
+		return std::get<int>(value) / std::get<int>(other.value);
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<float>(other.value))
+	{
+		return std::get<float>(value) / std::get<float>(other.value);
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<float>(other.value))
+	{
+		return Value(std::get<int>(value) / std::get<float>(other.value));
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<int>(other.value))
+	{
+		return Value(std::get<float>(value) / std::get<int>(other.value));
+	}
+	else if (std::holds_alternative<int>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto integerValue = std::get<int>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue / *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue / *floatValue);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<int>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto integerValue = std::get<int>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(integerValue / *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(integerValue / *floatValue);
+		}
+	}
+	else if (std::holds_alternative<float>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(other.value);
+		const auto floatVal = std::get<float>(value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal / *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal / *floatValue);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<float>(other.value))
+	{
+		const auto& str = std::get<std::wstring>(value);
+		const auto floatVal = std::get<float>(other.value);
+		if (auto intValue = TryConvertToInt(str))
+		{
+			return Value(floatVal / *intValue);
+		}
+		else if (auto floatValue = TryConvertToFloat(str))
+		{
+			return Value(floatVal / *floatValue);
+		}
+	}
+	//implement both strings
+	throw std::runtime_error(""); // error
+}
+
+Value Value::operator/=(const Value& other) 
+{
+	*this = *this / other;
+	return *this;
+}
+
 
 bool Value::operator==(const Value& other) const
 {
@@ -217,7 +461,7 @@ bool Value::operator==(const Value& other) const
 	{
 		return std::get<bool>(other.value) == std::get<bool>(value);
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
 }
 
 bool Value::operator!=(const Value& other) const
@@ -271,7 +515,7 @@ bool Value::Compare(const int intVal, const std::wstring& str)
 	{
 		return intValue == floatValue;
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
 }
 
 bool Value::Compare(const float floatVal, const std::wstring& str)
@@ -285,7 +529,7 @@ bool Value::Compare(const float floatVal, const std::wstring& str)
 	{
 		return floatVal == floatValue;
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
 }
 
 bool Value::Compare(const bool boolVal, const std::wstring& str)
@@ -294,5 +538,15 @@ bool Value::Compare(const bool boolVal, const std::wstring& str)
 	{
 		return str == L"true";
 	}
-	throw; // error
+	throw std::runtime_error(""); // error
+}
+
+std::wstring Value::MultiplyString(const int count, const std::wstring& str)
+{
+	std::wstring mulStr = L"";
+	for (size_t i = 0; i < count; i++)
+	{
+		mulStr += str;
+	}
+	return mulStr;
 }

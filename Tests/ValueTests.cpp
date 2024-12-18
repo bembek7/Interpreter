@@ -64,11 +64,12 @@ TEST(ValueTest, AdditionOperatorWStringInt)
 	EXPECT_EQ(val1 + val2, Value(std::wstring(L"Test 42")));
 }
 
-//TEST(ValueTest, AdditionOperatorWStringFloat)
-//{
-//	Value val1(std::wstring(L"Test ")), val2(3.14f);
-//	EXPECT_EQ(val1 + val2, Value(std::wstring(L"Test 3.14")));
-//}
+TEST(ValueTest, AdditionOperatorWStringFloat)
+{
+	Value val1(std::wstring(L"3.0")), val2(3.14f);
+	auto val3 = val1 + val2;
+	EXPECT_FLOAT_EQ(std::get<float>(val3.value), std::get<float>(Value(6.14f).value));
+}
 
 // Test addition assignment operator
 TEST(ValueTest, AdditionAssignmentOperator)
@@ -77,23 +78,23 @@ TEST(ValueTest, AdditionAssignmentOperator)
 	val1 += val2;
 	EXPECT_EQ(val1, Value(45.14f));
 }
-//
-//// Test subtraction operator
-//TEST(ValueTest, SubtractionOperator) {
-//    Value val1(42), val2(10);
-//    EXPECT_EQ(val1 - val2, Value(32));
-//
-//    val1 = Value(42.0f);
-//    val2 = Value(10.0f);
-//    EXPECT_EQ(val1 - val2, Value(32.0f));
-//}
-//
-//// Test subtraction assignment operator
-//TEST(ValueTest, SubtractionAssignmentOperator) {
-//    Value val1(42), val2(10);
-//    val1 -= val2;
-//    EXPECT_EQ(val1, Value(32));
-//}
+
+// Test subtraction operator
+TEST(ValueTest, SubtractionOperator) {
+    Value val1(42), val2(10);
+    EXPECT_EQ(val1 - val2, Value(32));
+
+    val1 = Value(42.0f);
+    val2 = Value(10.0f);
+    EXPECT_EQ(val1 - val2, Value(32.0f));
+}
+
+// Test subtraction assignment operator
+TEST(ValueTest, SubtractionAssignmentOperator) {
+    Value val1(42), val2(10);
+    val1 -= val2;
+    EXPECT_EQ(val1, Value(32));
+}
 
 // Test equality operator
 TEST(ValueTest, EqualityOperatorIntInt)
@@ -140,4 +141,122 @@ TEST(ValueTest, InequalityOperator)
 
 	val2 = Value(42);
 	EXPECT_FALSE(val1 != val2);
+}
+
+TEST(ValueTest, Multiply_IntAndInt) 
+{
+    Value a(5), b(3);
+    Value result = a * b;
+    EXPECT_EQ(result, Value(std::wstring(L"15")));
+}
+
+TEST(ValueTest, Multiply_FloatAndFloat)
+{
+    Value a(2.5f), b(4.0f);
+    Value result = a * b;
+    EXPECT_EQ(result, Value(std::wstring(L"10")));
+}
+
+TEST(ValueTest, Multiply_IntAndFloat) 
+{
+    Value a(6), b(2.5f);
+    Value result = a * b;
+    EXPECT_EQ(result, Value(15));
+}
+
+TEST(ValueTest, Multiply_FloatAndInt) 
+{
+    Value a(2.5f), b(6);
+    Value result = a * b;
+    EXPECT_EQ(result, Value(15));
+}
+
+TEST(ValueTest, Multiply_IntAndString) 
+{
+    Value a(3), b(std::wstring(L"abc"));
+    Value result = a * b;
+    EXPECT_EQ(result, Value(std::wstring(L"abcabcabc")));
+}
+
+TEST(ValueTest, Multiply_StringAndInt) 
+{
+    Value a(std::wstring(L"abc")), b(3);
+    Value result = a * b;
+    EXPECT_EQ(result, Value(std::wstring(L"abcabcabc")));
+}
+
+TEST(ValueTest, Divide_IntAndInt)
+{
+    Value a(10), b(2);
+    Value result = a / b;
+    EXPECT_EQ(result, Value(5));
+}
+
+TEST(ValueTest, Divide_FloatAndFloat) 
+{
+    Value a(7.5f), b(2.5f);
+    Value result = a / b;
+    EXPECT_EQ(result, Value(3));
+}
+
+TEST(ValueTest, Divide_IntAndFloat)
+{
+    Value a(10), b(4.0f);
+    Value result = a / b;
+    EXPECT_EQ(result, Value(2.5f));
+}
+
+TEST(ValueTest, Divide_FloatAndInt) 
+{
+    Value a(10.0f), b(4);
+    Value result = a / b;
+    EXPECT_EQ(result, Value(2.5f));
+}
+
+TEST(ValueTest, Divide_IntAndString)
+{
+    Value a(3), b(std::wstring(L"abc"));
+    EXPECT_THROW(a / b, std::runtime_error);
+}
+
+TEST(ValueTest, MultiplyAssign_IntAndInt) 
+{
+    Value a(5), b(3);
+    a *= b;
+    EXPECT_EQ(a, Value(15));
+}
+
+TEST(ValueTest, MultiplyAssign_FloatAndFloat)
+{
+    Value a(2.5f), b(4.0f);
+    a *= b;
+    EXPECT_EQ(a, Value(10));
+}
+
+TEST(ValueTest, MultiplyAssign_IntAndFloat)
+{
+    Value a(6), b(2.5f);
+    a *= b;
+    EXPECT_EQ(a, Value(15));
+}
+
+TEST(ValueTest, DivideAssign_IntAndInt) 
+{
+    Value a(10), b(2);
+    a /= b;
+    EXPECT_EQ(a, Value(5));
+}
+
+TEST(ValueTest, DivideAssign_FloatAndFloat) 
+{
+    Value a(7.5f), b(2.5f);
+    a /= b;
+    EXPECT_EQ(a, Value(3));
+}
+
+TEST(ValueTest, InvalidOperation) 
+{
+    Value a(std::wstring(L"test")), b(std::wstring(L"abc"));
+    EXPECT_THROW(a * b, std::runtime_error);
+    EXPECT_THROW(a / b, std::runtime_error);
 }

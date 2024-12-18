@@ -16,13 +16,17 @@ struct Value
 	Value operator-() const;
 	Value operator!() const;
 	Value operator&&(const Value& other) const;
-	Value operator&=(const Value& other) ;
+	Value operator&=(const Value& other);
 	Value operator||(const Value& other) const;
-	Value operator|=(const Value& other) ;
+	Value operator|=(const Value& other);
 	Value operator+(const Value& other) const;
-	Value operator+=(const Value& other) ;
+	Value operator+=(const Value& other);
 	Value operator-(const Value& other) const;
-	Value operator-=(const Value& other) ;
+	Value operator-=(const Value& other);
+	Value operator*(const Value& other) const;
+	Value operator*=(const Value& other);
+	Value operator/(const Value& other) const;
+	Value operator/=(const Value& other);
 	bool operator==(const Value& other) const;
 	bool operator!=(const Value& other) const;
 
@@ -32,4 +36,5 @@ private:
 	static bool Compare(const int intVal, const std::wstring& str);
 	static bool Compare(const float floatVal, const std::wstring& str);
 	static bool Compare(const bool boolVal, const std::wstring& str);
+	static std::wstring MultiplyString(const int count, const std::wstring& str);
 };
