@@ -29,6 +29,11 @@ struct Value
 	Value operator/=(const Value& other);
 	bool operator==(const Value& other) const;
 	bool operator!=(const Value& other) const;
+	bool operator>(const Value& other) const;
+	bool operator>=(const Value& other) const;
+	bool operator<(const Value& other) const;
+	bool operator<=(const Value& other) const;
+
 
 private:
 	static std::optional<int> TryConvertToInt(const std::wstring& str);

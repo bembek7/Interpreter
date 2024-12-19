@@ -92,7 +92,7 @@ void Interpreter::InterpretReturn(const Return* const returnStatement)
 	{
 		if (returnStatement->expression)
 		{
-			auto returnValue = EvaluateExpression(returnStatement->expression.get());
+			lastReturnedValue = EvaluateExpression(returnStatement->expression.get());
 		}
 		else
 		{
@@ -196,7 +196,7 @@ Value Interpreter::EvaluateStandardExpression(const StandardExpression* const ex
 	Value currentValue = false;
 	for (const auto& conjunction : expression->conjunctions)
 	{
-		if (expression->conjunctions.size() > 0)
+		if (expression->conjunctions.size() > 1)
 		{
 			currentValue |= EvaluateConjunction(conjunction.get());
 			if (currentValue.ToBool())
@@ -217,7 +217,7 @@ Value Interpreter::EvaluateConjunction(const Conjunction* const conjunction)
 	Value currentValue = true;
 	for (const auto& relation : conjunction->relations)
 	{
-		if (conjunction->relations.size() > 0)
+		if (conjunction->relations.size() > 1)
 		{
 			currentValue &= EvaluateRelation(relation.get());
 			if (!currentValue.ToBool())
@@ -239,30 +239,30 @@ Value Interpreter::EvaluateRelation(const Relation* const relation)
 	if (relation->relationOperator)
 	{
 		auto second = EvaluateAdditive(relation->secondAdditive.get());
-		//switch (*relation->relationOperator)
-		//{
-		//case RelationOperator::Equal:
-		//	return first == second;
-		//	break;
-		//case RelationOperator::NotEqual:
-		//	return first != second;
-		//	break;
-		//case RelationOperator::Greater:
-		//	return first > second;
-		//	break;
-		//case RelationOperator::GreaterEqual:
-		//	return first >= second;
-		//	break;
-		//case RelationOperator::Less:
-		//	return first < second;
-		//	break;
-		//case RelationOperator::LessEqual:
-		//	return first <= second;
-		//	break;
-		//default:
-		//	throw; // error
-		//	break;
-		//}
+		switch (*relation->relationOperator)
+		{
+		case RelationOperator::Equal:
+			return first == second;
+			break;
+		case RelationOperator::NotEqual:
+			return first != second;
+			break;
+		case RelationOperator::Greater:
+			return first > second;
+			break;
+		case RelationOperator::GreaterEqual:
+			return first >= second;
+			break;
+		case RelationOperator::Less:
+			return first < second;
+			break;
+		case RelationOperator::LessEqual:
+			return first <= second;
+			break;
+		default:
+			//throw;  error
+			break;
+		}
 	}
 	return first;
 }
@@ -291,7 +291,86 @@ Value Interpreter::EvaluateAdditive(const Additive* const additive)
 
 Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplicative)
 {
-	return Value(false);
+	auto first = EvaluateFactor(multiplicative->factors.front().get());
+	auto currentValue = first;
+	for (size_t i = 0; i < multiplicative->operators.size(); ++i)
+	{
+		switch (multiplicative->operators[i])
+		{
+		case MultiplicationOperator::Multiple:
+			currentValue *= EvaluateFactor(multiplicative->factors[i + 1].get());
+			break;
+		case  MultiplicationOperator::Divide:
+			currentValue /= EvaluateFactor(multiplicative->factors[i + 1].get());
+			break;
+		default:
+			throw; // error
+			break;
+		}
+	}
+	return currentValue;
+}
+
+Value Interpreter::EvaluateFactor(const Factor* const factor)
+{
+	std::optional<Value> evaluatedVal = std::nullopt;
+	if (std::holds_alternative<std::wstring>(factor->factor))
+	{
+		auto variable = currentScope->GetVariable(std::get<std::wstring>(factor->factor));
+		if (!variable)
+		{
+			throw; // error
+		}
+		if(variable->value)
+		{
+			return *variable->value;
+		}
+		throw; //error
+	}
+	else if (std::holds_alternative<Literal>(factor->factor))
+	{
+		evaluatedVal = EvaluateLiteral(std::get<Literal>(factor->factor));
+	}
+	else if (auto stdExpr = std::get_if<std::unique_ptr<StandardExpression>>(&factor->factor))
+	{
+		evaluatedVal = EvaluateStandardExpression(stdExpr->get());
+	}
+	else if(auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&factor->factor))
+	{
+		InterpretFunctionCall(funcCall->get(), true);
+		evaluatedVal = lastReturnedValue;
+		if (!evaluatedVal)
+		{
+			throw; // error
+		}
+	}
+	if (evaluatedVal)
+	{
+		return (factor->logicallyNegated) ? !(*evaluatedVal) : *evaluatedVal;
+	}
+	throw; // error
+}
+
+Value Interpreter::EvaluateLiteral(const Literal& literal)
+{
+	if (std::holds_alternative<int>(literal.value))
+	{
+		return Value(std::get<int>(literal.value));
+	}
+	if (std::holds_alternative<bool>(literal.value))
+	{
+		return Value(std::get<bool>(literal.value));
+	}
+	if (std::holds_alternative<std::wstring>(literal.value))
+	{
+		return Value(std::get<std::wstring>(literal.value));
+	}
+	if (std::holds_alternative<float>(literal.value))
+	{
+		return Value(std::get<float>(literal.value));
+	}
+
+	throw; //
 }
 
 void Interpreter::Print(const std::wstring& msg) const noexcept

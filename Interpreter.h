@@ -7,12 +7,11 @@ class Interpreter
 public:
 	struct Variable
 	{
-		Variable(const bool isMutable, const std::wstring& identifier) noexcept :
-			isMutable(isMutable), identifier(identifier), value(false) {
-		}
+		Variable(const bool isMutable, const std::wstring& identifier, std::optional<Value> value = std::nullopt) noexcept :
+			isMutable(isMutable), identifier(identifier), value(value){}
 		bool isMutable;
 		std::wstring identifier;
-		Value value;
+		std::optional<Value> value = std::nullopt;
 	};
 	struct Scope
 	{
@@ -49,10 +48,13 @@ private:
 	Value EvaluateRelation(const Relation* const relation);
 	Value EvaluateAdditive(const Additive* const additive);
 	Value EvaluateMultiplicative(const Multiplicative* const multiplicative);
+	Value EvaluateFactor(const Factor* const factor);
+	Value EvaluateLiteral(const Literal& literal);
 
 private:
 	unsigned int currentDepth = 0;
 	bool valueExpectedInCurrentFunction;
+	std::optional<Value> lastReturnedValue = std::nullopt;
 	std::shared_ptr<Scope> currentScope;
 	std::vector<const FunctionDefiniton*> knownFunctions;
 };
