@@ -34,7 +34,6 @@ struct Value
 	bool operator<(const Value& other) const;
 	bool operator<=(const Value& other) const;
 
-
 private:
 	static std::optional<int> TryConvertToInt(const std::wstring& str);
 	static std::optional<float> TryConvertToFloat(const std::wstring& str);

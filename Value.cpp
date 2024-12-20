@@ -157,7 +157,10 @@ Value Value::operator+(const Value& other) const
 	{
 		return Value(std::get<std::wstring>(value) + (std::get<bool>(value) ? L"true" : L"false"));
 	}
-	//implement both strings
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		return std::get<std::wstring>(value) + std::get<std::wstring>(other.value);
+	}
 	throw std::runtime_error(""); // error
 }
 
@@ -237,8 +240,37 @@ Value Value::operator-(const Value& other) const
 			return Value(floatVal - *floatValue);
 		}
 	}
-
-	//implement both strings
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str1 = std::get<std::wstring>(value);
+		const auto intVal1 = TryConvertToInt(str1);
+		const auto floatVal1 = TryConvertToFloat(str1);
+		const auto& str2 = std::get<std::wstring>(other.value);
+		const auto intVal2 = TryConvertToInt(str2);
+		const auto floatVal2 = TryConvertToFloat(str2);
+		if (intVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*intVal1 - *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*intVal1 - *floatVal2);
+			}
+		}
+		else if (floatVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*floatVal1 - *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*floatVal1 - *floatVal2);
+			}
+		}
+	}
 	throw std::runtime_error(""); // error
 }
 
@@ -320,7 +352,37 @@ Value Value::operator*(const Value& other) const
 			return Value(floatVal * *floatValue);
 		}
 	}
-	//implement both strings
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str1 = std::get<std::wstring>(value);
+		const auto intVal1 = TryConvertToInt(str1);
+		const auto floatVal1 = TryConvertToFloat(str1);
+		const auto& str2 = std::get<std::wstring>(other.value);
+		const auto intVal2 = TryConvertToInt(str2);
+		const auto floatVal2 = TryConvertToFloat(str2);
+		if (intVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*intVal1 * *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*intVal1 * *floatVal2);
+			}
+		}
+		else if (floatVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*floatVal1 * *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*floatVal1 * *floatVal2);
+			}
+		}
+	}
 	throw std::runtime_error(""); // error
 }
 
@@ -400,7 +462,37 @@ Value Value::operator/(const Value& other) const
 			return Value(floatVal / *floatValue);
 		}
 	}
-	//implement both strings
+	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<std::wstring>(other.value))
+	{
+		const auto& str1 = std::get<std::wstring>(value);
+		const auto intVal1 = TryConvertToInt(str1);
+		const auto floatVal1 = TryConvertToFloat(str1);
+		const auto& str2 = std::get<std::wstring>(other.value);
+		const auto intVal2 = TryConvertToInt(str2);
+		const auto floatVal2 = TryConvertToFloat(str2);
+		if (intVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*intVal1 / *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*intVal1 / *floatVal2);
+			}
+		}
+		else if (floatVal1)
+		{
+			if (intVal2)
+			{
+				return Value(*floatVal1 / *intVal2);
+			}
+			else if (floatVal2)
+			{
+				return Value(*floatVal1 / *floatVal2);
+			}
+		}
+	}
 	throw std::runtime_error(""); // error
 }
 
