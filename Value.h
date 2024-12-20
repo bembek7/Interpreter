@@ -12,6 +12,7 @@ struct Value
 	Value(const std::wstring& val) noexcept;
 	std::variant<bool, int, float, std::wstring, Function> value;
 
+	std::wstring ToString() const;
 	bool ToBool() const;
 	Value operator-() const;
 	Value operator!() const;

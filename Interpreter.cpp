@@ -14,7 +14,10 @@ void Interpreter::Interpret(const Program* const program)
 	}
 	if (mainFunction)
 	{
-		InterpretFunDef(mainFunction, false);
+		currentScope = std::make_shared<Scope>();
+		currentScope->valueExpectedInCurrentFunction = true;
+		// evaluate arguments
+		InterpretFunDef(mainFunction);
 	}
 	else
 	{
@@ -22,20 +25,21 @@ void Interpreter::Interpret(const Program* const program)
 	}
 }
 
-void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, bool valueExpected, std::vector<Value> arguments)
+void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, std::vector<Value> arguments)
 {
-	Print(L"Function: " + funDef->identifier + L" Arguments: ");
-	auto newScope = std::make_shared<Scope>();
-	newScope->higherScope = currentScope;
-	currentScope = std::move(newScope);
-	valueExpectedInCurrentFunction = valueExpected;
+	std::wstring argumentsString;
+	for (const auto& arg : arguments)
+	{
+		argumentsString += arg.ToString() + L" ";
+	}
+	Print(L"Function: " + funDef->identifier + L" Arguments: " + argumentsString);
 	if (funDef->parameters.size() != arguments.size())
 	{
 		throw; // error
 	}
 	for (size_t i = 0; i < arguments.size(); ++i)
 	{
-		currentScope->variables.push_back({ funDef->parameters[i].paramMutable, funDef->parameters[i].identifier /*argumnent*/ });
+		currentScope->variables.push_back({ funDef->parameters[i].paramMutable, funDef->parameters[i].identifier,  arguments[i] });
 	}
 
 	InterpretBlock(funDef->block.get());
@@ -44,6 +48,10 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, bool va
 void Interpreter::InterpretBlock(const Block* const block)
 {
 	++currentDepth;
+	auto newScope = std::make_shared<Scope>();
+	newScope->higherScope = currentScope;
+	newScope->valueExpectedInCurrentFunction = newScope->higherScope->valueExpectedInCurrentFunction;
+	currentScope = std::move(newScope);
 	for (const auto& statement : block->statements)
 	{
 		statement->InterpretThis(*this);
@@ -52,6 +60,7 @@ void Interpreter::InterpretBlock(const Block* const block)
 			break;
 		}
 	}
+	currentScope = currentScope->higherScope;
 	--currentDepth;
 }
 
@@ -64,10 +73,19 @@ void Interpreter::InterpretFunctionCallStatement(const FunctionCallStatement* co
 void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected)
 {
 	auto function = GetFunctionDefintion(functionCall->identifier);
-	// evaluate artguments
 	if (function)
 	{
-		InterpretFunDef(function, valueExpected /*arguments*/);
+		previousScopes.push(currentScope);
+		currentScope = std::make_shared<Scope>();
+		currentScope->valueExpectedInCurrentFunction = valueExpected;
+		std::vector<Value> arguments;
+		for (const auto& arg : functionCall->arguments)
+		{
+			arguments.push_back(EvaluateExpression(arg.get()));
+		}
+		InterpretFunDef(function, arguments);
+		currentScope = previousScopes.top();
+		previousScopes.pop();
 	}
 	else
 	{
@@ -77,34 +95,40 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 
 void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 {
-	Print(L"While");
 	auto conditionExpression = EvaluateExpression(whileLoop->condition.get());
+	Print(L"While " + conditionExpression.ToString());
 	while (conditionExpression.ToBool())
 	{
 		InterpretBlock(whileLoop->block.get());
+
+		conditionExpression = EvaluateExpression(whileLoop->condition.get());
 	}
 }
 
 void Interpreter::InterpretReturn(const Return* const returnStatement)
 {
-	Print(L"Return");
-	if (valueExpectedInCurrentFunction)
+	if (currentScope->valueExpectedInCurrentFunction)
 	{
 		if (returnStatement->expression)
 		{
 			lastReturnedValue = EvaluateExpression(returnStatement->expression.get());
+			Print(L"Return " + lastReturnedValue->ToString());
 		}
 		else
 		{
 			throw; // error
 		}
 	}
+	else
+	{
+		Print(L"Return");
+	}
 }
 
 void Interpreter::InterpretConditional(const Conditional* const conditional)
 {
-	Print(L"Conditional");
 	auto conditionExpression = EvaluateExpression(conditional->condition.get());
+	Print(L"Conditional " + conditionExpression.ToString());
 	if (conditionExpression.ToBool())
 	{
 		InterpretBlock(conditional->ifBlock.get());
@@ -117,7 +141,6 @@ void Interpreter::InterpretConditional(const Conditional* const conditional)
 
 void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 {
-	Print(L"Declaration");
 	if (currentScope->VariableAlreadyExists(declaration->identifier))
 	{
 		throw; // error
@@ -127,18 +150,23 @@ void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 	{
 		auto value = EvaluateExpression(declaration->expression.get());
 		currentScope->variables.back().value = value;
+		Print(L"Declaration " + declaration->identifier + L" = " + value.ToString());
+	}
+	else
+	{
+		Print(L"Declaration " + declaration->identifier);
 	}
 }
 
 void Interpreter::InterpretAssignment(const Assignment* const assignment)
 {
-	Print(L"Assignment");
 	auto variable = currentScope->GetVariable(assignment->identifier);
 	if (!variable)
 	{
 		throw; // error
 	}
 	variable->value = EvaluateExpression(assignment->expression.get());
+	Print(L"Assignment " + assignment->identifier + L" = " + variable->value->ToString());
 }
 
 Interpreter::Variable* Interpreter::Scope::GetVariable(const std::wstring& identifier) noexcept
@@ -192,7 +220,6 @@ Value Interpreter::EvaluateExpression(const Expression* const expression)
 
 Value Interpreter::EvaluateStandardExpression(const StandardExpression* const expression)
 {
-	Print(L"Standard expression being evaluated");
 	Value currentValue = false;
 	for (const auto& conjunction : expression->conjunctions)
 	{
@@ -321,7 +348,7 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 		{
 			throw; // error
 		}
-		if(variable->value)
+		if (variable->value)
 		{
 			return *variable->value;
 		}
@@ -335,7 +362,7 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 	{
 		evaluatedVal = EvaluateStandardExpression(stdExpr->get());
 	}
-	else if(auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&factor->factor))
+	else if (auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&factor->factor))
 	{
 		InterpretFunctionCall(funcCall->get(), true);
 		evaluatedVal = lastReturnedValue;

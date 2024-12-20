@@ -1,6 +1,7 @@
 #pragma once
 #include "ParserObjects/ParserObjects.h"
 #include "Value.h"
+#include <stack>
 
 class Interpreter
 {
@@ -8,7 +9,8 @@ public:
 	struct Variable
 	{
 		Variable(const bool isMutable, const std::wstring& identifier, std::optional<Value> value = std::nullopt) noexcept :
-			isMutable(isMutable), identifier(identifier), value(value){}
+			isMutable(isMutable), identifier(identifier), value(value) {
+		}
 		bool isMutable;
 		std::wstring identifier;
 		std::optional<Value> value = std::nullopt;
@@ -17,6 +19,7 @@ public:
 	{
 		std::vector<Variable> variables;
 
+		bool valueExpectedInCurrentFunction = false;
 		std::shared_ptr<Scope> higherScope;
 		Variable* GetVariable(const std::wstring& identifier) noexcept;
 		bool VariableAlreadyExists(const std::wstring& identifier) const noexcept;
@@ -38,7 +41,7 @@ public:
 	Value EvaluateStandardExpression(const StandardExpression* const expression);
 
 private:
-	void InterpretFunDef(const FunctionDefiniton* const funDef, bool valueExpected, std::vector<Value> arguments = {});
+	void InterpretFunDef(const FunctionDefiniton* const funDef, std::vector<Value> arguments = {});
 
 	void Print(const std::wstring& msg) const noexcept;
 	void InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected);
@@ -53,8 +56,8 @@ private:
 
 private:
 	unsigned int currentDepth = 0;
-	bool valueExpectedInCurrentFunction;
 	std::optional<Value> lastReturnedValue = std::nullopt;
 	std::shared_ptr<Scope> currentScope;
+	std::stack<std::shared_ptr<Scope>> previousScopes;
 	std::vector<const FunctionDefiniton*> knownFunctions;
 };

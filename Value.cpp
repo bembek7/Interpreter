@@ -21,6 +21,27 @@ Value::Value(const std::wstring& val) noexcept :
 {
 }
 
+std::wstring Value::ToString() const
+{
+	if (std::holds_alternative<int>(value))
+	{
+		return std::to_wstring(std::get<int>(value));
+	}
+	if (std::holds_alternative<float>(value))
+	{
+		return std::to_wstring(std::get<float>(value));
+	}
+	if (std::holds_alternative<bool>(value))
+	{
+		return std::get<bool>(value) ? L"true" : L"false";
+	}
+	if (std::holds_alternative<std::wstring>(value))
+	{
+		return std::get<std::wstring>(value);
+	}
+	throw std::runtime_error(""); // error
+}
+
 bool Value::ToBool() const
 {
 	if (std::holds_alternative<bool>(value))
@@ -496,7 +517,7 @@ Value Value::operator/(const Value& other) const
 	throw std::runtime_error(""); // error
 }
 
-Value Value::operator/=(const Value& other) 
+Value Value::operator/=(const Value& other)
 {
 	*this = *this / other;
 	return *this;
@@ -560,7 +581,7 @@ bool Value::operator!=(const Value& other) const
 	return !(*this == other);
 }
 
-bool Value::operator>(const Value & other) const
+bool Value::operator>(const Value& other) const
 {
 	if (std::holds_alternative<int>(value) && std::holds_alternative<int>(other.value))
 	{
@@ -651,7 +672,6 @@ bool Value::operator>(const Value & other) const
 				return *floatVal1 > *floatVal2;
 			}
 		}
-		
 	}
 	throw std::runtime_error(""); // error
 }

@@ -2,15 +2,19 @@ func Fizz()
 {
 	mut var a;
 	a = false;
-	# Buzz(5, 6, 7);
+	Buzz(5, 6, 7);
 	return a;
 }
 
 func Main()
 {
 	var d = 20;
-	var e = 123;
-	Fizz();
+	mut var e = 2;
+	while( e > 0)
+	{
+		mut var a = Fizz();
+		e = e - 1;
+	}
 	if(false)
 	{
 		var f = -123;
