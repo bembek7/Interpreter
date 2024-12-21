@@ -9,6 +9,5 @@ Value StandardExpression::EvaluateThis(Interpreter& interpreter) const
 
 Value FuncExpression::EvaluateThis(Interpreter& interpreter) const
 {
-	//interpreter.EvaluateStandardExpression(this);
-	return false;
+	return interpreter.EvaluateFuncExpression(this);
 }

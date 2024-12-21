@@ -266,6 +266,142 @@ TEST(ValueTest, InvalidOperation)
     EXPECT_THROW(a / b, std::runtime_error);
 }
 
+TEST(ValueTest, EqualityOperatorFloatFloat)
+{
+    Value val1(3.14f), val2(3.14f);
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(2.71f);
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorFloatInt)
+{
+    Value val1(3.14f), val2(3);
+    EXPECT_FALSE(val1 == val2);
+
+    val1 = Value(3.0f);
+    EXPECT_TRUE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorIntString)
+{
+    Value val1(42), val2(std::wstring(L"42"));
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(std::wstring(L"10"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorStringInt)
+{
+    Value val1(std::wstring(L"42")), val2(42);
+    EXPECT_TRUE(val1 == val2);
+
+    val1 = Value(std::wstring(L"10"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorFloatString)
+{
+    Value val1(3.14f), val2(std::wstring(L"3.14"));
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(std::wstring(L"2.71"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorStringFloat)
+{
+    Value val1(std::wstring(L"3.14")), val2(3.14f);
+    EXPECT_TRUE(val1 == val2);
+
+    val1 = Value(std::wstring(L"2.71"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorBoolString)
+{
+    Value val1(true), val2(std::wstring(L"true"));
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(std::wstring(L"false"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorStringBool)
+{
+    Value val1(std::wstring(L"true")), val2(true);
+    EXPECT_TRUE(val1 == val2);
+
+    val1 = Value(std::wstring(L"false"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorStringString)
+{
+    Value val1(std::wstring(L"test")), val2(std::wstring(L"test"));
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(std::wstring(L"not test"));
+    EXPECT_FALSE(val1 == val2);
+}
+
+TEST(ValueTest, EqualityOperatorBoolBool)
+{
+    Value val1(true), val2(true);
+    EXPECT_TRUE(val1 == val2);
+
+    val2 = Value(false);
+    EXPECT_FALSE(val1 == val2);
+}
+
+// Test greater than operator
+TEST(ValueTest, GreaterThanOperator)
+{
+    Value val1(42), val2(10);
+    EXPECT_TRUE(val1 > val2);
+
+    val2 = Value(42);
+    EXPECT_FALSE(val1 > val2);
+}
+
+// Test greater than or equal operator
+TEST(ValueTest, GreaterThanOrEqualOperator)
+{
+    Value val1(42), val2(42);
+    EXPECT_TRUE(val1 >= val2);
+
+    val2 = Value(10);
+    EXPECT_TRUE(val1 >= val2);
+
+    val2 = Value(50);
+    EXPECT_FALSE(val1 >= val2);
+}
+
+// Test less than operator
+TEST(ValueTest, LessThanOperator)
+{
+    Value val1(10), val2(42);
+    EXPECT_TRUE(val1 < val2);
+
+    val2 = Value(10);
+    EXPECT_FALSE(val1 < val2);
+}
+
+// Test less than or equal operator
+TEST(ValueTest, LessThanOrEqualOperator)
+{
+    Value val1(42), val2(42);
+    EXPECT_TRUE(val1 <= val2);
+
+    val1 = Value(10);
+    EXPECT_TRUE(val1 <= val2);
+
+    val1 = Value(50);
+    EXPECT_FALSE(val1 <= val2);
+}
+
 //// Test TryConvertToInt
 //TEST(ValueTest, TryConvertToInt) {
 //    auto result = Value::TryConvertToInt(L"42");

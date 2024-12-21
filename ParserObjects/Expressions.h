@@ -11,7 +11,7 @@ struct StandardExpression;
 struct FunctionCall;
 struct Param;
 struct Block;
-struct Value;
+class Value;
 
 struct Expression
 {

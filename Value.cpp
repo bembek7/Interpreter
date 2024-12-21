@@ -39,7 +39,7 @@ std::wstring Value::ToString() const
 	{
 		return std::get<std::wstring>(value);
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Cannot convert value to string");
 }
 
 bool Value::ToBool() const
@@ -55,7 +55,7 @@ bool Value::ToBool() const
 			return std::get<std::wstring>(value) == L"true";
 		}
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Cannot convert value to bool");
 }
 
 Value Value::operator-() const
@@ -68,7 +68,7 @@ Value Value::operator-() const
 	{
 		return Value(-std::get<float>(value));
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for this value type.");
 }
 
 Value Value::operator!() const
@@ -182,7 +182,7 @@ Value Value::operator+(const Value& other) const
 	{
 		return std::get<std::wstring>(value) + std::get<std::wstring>(other.value);
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 Value Value::operator+=(const Value& other)
@@ -292,7 +292,7 @@ Value Value::operator-(const Value& other) const
 			}
 		}
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 Value Value::operator-=(const Value& other)
@@ -404,7 +404,7 @@ Value Value::operator*(const Value& other) const
 			}
 		}
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 Value Value::operator*=(const Value& other)
@@ -514,7 +514,7 @@ Value Value::operator/(const Value& other) const
 			}
 		}
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 Value Value::operator/=(const Value& other)
@@ -573,7 +573,7 @@ bool Value::operator==(const Value& other) const
 	{
 		return std::get<bool>(other.value) == std::get<bool>(value);
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 bool Value::operator!=(const Value& other) const
@@ -673,7 +673,7 @@ bool Value::operator>(const Value& other) const
 			}
 		}
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("Operator not supported for these value type.");
 }
 
 bool Value::operator>=(const Value& other) const
@@ -737,7 +737,7 @@ bool Value::Compare(const int intVal, const std::wstring& str)
 	{
 		return intValue == floatValue;
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("String not convertible to number.");
 }
 
 bool Value::Compare(const float floatVal, const std::wstring& str)
@@ -751,7 +751,7 @@ bool Value::Compare(const float floatVal, const std::wstring& str)
 	{
 		return floatVal == floatValue;
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("String not convertible to number.");
 }
 
 bool Value::Compare(const bool boolVal, const std::wstring& str)
@@ -760,7 +760,7 @@ bool Value::Compare(const bool boolVal, const std::wstring& str)
 	{
 		return str == L"true";
 	}
-	throw std::runtime_error(""); // error
+	throw ValueException("String not convertible to bool.");
 }
 
 std::wstring Value::MultiplyString(const int count, const std::wstring& str)
@@ -771,4 +771,14 @@ std::wstring Value::MultiplyString(const int count, const std::wstring& str)
 		mulStr += str;
 	}
 	return mulStr;
+}
+
+Value Value::operator>>(const Value& other) const
+{
+	return Value();
+}
+
+Value Value::operator<<(const std::vector<Value>& arguments) const
+{
+	return Value();
 }

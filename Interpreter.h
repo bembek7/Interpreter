@@ -3,29 +3,9 @@
 #include "Value.h"
 #include <stack>
 #include "Position.h"
-#include <sstream>
 
 class Interpreter
 {
-	class InterpreterException : public std::runtime_error {
-	private:
-		std::string message;
-		Position position;
-
-	public:
-		InterpreterException(const char* msg, const Position pos)
-			: std::runtime_error(msg), position(pos)
-		{
-			std::stringstream ss;
-			ss << "Interpreter Error [line: " << position.line << ", column : " << position.column << "] " << msg << std::endl;
-			message = ss.str();
-		}
-
-		const char* what() const noexcept override
-		{
-			return message.c_str();
-		}
-	};
 public:
 	struct Variable
 	{
@@ -60,6 +40,7 @@ public:
 	void InterpretAssignment(const Assignment* const assignment);
 
 	Value EvaluateStandardExpression(const StandardExpression* const expression);
+	Value EvaluateFuncExpression(const FuncExpression* funcExpression);
 
 private:
 	void InterpretFunDef(const FunctionDefiniton* const funDef, std::vector<Value> arguments = {});
@@ -68,6 +49,7 @@ private:
 	void InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected);
 	const FunctionDefiniton* GetFunctionDefintion(const std::wstring& identifier)const noexcept;
 	Value EvaluateExpression(const Expression* const expression);
+
 	Value EvaluateConjunction(const Conjunction* const conjunction);
 	Value EvaluateRelation(const Relation* const relation);
 	Value EvaluateAdditive(const Additive* const additive);
@@ -75,11 +57,17 @@ private:
 	Value EvaluateFactor(const Factor* const factor);
 	Value EvaluateLiteral(const Literal& literal);
 
+	Value EvaluateComposable(const Composable* const composable);
+	Value EvaluateBindable(const Bindable* const bindable);
+	Value EvaluateFunctionLiteral(const FunctionLiteral* const functionLiteral);
+
+	const FunctionDefiniton* GetFunction(const std::wstring& identifier) const noexcept;
+	bool FunctionAlreadyExists(const std::wstring& identifier) const noexcept;
 private:
 	unsigned int currentDepth = 0;
 	std::optional<Value> lastReturnedValue = std::nullopt;
 	std::shared_ptr<Scope> currentScope;
 	std::stack<std::shared_ptr<Scope>> previousScopes;
 	std::vector<const FunctionDefiniton*> knownFunctions;
-	Position currentPosition;
+	Position currentPosition = Position(0, 0);
 };

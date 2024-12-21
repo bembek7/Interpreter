@@ -1,26 +1,38 @@
 #include "Interpreter.h"
 #include <iostream>
+#include "InterpreterException.h"
 
 void Interpreter::Interpret(const Program* const program)
 {
-	const FunctionDefiniton* mainFunction = nullptr;
-	for (const auto& funDef : program->funDefs)
+	try
 	{
-		if (funDef->identifier == L"Main")
+		const FunctionDefiniton* mainFunction = nullptr;
+		for (const auto& funDef : program->funDefs)
 		{
-			mainFunction = funDef.get();
+			if (funDef->identifier == L"Main")
+			{
+				mainFunction = funDef.get();
+			}
+			knownFunctions.push_back(funDef.get());
 		}
-		knownFunctions.push_back(funDef.get());
+		if (mainFunction)
+		{
+			currentScope = std::make_shared<Scope>();
+			currentScope->valueExpectedInCurrentFunction = true;
+			InterpretFunDef(mainFunction);
+		}
+		else
+		{
+			throw InterpreterException("Main function not found.", currentPosition);
+		}
 	}
-	if (mainFunction)
+	catch (const Value::ValueException& ve)
 	{
-		currentScope = std::make_shared<Scope>();
-		currentScope->valueExpectedInCurrentFunction = true;
-		InterpretFunDef(mainFunction);
+		std::cout << ve.what() << "[line:" << currentPosition.line << ", column : " << currentPosition.column << "] " << std::endl;
 	}
-	else
+	catch (const std::runtime_error& e)
 	{
-		throw InterpreterException("Main function not found.", currentPosition);
+		std::cout << e.what();
 	}
 }
 
@@ -146,6 +158,10 @@ void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 	if (currentScope->VariableAlreadyExists(declaration->identifier))
 	{
 		throw InterpreterException("Redefinition of variable is not allowed.", currentPosition);
+	}
+	if (FunctionAlreadyExists(declaration->identifier))
+	{
+		throw InterpreterException("Variable can not have the same name as function does.", currentPosition);
 	}
 	currentScope->variables.push_back(Variable(declaration->varMutable, declaration->identifier));
 	if (declaration->expression)
@@ -400,6 +416,107 @@ Value Interpreter::EvaluateLiteral(const Literal& literal)
 	}
 
 	throw InterpreterException("Could not evaluate literal value", currentPosition);
+}
+
+
+Value Interpreter::EvaluateFuncExpression(const FuncExpression* funcExpression)
+{
+	Value currentValue;
+	for (size_t i = 0; i < funcExpression->composables.size(); ++i)
+	{
+		if (i > 0)
+		{
+			currentValue = currentValue >> EvaluateComposable(funcExpression->composables[i].get());
+		}
+		else
+		{
+			currentValue = EvaluateComposable(funcExpression->composables[i].get());
+		}
+	}
+	return currentValue;
+}
+
+Value Interpreter::EvaluateComposable(const Composable* const composable)
+{
+	auto bindable = EvaluateBindable(composable->bindable.get());
+	if (!composable->arguments.empty())
+	{
+		std::vector<Value> arguments;
+		for (const auto& arg : composable->arguments)
+		{
+			arguments.push_back(EvaluateExpression(arg.get()));
+		}
+
+		return bindable << arguments;
+	}
+	return bindable;
+}
+
+Value Interpreter::EvaluateBindable(const Bindable* const bindable)
+{
+	std::optional<Value> evaluatedVal = std::nullopt;
+	if (auto funcLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&bindable->bindable))
+	{
+		evaluatedVal = EvaluateFunctionLiteral(funcLit->get());
+	}
+	else if (auto funcExpr = std::get_if<std::unique_ptr<FuncExpression>>(&bindable->bindable))
+	{
+		evaluatedVal = EvaluateFuncExpression(funcExpr->get());
+	}
+	else if (auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&bindable->bindable))
+	{
+		InterpretFunctionCall(funcCall->get(), true);
+		evaluatedVal = lastReturnedValue;
+		if (!evaluatedVal)
+		{
+			throw InterpreterException("Function did not return any value", currentPosition);
+		}
+	}
+	else if (std::holds_alternative<std::wstring>(bindable->bindable))
+	{
+		const auto& identifier = std::get<std::wstring>(bindable->bindable);
+		auto variable = currentScope->GetVariable(identifier);
+		if (!variable)
+		{
+			auto function = GetFunction(identifier);
+			if (function)
+			{
+				// establish function
+
+				return Value();
+			}
+			throw InterpreterException("Variable nor function with such name was not declared.", currentPosition);
+		}
+		if (variable->value)
+		{
+			return *variable->value;
+		}
+		throw InterpreterException("Variable does not have value.", currentPosition);
+	}
+
+	throw InterpreterException("Could not evaluate bindable value", currentPosition);
+}
+
+Value Interpreter::EvaluateFunctionLiteral(const FunctionLiteral* const functionLiteral)
+{
+	return Value();
+}
+
+const FunctionDefiniton* Interpreter::GetFunction(const std::wstring& identifier) const noexcept
+{
+	for (auto& func : knownFunctions)
+	{
+		if (func->identifier == identifier)
+		{
+			return func;
+		}
+	}
+	return nullptr;
+}
+
+bool Interpreter::FunctionAlreadyExists(const std::wstring& identifier) const noexcept
+{
+	return GetFunction(identifier) != nullptr;
 }
 
 void Interpreter::Print(const std::wstring& msg) const noexcept
