@@ -16,12 +16,11 @@ void Interpreter::Interpret(const Program* const program)
 	{
 		currentScope = std::make_shared<Scope>();
 		currentScope->valueExpectedInCurrentFunction = true;
-		// evaluate arguments
 		InterpretFunDef(mainFunction);
 	}
 	else
 	{
-		throw; // error
+		throw InterpreterException("Main function not found.", currentPosition);
 	}
 }
 
@@ -35,7 +34,9 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, std::ve
 	Print(L"Function: " + funDef->identifier + L" Arguments: " + argumentsString);
 	if (funDef->parameters.size() != arguments.size())
 	{
-		throw; // error
+		std::stringstream ss;
+		ss << "Function expects " << funDef->parameters.size() << " arguments, but got " << arguments.size() << ".";
+		throw InterpreterException(ss.str().c_str(), currentPosition);
 	}
 	for (size_t i = 0; i < arguments.size(); ++i)
 	{
@@ -89,7 +90,7 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 	}
 	else
 	{
-		throw;// error
+		throw InterpreterException("Function definition not found.", currentPosition);
 	}
 }
 
@@ -116,11 +117,12 @@ void Interpreter::InterpretReturn(const Return* const returnStatement)
 		}
 		else
 		{
-			throw; // error
+			throw InterpreterException("Function was expected to return value but returns nothing.", currentPosition);
 		}
 	}
 	else
 	{
+		lastReturnedValue = std::nullopt;
 		Print(L"Return");
 	}
 }
@@ -143,7 +145,7 @@ void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 {
 	if (currentScope->VariableAlreadyExists(declaration->identifier))
 	{
-		throw; // error
+		throw InterpreterException("Redefinition of variable is not allowed.", currentPosition);
 	}
 	currentScope->variables.push_back(Variable(declaration->varMutable, declaration->identifier));
 	if (declaration->expression)
@@ -163,7 +165,7 @@ void Interpreter::InterpretAssignment(const Assignment* const assignment)
 	auto variable = currentScope->GetVariable(assignment->identifier);
 	if (!variable)
 	{
-		throw; // error
+		throw InterpreterException("Variable was not declared.", currentPosition);
 	}
 	variable->value = EvaluateExpression(assignment->expression.get());
 	Print(L"Assignment " + assignment->identifier + L" = " + variable->value->ToString());
@@ -287,7 +289,7 @@ Value Interpreter::EvaluateRelation(const Relation* const relation)
 			return first <= second;
 			break;
 		default:
-			//throw;  error
+			throw InterpreterException("Cannot handle such operator.", currentPosition);
 			break;
 		}
 	}
@@ -309,7 +311,7 @@ Value Interpreter::EvaluateAdditive(const Additive* const additive)
 			currentValue -= EvaluateMultiplicative(additive->multiplicatives[i + 1].get());
 			break;
 		default:
-			throw; // error
+			throw InterpreterException("Cannot handle such operator.", currentPosition);
 			break;
 		}
 	}
@@ -331,7 +333,7 @@ Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplica
 			currentValue /= EvaluateFactor(multiplicative->factors[i + 1].get());
 			break;
 		default:
-			throw; // error
+			throw InterpreterException("Cannot handle such operator.", currentPosition);
 			break;
 		}
 	}
@@ -346,13 +348,13 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 		auto variable = currentScope->GetVariable(std::get<std::wstring>(factor->factor));
 		if (!variable)
 		{
-			throw; // error
+			throw InterpreterException("Variable was not declared.", currentPosition);
 		}
 		if (variable->value)
 		{
 			return *variable->value;
 		}
-		throw; //error
+		throw InterpreterException("Variable does not have value.", currentPosition);
 	}
 	else if (std::holds_alternative<Literal>(factor->factor))
 	{
@@ -368,14 +370,14 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 		evaluatedVal = lastReturnedValue;
 		if (!evaluatedVal)
 		{
-			throw; // error
+			throw InterpreterException("Function did not return any value", currentPosition);
 		}
 	}
 	if (evaluatedVal)
 	{
 		return (factor->logicallyNegated) ? !(*evaluatedVal) : *evaluatedVal;
 	}
-	throw; // error
+	throw InterpreterException("Could not evaluate factor value", currentPosition);
 }
 
 Value Interpreter::EvaluateLiteral(const Literal& literal)
@@ -397,7 +399,7 @@ Value Interpreter::EvaluateLiteral(const Literal& literal)
 		return Value(std::get<float>(literal.value));
 	}
 
-	throw; //
+	throw InterpreterException("Could not evaluate literal value", currentPosition);
 }
 
 void Interpreter::Print(const std::wstring& msg) const noexcept

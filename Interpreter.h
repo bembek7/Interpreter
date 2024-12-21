@@ -2,9 +2,30 @@
 #include "ParserObjects/ParserObjects.h"
 #include "Value.h"
 #include <stack>
+#include "Position.h"
+#include <sstream>
 
 class Interpreter
 {
+	class InterpreterException : public std::runtime_error {
+	private:
+		std::string message;
+		Position position;
+
+	public:
+		InterpreterException(const char* msg, const Position pos)
+			: std::runtime_error(msg), position(pos)
+		{
+			std::stringstream ss;
+			ss << "Interpreter Error [line: " << position.line << ", column : " << position.column << "] " << msg << std::endl;
+			message = ss.str();
+		}
+
+		const char* what() const noexcept override
+		{
+			return message.c_str();
+		}
+	};
 public:
 	struct Variable
 	{
@@ -60,4 +81,5 @@ private:
 	std::shared_ptr<Scope> currentScope;
 	std::stack<std::shared_ptr<Scope>> previousScopes;
 	std::vector<const FunctionDefiniton*> knownFunctions;
+	Position currentPosition;
 };
