@@ -1,0 +1,12 @@
+func Main()
+{
+	var e = [Buzz];
+	e();
+	return 0;
+}
+
+func Buzz(a, b, mut c)
+{
+	var d = a + b + c;
+	return d;
+}

@@ -2,11 +2,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "Expressions.h"
 
 class Interpreter;
-
-struct Expression;
-struct StandardExpression;
 
 struct Statement
 {

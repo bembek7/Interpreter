@@ -1,5 +1,12 @@
 #include "Value.h"
 #include <stdexcept>
+#include "ParserObjects\Core.h"
+#include "Interpreter.h"
+
+Value::Value(const Function& function) noexcept :
+	value(function)
+{
+}
 
 Value::Value(const bool val) noexcept :
 	value(val)
@@ -56,6 +63,15 @@ bool Value::ToBool() const
 		}
 	}
 	throw ValueException("Cannot convert value to bool");
+}
+
+const Value::Function* Value::GetFunction() const noexcept
+{
+	if (std::holds_alternative<Function>(value))
+	{
+		return &std::get<Function>(value);
+	}
+	return nullptr;
 }
 
 Value Value::operator-() const
@@ -775,10 +791,27 @@ std::wstring Value::MultiplyString(const int count, const std::wstring& str)
 
 Value Value::operator>>(const Value& other) const
 {
-	return Value();
+	if (std::holds_alternative<Function>(value) && std::holds_alternative<Function>(other.value))
+	{
+		if (std::get<Function>(other.value).parameters.size() > 1)
+		{
+			throw ValueException("Function that uses other in composition can have only one parameter");
+		}
+		auto func = std::get<Function>(other.value);
+		func.composedOf = &std::get<Function>(value);
+		return Value(func);
+	}
+	throw ValueException("Only function value supports '>>' operator");
 }
 
 Value Value::operator<<(const std::vector<Value>& arguments) const
 {
-	return Value();
+	if (std::holds_alternative<Function>(value))
+	{
+		auto func = std::get<Function>(value);
+		func.boundArguments.insert(func.boundArguments.end(), arguments.begin(), arguments.end());
+
+		return Value(func);
+	}
+	throw ValueException("Only function value supports '<<' operator");
 }

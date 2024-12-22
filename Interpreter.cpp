@@ -36,7 +36,7 @@ void Interpreter::Interpret(const Program* const program)
 	}
 }
 
-void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, std::vector<Value> arguments)
+void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, const std::vector<Value>& arguments)
 {
 	std::wstring argumentsString;
 	for (const auto& arg : arguments)
@@ -56,6 +56,31 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, std::ve
 	}
 
 	InterpretBlock(funDef->block.get());
+}
+
+void Interpreter::InterpretFunction(const Value::Function* const function, const std::vector<Value>& arguments)
+{
+	auto allArguments = function->boundArguments;
+	allArguments.insert(allArguments.end(), arguments.begin(), arguments.end());
+
+	std::wstring argumentsString;
+	for (const auto& arg : arguments)
+	{
+		argumentsString += arg.ToString() + L" ";
+	}
+	Print(L"Function from variable, Arguments: " + argumentsString);
+	if (function->parameters.size() != arguments.size())
+	{
+		std::stringstream ss;
+		ss << "Function expects " << function->parameters.size() << " arguments, but got " << arguments.size() << ".";
+		throw InterpreterException(ss.str().c_str(), currentPosition);
+	}
+	for (size_t i = 0; i < arguments.size(); ++i)
+	{
+		currentScope->variables.push_back({ function->parameters[i].paramMutable, function->parameters[i].identifier,  arguments[i] });
+	}
+
+	InterpretBlock(function->block);
 }
 
 void Interpreter::InterpretBlock(const Block* const block)
@@ -86,7 +111,21 @@ void Interpreter::InterpretFunctionCallStatement(const FunctionCallStatement* co
 void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected)
 {
 	auto function = GetFunctionDefintion(functionCall->identifier);
-	if (function)
+	const Value::Function* functionFromVariable = nullptr;
+	if (!function)
+	{
+		const auto var = currentScope->GetVariable(functionCall->identifier);
+		if (var)
+		{
+			const auto& functionValue = var->value;
+			if (functionValue)
+			{
+				functionFromVariable = functionValue->GetFunction();
+			}
+		}
+	}
+
+	if (function || functionFromVariable)
 	{
 		previousScopes.push(currentScope);
 		currentScope = std::make_shared<Scope>();
@@ -96,7 +135,14 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 		{
 			arguments.push_back(EvaluateExpression(arg.get()));
 		}
-		InterpretFunDef(function, arguments);
+		if (function)
+		{
+			InterpretFunDef(function, arguments);
+		}
+		else
+		{
+			InterpretFunction(functionFromVariable, arguments);
+		}
 		currentScope = previousScopes.top();
 		previousScopes.pop();
 	}
@@ -364,13 +410,17 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 		auto variable = currentScope->GetVariable(std::get<std::wstring>(factor->factor));
 		if (!variable)
 		{
-			throw InterpreterException("Variable was not declared.", currentPosition);
+			std::stringstream ss;
+			ss << "Variable '" << std::string(std::get<std::wstring>(factor->factor).begin(), std::get<std::wstring>(factor->factor).end()) << "' was not declared.";
+			throw InterpreterException(ss.str().c_str(), currentPosition);
 		}
 		if (variable->value)
 		{
 			return *variable->value;
 		}
-		throw InterpreterException("Variable does not have value.", currentPosition);
+		std::stringstream ss;
+		ss << "Variable '" << std::string(std::get<std::wstring>(factor->factor).begin(), std::get<std::wstring>(factor->factor).end()) << "' does not have value.";
+		throw InterpreterException(ss.str().c_str(), currentPosition);
 	}
 	else if (std::holds_alternative<Literal>(factor->factor))
 	{
@@ -418,7 +468,6 @@ Value Interpreter::EvaluateLiteral(const Literal& literal)
 	throw InterpreterException("Could not evaluate literal value", currentPosition);
 }
 
-
 Value Interpreter::EvaluateFuncExpression(const FuncExpression* funcExpression)
 {
 	Value currentValue;
@@ -454,25 +503,24 @@ Value Interpreter::EvaluateComposable(const Composable* const composable)
 
 Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 {
-	std::optional<Value> evaluatedVal = std::nullopt;
 	if (auto funcLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&bindable->bindable))
 	{
-		evaluatedVal = EvaluateFunctionLiteral(funcLit->get());
+		return EvaluateFunctionLiteral(funcLit->get());
 	}
-	else if (auto funcExpr = std::get_if<std::unique_ptr<FuncExpression>>(&bindable->bindable))
+	if (auto funcExpr = std::get_if<std::unique_ptr<FuncExpression>>(&bindable->bindable))
 	{
-		evaluatedVal = EvaluateFuncExpression(funcExpr->get());
+		return EvaluateFuncExpression(funcExpr->get());
 	}
-	else if (auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&bindable->bindable))
+	if (auto funcCall = std::get_if<std::unique_ptr<FunctionCall>>(&bindable->bindable))
 	{
 		InterpretFunctionCall(funcCall->get(), true);
-		evaluatedVal = lastReturnedValue;
-		if (!evaluatedVal)
+		if (!lastReturnedValue)
 		{
 			throw InterpreterException("Function did not return any value", currentPosition);
 		}
+		return *lastReturnedValue;
 	}
-	else if (std::holds_alternative<std::wstring>(bindable->bindable))
+	if (std::holds_alternative<std::wstring>(bindable->bindable))
 	{
 		const auto& identifier = std::get<std::wstring>(bindable->bindable);
 		auto variable = currentScope->GetVariable(identifier);
@@ -481,9 +529,7 @@ Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 			auto function = GetFunction(identifier);
 			if (function)
 			{
-				// establish function
-
-				return Value();
+				return Value(Value::Function(function->block.get(), function->parameters));
 			}
 			throw InterpreterException("Variable nor function with such name was not declared.", currentPosition);
 		}
@@ -499,7 +545,7 @@ Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 
 Value Interpreter::EvaluateFunctionLiteral(const FunctionLiteral* const functionLiteral)
 {
-	return Value();
+	return Value(Value::Function(functionLiteral->block.get(), functionLiteral->parameters));
 }
 
 const FunctionDefiniton* Interpreter::GetFunction(const std::wstring& identifier) const noexcept

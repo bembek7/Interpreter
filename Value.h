@@ -5,12 +5,25 @@
 #include "Position.h"
 #include "InterpreterException.h"
 #include <vector>
+#include "ParserObjects\Core.h"
+#include "ParserObjects\Statements.h"
 
-struct Function { std::string b = "Function"; };
 class Value
 {
 public:
-	class ValueException : public InterpreterException 
+	struct Function
+	{
+		Function(Block* block, const std::vector<Param>& parameters) noexcept :
+			block(block), parameters(parameters)
+		{
+		}
+
+		Block* block;
+		std::vector<Param> parameters;
+		std::vector<Value> boundArguments;
+		const Function* composedOf = nullptr;
+	};
+	class ValueException : public InterpreterException
 	{
 	public:
 		ValueException(const char* msg)
@@ -23,6 +36,7 @@ public:
 	};
 
 	Value() = default;
+	Value(const Function& function) noexcept;
 	Value(const bool val) noexcept;
 	Value(const int val) noexcept;
 	Value(const float val) noexcept;
@@ -31,6 +45,7 @@ public:
 
 	std::wstring ToString() const;
 	bool ToBool() const;
+	const Function* GetFunction() const noexcept;
 
 	Value operator-() const;
 	Value operator!() const;

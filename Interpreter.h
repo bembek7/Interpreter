@@ -43,7 +43,8 @@ public:
 	Value EvaluateFuncExpression(const FuncExpression* funcExpression);
 
 private:
-	void InterpretFunDef(const FunctionDefiniton* const funDef, std::vector<Value> arguments = {});
+	void InterpretFunDef(const FunctionDefiniton* const funDef, const std::vector<Value>& arguments = {});
+	void InterpretFunction(const Value::Function* const function, const std::vector<Value>& arguments);
 
 	void Print(const std::wstring& msg) const noexcept;
 	void InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected);
