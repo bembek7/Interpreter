@@ -23,7 +23,7 @@ int main()
 	std::istringstream codeStream(codeExample);
 	const auto tokens = lexer.Tokenize(codeStream*/
 
-	std::wifstream codeFile(CodesPath::exampleCodesPath + "TestCode2.txt");
+	std::wifstream codeFile(CodesPath::exampleCodesPath + "TestCode.txt");
 	if (!codeFile.is_open()) {
 		std::cerr << "Error opening file!" << std::endl;
 		return 1;
