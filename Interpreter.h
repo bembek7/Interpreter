@@ -42,7 +42,8 @@ public:
 	Value EvaluateStandardExpression(const StandardExpression* const expression);
 	Value EvaluateFuncExpression(const FuncExpression* funcExpression);
 
-private:
+	//private:
+protected:
 	void InterpretFunDef(const FunctionDefiniton* const funDef, const std::vector<Value>& arguments = {});
 	void InterpretFunction(const Value::Function* const function, const std::vector<Value>& arguments);
 
