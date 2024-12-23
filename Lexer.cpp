@@ -42,6 +42,8 @@ namespace
 		{ L",", LexToken::TokenType::Comma },
 		{ L"{", LexToken::TokenType::LBracket },
 		{ L"}", LexToken::TokenType::RBracket },
+		{ L"[", LexToken::TokenType::LSquareBracket },
+		{ L"]", LexToken::TokenType::RSquareBracket },
 		{ L"(", LexToken::TokenType::LParenth },
 		{ L")", LexToken::TokenType::RParenth },
 		{ L"=", LexToken::TokenType::Assign },
