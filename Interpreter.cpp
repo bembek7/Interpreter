@@ -1,6 +1,7 @@
 #include "Interpreter.h"
 #include <iostream>
 #include "InterpreterException.h"
+#include "StringConversion.h"
 
 void Interpreter::Interpret(const Program* const program)
 {
@@ -411,7 +412,7 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 		if (!variable)
 		{
 			std::stringstream ss;
-			ss << "Variable '" << std::string(std::get<std::wstring>(factor->factor).begin(), std::get<std::wstring>(factor->factor).end()) << "' was not declared.";
+			ss << "Variable '" << StringConversion::ToNarrow(std::get<std::wstring>(factor->factor)) << "' was not declared.";
 			throw InterpreterException(ss.str().c_str(), currentPosition);
 		}
 		if (variable->value)
@@ -419,7 +420,7 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 			return *variable->value;
 		}
 		std::stringstream ss;
-		ss << "Variable '" << std::string(std::get<std::wstring>(factor->factor).begin(), std::get<std::wstring>(factor->factor).end()) << "' does not have value.";
+		ss << "Variable '" << StringConversion::ToNarrow(std::get<std::wstring>(factor->factor)) << "' does not have value.";
 		throw InterpreterException(ss.str().c_str(), currentPosition);
 	}
 	else if (std::holds_alternative<Literal>(factor->factor))
