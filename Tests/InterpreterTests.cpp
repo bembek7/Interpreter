@@ -1,5 +1,20 @@
 #include <gtest/gtest.h>
 #include "Interpreter.h"
+#include <ParserImpl.h>
+
+static std::unique_ptr<Program> ParseStringAsProgram(const std::wstring& input) {
+	std::wstringstream inputStream(input);
+	Lexer lexer(&inputStream);
+	ParserImpl parser(&lexer);
+	return parser.ParseProgram();
+}
+
+std::unique_ptr<StandardExpression> ParseStringAsStandardExpression(const std::wstring& input) {
+	std::wstringstream inputStream(input);
+	Lexer lexer(&inputStream);
+	ParserImpl parser(&lexer);
+	return parser.ParseStandardExpression();
+}
 
 class InterpreterTest : public Interpreter
 {
@@ -78,7 +93,32 @@ public:
 	{
 		return Interpreter::GetFunction(identifier);
 	}
+
+	bool FunctionAlreadyExists(const std::wstring& identifier) const noexcept
+	{
+		return Interpreter::FunctionAlreadyExists(identifier);
+	}
 };
+
+static std::unique_ptr<Return> CreateReturnFromLiteral(const Literal& literal) {
+	auto factor = std::make_unique<Factor>(literal);
+	auto multiplicative = std::make_unique<Multiplicative>();
+	multiplicative->factors.push_back(std::move(factor));
+
+	auto additive = std::make_unique<Additive>();
+	additive->multiplicatives.push_back(std::move(multiplicative));
+
+	auto relation = std::make_unique<Relation>();
+	relation->firstAdditive = std::move(additive);
+
+	auto conjunction = std::make_unique<Conjunction>();
+	conjunction->relations.push_back(std::move(relation));
+
+	auto standardExpression = std::make_unique<StandardExpression>();
+	standardExpression->conjunctions.push_back(std::move(conjunction));
+
+	return std::make_unique<Return>(std::move(standardExpression));
+}
 
 class InterpreterTests : public ::testing::Test
 {
@@ -334,4 +374,210 @@ TEST_F(InterpreterTests, EvaluateConjunction_MultipleRelations) {
 
 	ASSERT_TRUE(std::holds_alternative<bool>(result.value));
 	EXPECT_EQ(std::get<bool>(result.value), true);
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_ValidFunctionLiteral_ReturnsFunctionValue) {
+	std::vector<Param> parameters = { Param(L"param1"), Param(L"param2") };
+	auto block = std::make_unique<Block>();
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_EQ(function.parameters.size(), 2);
+	EXPECT_EQ(function.parameters[0].identifier, L"param1");
+	EXPECT_EQ(function.parameters[1].identifier, L"param2");
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_EmptyParameters_ReturnsFunctionValue) {
+	std::vector<Param> parameters;
+	auto block = std::make_unique<Block>();
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_TRUE(function.parameters.empty());
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_NullBlock_ThrowsException) {
+	std::vector<Param> parameters = { Param(L"param1") };
+	FunctionLiteral functionLiteral{ parameters, nullptr };
+
+	EXPECT_THROW(interpreter.EvaluateFunctionLiteral(&functionLiteral), InterpreterException);
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_SingleParameter_ReturnsFunctionValue) {
+	std::vector<Param> parameters = { Param(L"param1") };
+	auto block = std::make_unique<Block>();
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_EQ(function.parameters.size(), 1);
+	EXPECT_EQ(function.parameters[0].identifier, L"param1");
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_MultipleParameters_ReturnsFunctionValue) {
+	std::vector<Param> parameters = { Param(L"param1"), Param(L"param2"), Param(L"param3") };
+	auto block = std::make_unique<Block>();
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_EQ(function.parameters.size(), 3);
+	EXPECT_EQ(function.parameters[0].identifier, L"param1");
+	EXPECT_EQ(function.parameters[1].identifier, L"param2");
+	EXPECT_EQ(function.parameters[2].identifier, L"param3");
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_EmptyBlock_ReturnsFunctionValue) {
+	std::vector<Param> parameters = { Param(L"param1") };
+	auto block = std::make_unique<Block>(std::vector<std::unique_ptr<Statement>>{});
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_EQ(function.parameters.size(), 1);
+	EXPECT_EQ(function.parameters[0].identifier, L"param1");
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, EvaluateFunctionLiteral_NonEmptyBlock_ReturnsFunctionValue) {
+	std::vector<Param> parameters = { Param(L"param1") };
+	auto block = std::make_unique<Block>();
+	block->statements.push_back(CreateReturnFromLiteral(Literal{ 42 }));
+	FunctionLiteral functionLiteral{ parameters, std::move(block) };
+
+	Value result = interpreter.EvaluateFunctionLiteral(&functionLiteral);
+
+	ASSERT_TRUE(std::holds_alternative<Value::Function>(result.value));
+	const auto& function = std::get<Value::Function>(result.value);
+	EXPECT_EQ(function.parameters.size(), 1);
+	EXPECT_EQ(function.parameters[0].identifier, L"param1");
+	EXPECT_EQ(function.block, functionLiteral.block.get());
+}
+
+TEST_F(InterpreterTests, GetFunction_FunctionExists) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	const FunctionDefiniton* result = interpreter.GetFunction(L"testFunction");
+
+	ASSERT_NE(result, nullptr);
+	EXPECT_EQ(result->identifier, L"testFunction");
+}
+
+TEST_F(InterpreterTests, GetFunction_FunctionDoesNotExist) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	const FunctionDefiniton* result = interpreter.GetFunction(L"nonExistentFunction");
+
+	EXPECT_EQ(result, nullptr);
+}
+
+TEST_F(InterpreterTests, FunctionAlreadyExists_FunctionExists) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	bool result = interpreter.FunctionAlreadyExists(L"testFunction");
+
+	EXPECT_TRUE(result);
+}
+
+TEST_F(InterpreterTests, FunctionAlreadyExists_FunctionDoesNotExist) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	bool result = interpreter.FunctionAlreadyExists(L"nonExistentFunction");
+
+	EXPECT_FALSE(result);
+}
+
+TEST_F(InterpreterTests, GetFunctionDefintion_FunctionExists) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	const FunctionDefiniton* result = interpreter.GetFunctionDefintion(L"testFunction");
+
+	ASSERT_NE(result, nullptr);
+	EXPECT_EQ(result->identifier, L"testFunction");
+}
+
+TEST_F(InterpreterTests, GetFunctionDefintion_FunctionDoesNotExist) {
+	std::wstring programCode = L"func testFunction() { return 42; }";
+	auto program = ParseStringAsProgram(programCode);
+	interpreter.Interpret(program.get());
+
+	const FunctionDefiniton* result = interpreter.GetFunctionDefintion(L"nonExistentFunction");
+
+	EXPECT_EQ(result, nullptr);
+}
+
+TEST_F(InterpreterTests, EvaluateStandardExpression_WithLiteral) {
+	std::wstring expressionCode = L"42";
+	auto expression = ParseStringAsStandardExpression(expressionCode);
+
+	Value result = interpreter.EvaluateStandardExpression(expression.get());
+
+	ASSERT_TRUE(std::holds_alternative<int>(result.value));
+	EXPECT_EQ(std::get<int>(result.value), 42);
+}
+
+TEST_F(InterpreterTests, EvaluateStandardExpression_WithAddition) {
+	std::wstring expressionCode = L"21 + 21";
+	auto expression = ParseStringAsStandardExpression(expressionCode);
+
+	Value result = interpreter.EvaluateStandardExpression(expression.get());
+
+	ASSERT_TRUE(std::holds_alternative<int>(result.value));
+	EXPECT_EQ(std::get<int>(result.value), 42);
+}
+
+TEST_F(InterpreterTests, EvaluateStandardExpression_WithMultiplication) {
+	std::wstring expressionCode = L"6 * 7";
+	auto expression = ParseStringAsStandardExpression(expressionCode);
+
+	Value result = interpreter.EvaluateStandardExpression(expression.get());
+
+	ASSERT_TRUE(std::holds_alternative<int>(result.value));
+	EXPECT_EQ(std::get<int>(result.value), 42);
+}
+
+TEST_F(InterpreterTests, EvaluateStandardExpression_WithDivision) {
+	std::wstring expressionCode = L"84 / 2";
+	auto expression = ParseStringAsStandardExpression(expressionCode);
+
+	Value result = interpreter.EvaluateStandardExpression(expression.get());
+
+	ASSERT_TRUE(std::holds_alternative<int>(result.value));
+	EXPECT_EQ(std::get<int>(result.value), 42);
+}
+
+TEST_F(InterpreterTests, EvaluateStandardExpression_WithSubtraction) {
+	std::wstring expressionCode = L"50 - 8";
+	auto expression = ParseStringAsStandardExpression(expressionCode);
+
+	Value result = interpreter.EvaluateStandardExpression(expression.get());
+
+	ASSERT_TRUE(std::holds_alternative<int>(result.value));
+	EXPECT_EQ(std::get<int>(result.value), 42);
 }

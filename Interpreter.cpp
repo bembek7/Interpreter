@@ -546,6 +546,10 @@ Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 
 Value Interpreter::EvaluateFunctionLiteral(const FunctionLiteral* const functionLiteral)
 {
+	if (!functionLiteral->block)
+	{
+		throw InterpreterException("Function literal does not have block.", currentPosition);
+	}
 	return Value(Value::Function(functionLiteral->block.get(), functionLiteral->parameters));
 }
 
