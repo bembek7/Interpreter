@@ -347,7 +347,11 @@ Value Value::operator*(const Value& other) const
 		{
 			return Value(integerValue * *floatValue);
 		}
-		return Value(MultiplyString(integerValue, str));
+		if (integerValue >= 0)
+		{
+			return Value(MultiplyString(integerValue, str));
+		}
+		throw ValueException("Operator not supported for these value type.");
 	}
 	else if (std::holds_alternative<std::wstring>(value) && std::holds_alternative<int>(other.value))
 	{
@@ -361,7 +365,11 @@ Value Value::operator*(const Value& other) const
 		{
 			return Value(integerValue * *floatValue);
 		}
-		return Value(MultiplyString(integerValue, str));
+		if (integerValue >= 0)
+		{
+			return Value(MultiplyString(integerValue, str));
+		}
+		throw ValueException("Operator not supported for these value type.");
 	}
 	else if (std::holds_alternative<float>(value) && std::holds_alternative<std::wstring>(other.value))
 	{
@@ -779,7 +787,7 @@ bool Value::Compare(const bool boolVal, const std::wstring& str)
 	throw ValueException("String not convertible to bool.");
 }
 
-std::wstring Value::MultiplyString(const int count, const std::wstring& str)
+std::wstring Value::MultiplyString(const unsigned int count, const std::wstring& str)
 {
 	std::wstring mulStr = L"";
 	for (size_t i = 0; i < count; i++)

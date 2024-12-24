@@ -72,11 +72,11 @@ public:
 	Value operator>>(const Value& other) const;
 	Value operator<<(const std::vector<Value>& arguments) const;
 
-private:
+protected:
 	static std::optional<int> TryConvertToInt(const std::wstring& str);
 	static std::optional<float> TryConvertToFloat(const std::wstring& str);
 	static bool Compare(const int intVal, const std::wstring& str);
 	static bool Compare(const float floatVal, const std::wstring& str);
 	static bool Compare(const bool boolVal, const std::wstring& str);
-	static std::wstring MultiplyString(const int count, const std::wstring& str);
+	static std::wstring MultiplyString(const unsigned int count, const std::wstring& str);
 };
