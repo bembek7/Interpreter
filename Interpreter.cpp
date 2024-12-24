@@ -389,7 +389,7 @@ Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplica
 	{
 		switch (multiplicative->operators[i])
 		{
-		case MultiplicationOperator::Multiple:
+		case MultiplicationOperator::Multiply:
 			currentValue *= EvaluateFactor(multiplicative->factors[i + 1].get());
 			break;
 		case  MultiplicationOperator::Divide:

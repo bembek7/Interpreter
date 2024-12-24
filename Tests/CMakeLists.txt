@@ -3,7 +3,7 @@ add_executable(InterpreterTest "LexerTest.cpp" "ParserTests.cpp" "ValueTests.cpp
 
 target_include_directories(InterpreterTest PRIVATE "${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(InterpreterTest PRIVATE InterpreterLib GTest::gtest_main)
+target_link_libraries(InterpreterTest PRIVATE InterpreterLib GTest::gtest_main gmock gmock_main)
 
 # Discover and register tests
 include(GoogleTest)

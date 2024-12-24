@@ -674,7 +674,7 @@ std::unique_ptr<Multiplicative> ParserImpl::ParseMultiplicative()
 	{
 		if (ConsumeToken(LT::Asterisk))
 		{
-			multiplicative->operators.push_back(MultiplicationOperator::Multiple);
+			multiplicative->operators.push_back(MultiplicationOperator::Multiply);
 		}
 		else
 		{

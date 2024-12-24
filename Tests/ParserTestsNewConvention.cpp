@@ -781,7 +781,7 @@ TEST_F(ParserTestNewConvention, ParseMultiplicative_ValidMultiplicativeExpressio
 	ASSERT_NE(multiplicative, nullptr);
 	ASSERT_EQ(multiplicative->factors.size(), 2);
 	ASSERT_EQ(multiplicative->operators.size(), 1);
-	EXPECT_EQ(multiplicative->operators[0], MultiplicationOperator::Multiple);
+	EXPECT_EQ(multiplicative->operators[0], MultiplicationOperator::Multiply);
 
 	auto* factor1 = multiplicative->factors[0].get();
 	ASSERT_NE(factor1, nullptr);

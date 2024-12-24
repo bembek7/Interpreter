@@ -26,7 +26,7 @@ struct Literal
 
 enum class MultiplicationOperator
 {
-	Multiple,
+	Multiply,
 	Divide
 };
 
