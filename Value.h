@@ -43,7 +43,7 @@ public:
 	Value(const std::wstring& val) noexcept;
 	std::variant<bool, int, float, std::wstring, Function> value;
 
-	std::wstring ToString() const;
+	std::wstring ToPrintString() const; // shouldn't be used when converting value to string just for debugging
 	bool ToBool() const;
 	const Function* GetFunction() const noexcept;
 
@@ -73,6 +73,7 @@ public:
 	Value operator<<(const std::vector<Value>& arguments) const;
 
 protected:
+	std::wstring ToString() const;
 	static std::optional<int> TryConvertToInt(const std::wstring& str);
 	static std::optional<float> TryConvertToFloat(const std::wstring& str);
 	static bool Compare(const int intVal, const std::wstring& str);

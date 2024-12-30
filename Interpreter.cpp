@@ -44,7 +44,7 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, const s
 	std::wstring argumentsString;
 	for (const auto& arg : arguments)
 	{
-		argumentsString += arg.ToString() + L" ";
+		argumentsString += arg.ToPrintString() + L" ";
 	}
 	Print(L"Function: " + funDef->identifier + L" Arguments: " + argumentsString);
 	if (funDef->parameters.size() != arguments.size())
@@ -69,7 +69,7 @@ void Interpreter::InterpretFunction(const Value::Function* const function, const
 	std::wstring argumentsString;
 	for (const auto& arg : arguments)
 	{
-		argumentsString += arg.ToString() + L" ";
+		argumentsString += arg.ToPrintString() + L" ";
 	}
 	Print(L"Function from variable, Arguments: " + argumentsString);
 	if (function->parameters.size() != arguments.size())
@@ -162,7 +162,7 @@ void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 {
 	currentPosition = whileLoop->startingPosition;
 	auto conditionExpression = EvaluateExpression(whileLoop->condition.get());
-	Print(L"While " + conditionExpression.ToString());
+	Print(L"While " + conditionExpression.ToPrintString());
 	while (conditionExpression.ToBool())
 	{
 		InterpretBlock(whileLoop->block.get());
@@ -179,7 +179,7 @@ void Interpreter::InterpretReturn(const Return* const returnStatement)
 		if (returnStatement->expression)
 		{
 			lastReturnedValue = EvaluateExpression(returnStatement->expression.get());
-			Print(L"Return " + lastReturnedValue->ToString());
+			Print(L"Return " + lastReturnedValue->ToPrintString());
 		}
 		else
 		{
@@ -197,7 +197,7 @@ void Interpreter::InterpretConditional(const Conditional* const conditional)
 {
 	currentPosition = conditional->startingPosition;
 	auto conditionExpression = EvaluateExpression(conditional->condition.get());
-	Print(L"Conditional " + conditionExpression.ToString());
+	Print(L"Conditional " + conditionExpression.ToPrintString());
 	if (conditionExpression.ToBool())
 	{
 		InterpretBlock(conditional->ifBlock.get());
@@ -224,7 +224,7 @@ void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 	{
 		auto value = EvaluateExpression(declaration->expression.get());
 		currentScope->variables.back().value = value;
-		Print(L"Declaration " + declaration->identifier + L" = " + value.ToString());
+		Print(L"Declaration " + declaration->identifier + L" = " + value.ToPrintString());
 	}
 	else
 	{
@@ -245,7 +245,7 @@ void Interpreter::InterpretAssignment(const Assignment* const assignment)
 		throw InterpreterException("Cannot assign to immutable variable.", currentPosition);
 	}
 	variable->value = EvaluateExpression(assignment->expression.get());
-	Print(L"Assignment " + assignment->identifier + L" = " + variable->value->ToString());
+	Print(L"Assignment " + assignment->identifier + L" = " + variable->value->ToPrintString());
 }
 
 Interpreter::Variable* Interpreter::Scope::GetVariable(const std::wstring& identifier) noexcept

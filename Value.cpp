@@ -49,6 +49,19 @@ std::wstring Value::ToString() const
 	throw ValueException("Cannot convert value to string");
 }
 
+std::wstring Value::ToPrintString() const
+{
+	if (std::holds_alternative<int>(value) || std::holds_alternative<float>(value) || std::holds_alternative<bool>(value) || std::holds_alternative<std::wstring>(value))
+	{
+		return ToString();
+	}
+	if (std::holds_alternative<Function>(value))
+	{
+		return L"Function";
+	}
+	throw ValueException("Cannot print value");
+}
+
 bool Value::ToBool() const
 {
 	if (std::holds_alternative<bool>(value))
