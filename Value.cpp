@@ -818,9 +818,8 @@ Value Value::operator>>(const Value& other) const
 		{
 			throw ValueException("Function that uses other in composition can have only one parameter");
 		}
-		auto func = std::get<Function>(other.value);
+		auto func = std::get<Function>(other.value); 
 		func.composedOf = std::make_shared<Function>(std::get<Function>(value));
-		func.parameters = std::get<Function>(value).parameters;
 		return Value(func);
 	}
 	throw ValueException("Only function value supports '>>' operator");

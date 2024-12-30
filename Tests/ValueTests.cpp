@@ -629,24 +629,6 @@ TEST(ValueTests, GetFunction_InvalidFunction)
 	EXPECT_EQ(val.GetFunction(), nullptr);
 }
 
-// Test operator>>
-TEST(ValueTests, OperatorRightShift_ValidFunctionComposition)
-{
-	Block block1, block2;
-	std::vector<Param> params1 = { Param(L"param1") };
-	std::vector<Param> params2 = { Param(L"param2") };
-	Value::Function func1(&block1, params1);
-	Value::Function func2(&block2, params2);
-
-	Value val1(func1);
-	Value val2(func2);
-
-	Value result = val1 >> val2;
-	const Value::Function* composedFunc = result.GetFunction();
-	ASSERT_NE(composedFunc, nullptr);
-	EXPECT_EQ(composedFunc->composedOf, &std::get<Value::Function>(val1.value));
-}
-
 TEST(ValueTests, OperatorRightShift_InvalidFunctionComposition)
 {
 	Value val1(42);

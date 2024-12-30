@@ -64,14 +64,17 @@ void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, const s
 void Interpreter::InterpretFunction(const Value::Function* const function, const std::vector<Value>& arguments)
 {
 	auto allArguments = function->boundArguments;
+	
 	allArguments.insert(allArguments.end(), arguments.begin(), arguments.end());
 
-	if (function->parameters.size() != allArguments.size())
+	auto expectedParametersNum = (function->composedOf) ? (function->composedOf->parameters.size() - function->composedOf->boundArguments.size()) : function->parameters.size();
+	if (expectedParametersNum != allArguments.size())
 	{
 		std::stringstream ss;
 		ss << "Function expects " << function->parameters.size() << " arguments, but got " << allArguments.size() << ".";
 		throw InterpreterException(ss.str().c_str(), currentPosition);
 	}
+	
 	if (function->composedOf)
 	{
 		CallFunction(function->composedOf.get(), allArguments, true);

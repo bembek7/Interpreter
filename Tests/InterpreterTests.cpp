@@ -581,3 +581,149 @@ TEST_F(InterpreterTests, EvaluateStandardExpression_WithSubtraction) {
 	ASSERT_TRUE(std::holds_alternative<int>(result.value));
 	EXPECT_EQ(std::get<int>(result.value), 42);
 }
+
+TEST(CaptureStdoutTest, CapturesOutput) {
+	// Start capturing stdout
+	testing::internal::CaptureStdout();
+
+	// Call the function that prints to stdout
+	std::cout << "Hello, World!" << std::endl;
+
+	// Stop capturing stdout and get the captured output
+	std::string output = testing::internal::GetCapturedStdout();
+
+	// Verify the captured output
+	EXPECT_EQ(output, "Hello, World!\n");
+}
+
+TEST_F(InterpreterTests, CaptureOutput_FunctionComposition) {
+	std::wstring programCode = LR"(
+	func Main()
+	{
+		var e = [Buzz];
+		var b = [Buzz >> Fizz];
+		return b(1, 2, 3);
+	}
+
+	func Buzz(a, b, mut c)
+	{
+		var d = a + b + c;
+		return d;
+	}
+
+	func Fizz(a)
+	{
+		var d = a + 10;
+		return d;
+	}
+	)";
+	auto program = ParseStringAsProgram(programCode);
+
+	testing::internal::CaptureStdout();
+
+	interpreter.Interpret(program.get());
+
+	std::string output = testing::internal::GetCapturedStdout();
+
+	std::string expectedOutput = "Function: Main Arguments: \n\tDeclaration e = Function\n\tDeclaration b = Function\n\tFunction from variable, Arguments: 1 2 3 \n\t\tDeclaration d = 6\n\t\tReturn 6\n\tFunction from variable, Arguments: 6 \n\t\tDeclaration d = 16\n\t\tReturn 16\n\tReturn 16\n";
+	EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(InterpreterTests, CaptureOutput_FunctionBinding) {
+	std::wstring programCode = LR"(
+    func Main()
+    {
+        var e = [Buzz << (1, 2)];
+        return e(3);
+    }
+
+    func Buzz(a, b, mut c)
+    {
+        var d = a + b + c;
+        return d;
+    }
+    )";
+	auto program = ParseStringAsProgram(programCode);
+
+	testing::internal::CaptureStdout();
+
+	interpreter.Interpret(program.get());
+
+	std::string output = testing::internal::GetCapturedStdout();
+
+	std::string expectedOutput = "Function: Main Arguments: \n\tDeclaration e = Function\n\tFunction from variable, Arguments: 1 2 3 \n\t\tDeclaration d = 6\n\t\tReturn 6\n\tReturn 6\n";
+	EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(InterpreterTests, CaptureOutput_FunctionCompositionAndBinding) {
+	std::wstring programCode = LR"(
+    func Main()
+    {
+        mut var e = [Buzz << (1, 2)];
+		e = [e >> Fizz];
+        return e(3);
+    }
+
+    func Buzz(a, b, mut c)
+    {
+        var d = a + b + c;
+        return d;
+    }
+
+    func Fizz(e)
+    {
+        var d = e + 10;
+        return d;
+    }
+    )";
+	auto program = ParseStringAsProgram(programCode);
+
+	testing::internal::CaptureStdout();
+
+	interpreter.Interpret(program.get());
+
+	std::string output = testing::internal::GetCapturedStdout();
+
+	std::string expectedOutput = "Function: Main Arguments: \n\tDeclaration e = Function\n\tAssignment e = Function\n\tFunction from variable, Arguments: 1 2 3 \n\t\tDeclaration d = 6\n\t\tReturn 6\n\tFunction from variable, Arguments: 6 \n\t\tDeclaration d = 16\n\t\tReturn 16\n\tReturn 16\n";
+	EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(InterpreterTests, CaptureOutput_FunctionLiteralWithBinding) {
+	std::wstring programCode = LR"(
+    func Main()
+    {
+        var e = [(a, b) { return a + b; } << (10)];
+        return e(5);
+    }
+    )";
+	auto program = ParseStringAsProgram(programCode);
+
+	testing::internal::CaptureStdout();
+
+	interpreter.Interpret(program.get());
+
+	std::string output = testing::internal::GetCapturedStdout();
+
+	std::string expectedOutput = "Function: Main Arguments: \n\tDeclaration e = Function\n\tFunction from variable, Arguments: 10 5 \n\t\tReturn 15\n\tReturn 15\n";
+	EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(InterpreterTests, CaptureOutput_FunctionLiteralWithComposition) {
+	std::wstring programCode = LR"(
+    func Main()
+    {
+        var e = [(a) { return a + 1; } >> (b) { return b * 2; }];
+        return e(5);
+    }
+    )";
+	auto program = ParseStringAsProgram(programCode);
+
+	testing::internal::CaptureStdout();
+
+	interpreter.Interpret(program.get());
+
+	std::string output = testing::internal::GetCapturedStdout();
+
+	std::string expectedOutput = "Function: Main Arguments: \n\tDeclaration e = Function\n\tFunction from variable, Arguments: 5 \n\t\tReturn 6\n\tFunction from variable, Arguments: 6 \n\t\tReturn 12\n\tReturn 12\n";
+	EXPECT_EQ(output, expectedOutput);
+}
