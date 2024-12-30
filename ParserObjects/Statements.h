@@ -10,6 +10,7 @@ struct Statement
 {
 	virtual ~Statement() = default;
 	virtual void InterpretThis(Interpreter& interpreter) const = 0;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Block : Statement
@@ -28,6 +29,7 @@ struct FunctionCall
 	}
 	std::wstring identifier;
 	std::vector<std::unique_ptr<Expression>> arguments;
+	Position startingPosition = Position(0, 0);
 };
 
 struct FunctionCallStatement : Statement

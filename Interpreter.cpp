@@ -5,6 +5,7 @@
 
 void Interpreter::Interpret(const Program* const program)
 {
+	currentPosition = { 0, 0 };
 	try
 	{
 		const FunctionDefiniton* mainFunction = nullptr;
@@ -39,6 +40,7 @@ void Interpreter::Interpret(const Program* const program)
 
 void Interpreter::InterpretFunDef(const FunctionDefiniton* const funDef, const std::vector<Value>& arguments)
 {
+	currentPosition = funDef->startingPosition;
 	std::wstring argumentsString;
 	for (const auto& arg : arguments)
 	{
@@ -86,6 +88,7 @@ void Interpreter::InterpretFunction(const Value::Function* const function, const
 
 void Interpreter::InterpretBlock(const Block* const block)
 {
+	currentPosition = block->startingPosition;
 	++currentDepth;
 	auto newScope = std::make_shared<Scope>();
 	newScope->higherScope = currentScope;
@@ -105,12 +108,14 @@ void Interpreter::InterpretBlock(const Block* const block)
 
 void Interpreter::InterpretFunctionCallStatement(const FunctionCallStatement* const functionCallStatement)
 {
+	currentPosition = functionCallStatement->startingPosition;
 	Print(L"FunctionCallStatement");
 	InterpretFunctionCall(functionCallStatement->funcCall.get(), false);
 }
 
 void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, const bool valueExpected)
 {
+	currentPosition = functionCall->startingPosition;
 	auto function = GetFunctionDefintion(functionCall->identifier);
 	const Value::Function* functionFromVariable = nullptr;
 	if (!function)
@@ -155,6 +160,7 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 
 void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 {
+	currentPosition = whileLoop->startingPosition;
 	auto conditionExpression = EvaluateExpression(whileLoop->condition.get());
 	Print(L"While " + conditionExpression.ToString());
 	while (conditionExpression.ToBool())
@@ -167,6 +173,7 @@ void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
 
 void Interpreter::InterpretReturn(const Return* const returnStatement)
 {
+	currentPosition = returnStatement->startingPosition;
 	if (currentScope->valueExpectedInCurrentFunction)
 	{
 		if (returnStatement->expression)
@@ -188,6 +195,7 @@ void Interpreter::InterpretReturn(const Return* const returnStatement)
 
 void Interpreter::InterpretConditional(const Conditional* const conditional)
 {
+	currentPosition = conditional->startingPosition;
 	auto conditionExpression = EvaluateExpression(conditional->condition.get());
 	Print(L"Conditional " + conditionExpression.ToString());
 	if (conditionExpression.ToBool())
@@ -202,6 +210,7 @@ void Interpreter::InterpretConditional(const Conditional* const conditional)
 
 void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 {
+	currentPosition = declaration->startingPosition;
 	if (currentScope->VariableAlreadyExists(declaration->identifier))
 	{
 		throw InterpreterException("Redefinition of variable is not allowed.", currentPosition);
@@ -225,10 +234,15 @@ void Interpreter::InterpretDeclaration(const Declaration* const declaration)
 
 void Interpreter::InterpretAssignment(const Assignment* const assignment)
 {
+	currentPosition = assignment->startingPosition;
 	auto variable = currentScope->GetVariable(assignment->identifier);
 	if (!variable)
 	{
 		throw InterpreterException("Variable was not declared.", currentPosition);
+	}
+	if (!variable->isMutable)
+	{
+		throw InterpreterException("Cannot assign to immutable variable.", currentPosition);
 	}
 	variable->value = EvaluateExpression(assignment->expression.get());
 	Print(L"Assignment " + assignment->identifier + L" = " + variable->value->ToString());
@@ -280,11 +294,13 @@ const FunctionDefiniton* Interpreter::GetFunctionDefintion(const std::wstring& i
 
 Value Interpreter::EvaluateExpression(const Expression* const expression)
 {
+	currentPosition = expression->startingPosition;
 	return expression->EvaluateThis(*this);
 }
 
 Value Interpreter::EvaluateStandardExpression(const StandardExpression* const expression)
 {
+	currentPosition = expression->startingPosition;
 	Value currentValue = false;
 	for (const auto& conjunction : expression->conjunctions)
 	{
@@ -306,6 +322,7 @@ Value Interpreter::EvaluateStandardExpression(const StandardExpression* const ex
 
 Value Interpreter::EvaluateConjunction(const Conjunction* const conjunction)
 {
+	currentPosition = conjunction->startingPosition;
 	Value currentValue = true;
 	for (const auto& relation : conjunction->relations)
 	{
@@ -327,6 +344,7 @@ Value Interpreter::EvaluateConjunction(const Conjunction* const conjunction)
 
 Value Interpreter::EvaluateRelation(const Relation* const relation)
 {
+	currentPosition = relation->startingPosition;
 	auto first = EvaluateAdditive(relation->firstAdditive.get());
 	if (relation->relationOperator)
 	{
@@ -361,6 +379,7 @@ Value Interpreter::EvaluateRelation(const Relation* const relation)
 
 Value Interpreter::EvaluateAdditive(const Additive* const additive)
 {
+	currentPosition = additive->startingPosition;
 	auto first = EvaluateMultiplicative(additive->multiplicatives.front().get());
 	auto currentValue = first;
 	for (size_t i = 0; i < additive->operators.size(); ++i)
@@ -383,6 +402,7 @@ Value Interpreter::EvaluateAdditive(const Additive* const additive)
 
 Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplicative)
 {
+	currentPosition = multiplicative->startingPosition;
 	auto first = EvaluateFactor(multiplicative->factors.front().get());
 	auto currentValue = first;
 	for (size_t i = 0; i < multiplicative->operators.size(); ++i)
@@ -405,6 +425,7 @@ Value Interpreter::EvaluateMultiplicative(const Multiplicative* const multiplica
 
 Value Interpreter::EvaluateFactor(const Factor* const factor)
 {
+	currentPosition = factor->startingPosition;
 	std::optional<Value> evaluatedVal = std::nullopt;
 	if (std::holds_alternative<std::wstring>(factor->factor))
 	{
@@ -449,6 +470,7 @@ Value Interpreter::EvaluateFactor(const Factor* const factor)
 
 Value Interpreter::EvaluateLiteral(const Literal& literal)
 {
+	currentPosition = literal.startingPosition;
 	if (std::holds_alternative<int>(literal.value))
 	{
 		return Value(std::get<int>(literal.value));
@@ -471,6 +493,7 @@ Value Interpreter::EvaluateLiteral(const Literal& literal)
 
 Value Interpreter::EvaluateFuncExpression(const FuncExpression* funcExpression)
 {
+	currentPosition = funcExpression->startingPosition;
 	Value currentValue;
 	for (size_t i = 0; i < funcExpression->composables.size(); ++i)
 	{
@@ -488,6 +511,7 @@ Value Interpreter::EvaluateFuncExpression(const FuncExpression* funcExpression)
 
 Value Interpreter::EvaluateComposable(const Composable* const composable)
 {
+	currentPosition = composable->startingPosition;
 	auto bindable = EvaluateBindable(composable->bindable.get());
 	if (!composable->arguments.empty())
 	{
@@ -504,6 +528,7 @@ Value Interpreter::EvaluateComposable(const Composable* const composable)
 
 Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 {
+	currentPosition = bindable->startingPosition;
 	if (auto funcLit = std::get_if<std::unique_ptr<FunctionLiteral>>(&bindable->bindable))
 	{
 		return EvaluateFunctionLiteral(funcLit->get());
@@ -546,6 +571,7 @@ Value Interpreter::EvaluateBindable(const Bindable* const bindable)
 
 Value Interpreter::EvaluateFunctionLiteral(const FunctionLiteral* const functionLiteral)
 {
+	currentPosition = functionLiteral->startingPosition;
 	if (!functionLiteral->block)
 	{
 		throw InterpreterException("Function literal does not have block.", currentPosition);
