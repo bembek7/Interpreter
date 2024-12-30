@@ -550,31 +550,31 @@ TEST(ValueTests, MultiplyString_Zero)
 TEST(ValueTests, ToString_Int)
 {
 	Value val(42);
-	EXPECT_EQ(val.ToString(), L"42");
+	EXPECT_EQ(val.ToPrintString(), L"42");
 }
 
 TEST(ValueTests, ToString_Float)
 {
 	Value val(3.14f);
-	EXPECT_EQ(val.ToString(), L"3.140000");
+	EXPECT_EQ(val.ToPrintString(), L"3.140000");
 }
 
 TEST(ValueTests, ToString_BoolTrue)
 {
 	Value val(true);
-	EXPECT_EQ(val.ToString(), L"true");
+	EXPECT_EQ(val.ToPrintString(), L"true");
 }
 
 TEST(ValueTests, ToString_BoolFalse)
 {
 	Value val(false);
-	EXPECT_EQ(val.ToString(), L"false");
+	EXPECT_EQ(val.ToPrintString(), L"false");
 }
 
 TEST(ValueTests, ToString_WString)
 {
 	Value val(std::wstring(L"test"));
-	EXPECT_EQ(val.ToString(), L"test");
+	EXPECT_EQ(val.ToPrintString(), L"test");
 }
 
 // Test ToBool

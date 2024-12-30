@@ -66,21 +66,30 @@ void Interpreter::InterpretFunction(const Value::Function* const function, const
 	auto allArguments = function->boundArguments;
 	allArguments.insert(allArguments.end(), arguments.begin(), arguments.end());
 
+	if (function->parameters.size() != allArguments.size())
+	{
+		std::stringstream ss;
+		ss << "Function expects " << function->parameters.size() << " arguments, but got " << allArguments.size() << ".";
+		throw InterpreterException(ss.str().c_str(), currentPosition);
+	}
+	if (function->composedOf)
+	{
+		CallFunction(function->composedOf.get(), allArguments, true);
+
+		allArguments.clear();
+		allArguments.push_back(*lastReturnedValue);
+	}
+
 	std::wstring argumentsString;
-	for (const auto& arg : arguments)
+	for (const auto& arg : allArguments)
 	{
 		argumentsString += arg.ToPrintString() + L" ";
 	}
 	Print(L"Function from variable, Arguments: " + argumentsString);
-	if (function->parameters.size() != arguments.size())
+
+	for (size_t i = 0; i < allArguments.size(); ++i)
 	{
-		std::stringstream ss;
-		ss << "Function expects " << function->parameters.size() << " arguments, but got " << arguments.size() << ".";
-		throw InterpreterException(ss.str().c_str(), currentPosition);
-	}
-	for (size_t i = 0; i < arguments.size(); ++i)
-	{
-		currentScope->variables.push_back({ function->parameters[i].paramMutable, function->parameters[i].identifier,  arguments[i] });
+		currentScope->variables.push_back({ function->parameters[i].paramMutable, function->parameters[i].identifier,  allArguments[i] });
 	}
 
 	InterpretBlock(function->block);
@@ -133,9 +142,6 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 
 	if (function || functionFromVariable)
 	{
-		previousScopes.push(currentScope);
-		currentScope = std::make_shared<Scope>();
-		currentScope->valueExpectedInCurrentFunction = valueExpected;
 		std::vector<Value> arguments;
 		for (const auto& arg : functionCall->arguments)
 		{
@@ -143,19 +149,32 @@ void Interpreter::InterpretFunctionCall(const FunctionCall* const functionCall, 
 		}
 		if (function)
 		{
+			previousScopes.push(currentScope);
+			currentScope = std::make_shared<Scope>();
+			currentScope->valueExpectedInCurrentFunction = valueExpected;
 			InterpretFunDef(function, arguments);
+			currentScope = previousScopes.top();
+			previousScopes.pop();
 		}
 		else
 		{
-			InterpretFunction(functionFromVariable, arguments);
+			CallFunction(functionFromVariable, arguments, valueExpected);
 		}
-		currentScope = previousScopes.top();
-		previousScopes.pop();
 	}
 	else
 	{
 		throw InterpreterException("Function definition not found.", currentPosition);
 	}
+}
+
+void Interpreter::CallFunction(const Value::Function* const function, const std::vector<Value>& arguments, const bool valueExpected)
+{
+	previousScopes.push(currentScope);
+	currentScope = std::make_shared<Scope>();
+	currentScope->valueExpectedInCurrentFunction = valueExpected;
+	InterpretFunction(function, arguments);
+	currentScope = previousScopes.top();
+	previousScopes.pop();
 }
 
 void Interpreter::InterpretWhileLoop(const WhileLoop* const whileLoop)
@@ -499,7 +518,7 @@ Value Interpreter::EvaluateFuncExpression(const FuncExpression* funcExpression)
 	{
 		if (i > 0)
 		{
-			currentValue = currentValue >> EvaluateComposable(funcExpression->composables[i].get());
+			currentValue = Value(currentValue >> EvaluateComposable(funcExpression->composables[i].get()));
 		}
 		else
 		{

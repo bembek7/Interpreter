@@ -21,7 +21,7 @@ public:
 		Block* block;
 		std::vector<Param> parameters;
 		std::vector<Value> boundArguments;
-		const Function* composedOf = nullptr;
+		std::shared_ptr<Function> composedOf;
 	};
 	class ValueException : public InterpreterException
 	{
