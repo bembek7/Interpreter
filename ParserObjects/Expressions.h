@@ -2,24 +2,34 @@
 #include<variant>
 #include<memory>
 #include<string>
+#include<optional>
+#include<vector>
+#include "../Position.h"
 
+class Interpreter;
 struct FuncExpression;
 struct StandardExpression;
 struct FunctionCall;
+struct Param;
+struct Block;
+class Value;
 
 struct Expression
 {
 	virtual ~Expression() = default;
+	virtual Value EvaluateThis(Interpreter& interpreter) const = 0;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Literal
 {
 	std::variant<bool, int, float, std::wstring> value;
+	Position startingPosition = Position(0, 0);
 };
 
 enum class MultiplicationOperator
 {
-	Multiple,
+	Multiply,
 	Divide
 };
 
@@ -45,6 +55,7 @@ struct Factor
 
 	bool logicallyNegated = false;
 	std::variant<std::wstring, Literal, std::unique_ptr<StandardExpression>, std::unique_ptr<FunctionCall>> factor;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Multiplicative
@@ -55,6 +66,7 @@ struct Multiplicative
 	}
 	std::vector<std::unique_ptr<Factor>> factors;
 	std::vector<MultiplicationOperator> operators;
+	Position startingPosition = Position(0, 0);
 };
 
 enum class AdditionOperator
@@ -72,6 +84,7 @@ struct Additive
 	bool negated = false;
 	std::vector<std::unique_ptr<Multiplicative>> multiplicatives;
 	std::vector<AdditionOperator> operators;
+	Position startingPosition = Position(0, 0);
 };
 
 enum class RelationOperator
@@ -93,6 +106,7 @@ struct Relation
 	std::unique_ptr<Additive> firstAdditive;
 	std::optional<RelationOperator> relationOperator;
 	std::unique_ptr<Additive> secondAdditive;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Conjunction
@@ -102,6 +116,7 @@ struct Conjunction
 		relations(std::move(relations)) {
 	}
 	std::vector<std::unique_ptr<Relation>> relations;
+	Position startingPosition = Position(0, 0);
 };
 
 struct StandardExpression : Expression
@@ -111,12 +126,14 @@ struct StandardExpression : Expression
 		conjunctions(std::move(conjunctions)) {
 	}
 	std::vector<std::unique_ptr<Conjunction>> conjunctions;
+	virtual Value EvaluateThis(Interpreter& interpreter) const override;
 };
 
 struct FunctionLiteral
 {
 	std::vector<Param> parameters;
 	std::unique_ptr<Block> block;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Bindable
@@ -134,12 +151,14 @@ struct Bindable
 		bindable(bindable) {
 	}
 	std::variant<std::unique_ptr<FunctionLiteral>, std::unique_ptr<FuncExpression>, std::unique_ptr<FunctionCall>, std::wstring> bindable;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Composable
 {
 	std::unique_ptr<Bindable> bindable;
 	std::vector<std::unique_ptr<Expression>> arguments;
+	Position startingPosition = Position(0, 0);
 };
 
 struct FuncExpression : Expression
@@ -148,4 +167,5 @@ struct FuncExpression : Expression
 		composables(std::move(composables)) {
 	}
 	std::vector<std::unique_ptr<Composable>> composables;
+	virtual Value EvaluateThis(Interpreter& interpreter) const override;
 };

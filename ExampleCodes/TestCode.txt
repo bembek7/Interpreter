@@ -1,16 +1,34 @@
-mut var a;
-a = false;
-true;
-falsed;
-0.35;
-213;
-"123";
-"0.32";
-00123;
-var d = 20;
-var c = 033;
-var e = 123;
-var f = -123;
-var b = "123";
+func Fizz()
+{
+	mut var a;
+	a = false;
+	Buzz(5, 6, 7);
+	return a;
+}
 
-var c = a + b;	# c == 133 prioritizing numbers over strings
+func Main()
+{
+	var d = 20;
+	mut var e = 2;
+	while( e > 0)
+	{
+		mut var a = Fizz();
+		e = e - 1;
+	}
+	if(false)
+	{
+		var f = -123;
+		var b = "123";
+	}
+	else
+	{
+		var c = 0.33;
+	}
+	return 0;
+}
+
+func Buzz(a, b, mut c)
+{
+	var d = a + b + c;
+	return d;
+}

@@ -1,0 +1,18 @@
+func Main()
+{
+	var e = [Buzz];
+	var b = [Buzz >> Fizz];
+	return b(1, 2, 3);
+}
+
+func Buzz(a, b, mut c)
+{
+	var d = a + b + c;
+	return d;
+}
+
+func Fizz(a)
+{
+	var d = a + 10;
+	return d;
+}

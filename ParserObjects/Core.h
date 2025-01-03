@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "../Position.h"
 
 struct Param
 {
@@ -10,6 +11,7 @@ struct Param
 		identifier(identifier), paramMutable(paramMutable) {}
 	bool paramMutable = false;
 	std::wstring identifier;
+	Position startingPosition = Position(0, 0);
 };
 
 struct FunctionDefiniton
@@ -17,6 +19,7 @@ struct FunctionDefiniton
 	std::wstring identifier;
 	std::vector<Param> parameters;
 	std::unique_ptr<struct Block> block;
+	Position startingPosition = Position(0, 0);
 };
 
 struct Program
