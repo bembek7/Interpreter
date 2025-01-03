@@ -2,8 +2,6 @@
 
 *Bartłomiej Puciłowski 325212*
 
-Jest to dokumentacja wstępna, więc będzie zmieniana i uzupełniana, nie wszystkie rzeczy ostatecznie zostaną zaimplementowane **dokładnie** tak jak opisano
-
 ## Zakładane funkcjonalności
 
 - Operacje arytmetyczne, relacyjne i logiczne
@@ -43,7 +41,6 @@ Wszystkie operatory relacji = rel
 | **int**    | **string**  | -,*,/, rel   | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> błąd                                                      |
 | **int**    | **string**  | +            | **int** jeśli string konwertowalny na inta,<br> **float** jeśli string konwertowalny na floata,<br> zmiana inta na stringa i doklejenie z odpowiedniej strony |
 | **float**  | **string**  | -,*,/, rel   | **float** jeśli string konwertowalny na inta lub floata,<br> błąd                                                                                             |
-| **float**  | **string**  | +            | **string** zmiana floata na stringa i doklejenie z odpowiedniej strony                                                                                        |
 | **bool**   | **funkcja** |              | błąd                                                                                                                                                          |
 | **int**    | **funkcja** |              | błąd                                                                                                                                                          |
 | **float**  | **funkcja** |              | błąd                                                                                                                                                          |
@@ -405,18 +402,19 @@ Interpreter będzie zbudowany z czterech kluczowych modułów:
 
 - analizator leksykalny,
 - analizator składniowy,
-- analizator semantyczny,
 - interpreter struktury obiektowej.
 
 ### Analizator leksykalny (lekser)
 
-Lekser przekształca kod źródłowy na tokeny zgodne z gramatyką języka. Każdy token reprezentuje określone elementy, jak słowa kluczowe czy symbole specjalne, i zawiera informacje o swoim położeniu w kodzie (numer linii i kolumny). Lekser zgłasza błędy w konkretnych przypadkach, takich jak:
+Lekser przekształca kod źródłowy na tokeny zgodne z gramatyką języka. Każdy token reprezentuje określone elementy, jak słowa kluczowe czy symbole specjalne, i zawiera informacje o swoim położeniu w kodzie (numer linii i kolumny). 
+
+Lekser zgłasza błędy w konkretnych przypadkach, takich jak:
 
 - nadmiarowe zera na początku liczby,
-- przekroczenie maksymalnej długości liczby (15 znaków) lub identyfikatora (50 znaków).
+- przekroczenie maksymalnej długości liczby lub identyfikator.
 - overflow liczb.
 
-Tokeny generowane przez lekser (aktualnie, na pewno będzie ich więcej):
+Tokeny generowane przez lekser:
 
 - Identifier  
 - Integer  
@@ -467,23 +465,33 @@ Jeżeli lekser napotka sekwencję znaków, której nie może zdekodować, wygene
 
 ### Analizator składniowy
 
-Parser odbiera strumień tokenów z leksera i tworzy strukturę obiektową kodu źródłowego. Metoda, którą parser będzie przetwarzał tokeny, zostanie ustalona w późniejszym etapie projektu. W przypadku błędów składniowych parser rzuca wyjątki z informacjami o położeniu błędnych elementów w kodzie.
+Analizator składniowy (parser) odbiera strumień tokenów z leksera i tworzy strukturę obiektową kodu źródłowego. 
+Parser przetwarza tokeny zgodnie z gramatyką języka, tworząc strukturę, 
+która reprezentuje hierarchię i relacje między elementami kodu.
 
-### Analizator semantyczny
+Parser zgłasza błędy w konkretnych przypadkach, takich jak:
 
-Analizator semantyczny sprawdza poprawność kodu na podstawie struktury obiektowej wygenerowanej przez parser. Weryfikuje obecność funkcji `main()` oraz analizuje użycie zmiennych – czy są zadeklarowane i czy stosowane w poprawnym kontekście. W przypadku znalezienia błędów semantycznych rzuca wyjątki, które zawierają informacje o położeniu i nazwie problematycznego elementu.
+- brakujące nawiasy,
+- nieprawidłowe użycie operatorów,
+- nieprawidłowe użycie słów kluczowych,
+- generalnie sprawdza poprawność składniową kodu.
 
 ### Interpreter struktury obiektowej
 
-Interpreter realizuje kod oparty na wygenerowanej strukturze obiektowej, ale przystępuje do pracy dopiero po pomyślnym zakończeniu analizy semantycznej. Zadaniem interpretera jest wykonywanie instrukcji, nadawanie wartości zmiennym oraz obsługa funkcji takich jak `print()`, która pozwala na wyświetlanie danych na standardowym wyjściu.
+Interpreter realizuje kod oparty na wygenerowanej strukturze obiektowej oraz sprawdza poprawność kodu:
+
+- czy dane 'expressions' mają odpowiedni typ.
+- czy zmienne są zadeklarowane.
+- czy zmienne są używane w odpowiednich kontekstach.
+- czy funkcje są wywoływane z odpowiednią liczbą argumentów.
+- czy funkcje są zadeklarowane.
+- czy funkcje zwracają wartość zgodnie z deklaracją.
+- obecności funkcji `Main()`.
 
 ## Testowanie
 
-Nie znam szczegółów na tym etapie projektu.
-
-Testy jednostkowe dla wszystkich modułów jeśli tylko będzie to możliwe oraz testy integracyjne obejmujące wcześniejsze etapy. Na biężąco wykonywane będą też testy manualne.
+Testy jednostkowe dla wszystkich modułów oraz testy integracyjne obejmujące wcześniejsze etapy. Na biężąco wykonywane będą też testy manualne.
 
 - **Analizator leksykalny**: Sprawdzenie, czy dla danego wejściowego ciągu znaków zwróci oczekiwany ciąg tokenów.
 - **Analizator składniowy**: Sprawdzenie, czy podany kod źródłowy lub ciąg tokenów generuje oczekiwaną hierarchię obiektów.
-- **Analizator semantyczny**: Sprawdzenie, czy przygotowany niepoprawny kod zwraca odpowiednie komunikaty o błędach – testowany program musi zawierać wyjątek z oczekiwanym komunikatem.
 - **Interpreter hierarchi obiektów**: Sprawdzenie, czy interpreter generuje oczekiwane wyniki
