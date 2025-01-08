@@ -431,6 +431,13 @@ std::unique_ptr<Declaration> ParserImpl::ParseDeclaration()
 			throw ParserException("Expected expression after = in assignment.", currentPosition);
 		}
 	}
+	else
+	{
+		if (!declaration->varMutable)
+		{
+			throw ParserException("Expected expression assignment with declaration if expression is not mutable.", currentPosition);
+		}
+	}
 
 	if (!ConsumeToken(LT::Semicolon))
 	{

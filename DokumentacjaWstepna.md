@@ -15,7 +15,7 @@
 
 ### Typy danych
 
-- Podstawowe typy liczbowe (`**int**`, `float`)
+- Podstawowe typy liczbowe (`int`, `float`)
 - Typ logiczny - `bool`
 - Typ tekstowy - `string`
 - Typowanie dynamiczne, słabe
