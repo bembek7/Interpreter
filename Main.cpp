@@ -7,6 +7,7 @@
 #include <fstream>
 #include "PathConfig.h"
 #include "Parser.h"
+#include "Interpreter.h"
 
 int main()
 {
@@ -22,7 +23,7 @@ int main()
 	std::istringstream codeStream(codeExample);
 	const auto tokens = lexer.Tokenize(codeStream*/
 
-	std::wifstream codeFile(CodesPath::exampleCodesPath + "TestCode.txt");
+	std::wifstream codeFile(CodesPath::exampleCodesPath + "TestCode3.txt");
 	if (!codeFile.is_open()) {
 		std::cerr << "Error opening file!" << std::endl;
 		return 1;
@@ -32,7 +33,10 @@ int main()
 
 	Parser parser = Parser(&lexer);
 
-	parser.ParseProgram();
+	auto program = parser.ParseProgram();
+
+	Interpreter interpreter;
+	interpreter.Interpret(program.get());
 
 	codeFile.close();
 	return 0;

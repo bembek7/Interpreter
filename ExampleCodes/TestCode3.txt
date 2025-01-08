@@ -1,0 +1,5 @@
+func Main()
+{
+    var e = [(a) { return a + 1; } >> (b) { return b * 2; }];
+    return e(5);
+}

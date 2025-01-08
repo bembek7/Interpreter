@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include <sstream>
 #include "Parser.h"
 #include "ComparePrograms.h"
@@ -9,6 +8,12 @@ using vecUni = std::vector<std::unique_ptr<T>>;
 
 class ParserTest : public ::testing::Test
 {
+public:
+	std::unique_ptr<Parser> CreateParser(const std::wstring& input)
+	{
+		auto lexer = std::make_unique<Lexer>(new std::wstringstream(input));
+		return std::make_unique<Parser>(lexer.get());
+	}
 };
 
 static std::unique_ptr<Multiplicative> MakeMultiplicativeFromFactor(std::unique_ptr<Factor> factor)
